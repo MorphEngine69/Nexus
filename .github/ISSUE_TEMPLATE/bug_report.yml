@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a problem with Nexus
+labels: [bug]
+body:
+  - type: input
+    id: mod-version
+    attributes:
+      label: Nexus version
+      placeholder: 1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: loader-version
+    attributes:
+      label: Minecraft / NeoForge version
+      placeholder: 26.2 / 26.2.0.88
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happens
+      description: What you expected and what happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Link to the full log or crash report.
+
+  - type: textarea
+    id: mods
+    attributes:
+      label: Other mods
+      description: Does it reproduce with only Nexus installed?

@@ -1,0 +1,37 @@
+# Gradle
+.gradle/
+build/
+out/
+bin/
+gradle-app.setting
+.gradletasknamecache
+
+# Minecraft dev runtime
+run/
+runs/
+run-data/
+logs/
+crash-reports/
+*.log
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.eclipse/
+.settings/
+.classpath
+.project
+.sonarlint/
+
+# Build output
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
