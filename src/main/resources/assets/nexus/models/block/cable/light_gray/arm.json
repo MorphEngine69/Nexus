@@ -1,0 +1,6 @@
+{
+  "parent": "nexus:block/cable/arm",
+  "textures": {
+    "cable": "nexus:block/cable/light_gray"
+  }
+}

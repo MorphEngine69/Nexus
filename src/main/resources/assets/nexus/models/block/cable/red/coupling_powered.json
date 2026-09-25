@@ -1,0 +1,6 @@
+{
+  "parent": "nexus:block/cable/coupling_powered",
+  "textures": {
+    "cable": "nexus:block/cable/red_powered"
+  }
+}

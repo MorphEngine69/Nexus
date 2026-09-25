@@ -1,0 +1,6 @@
+{
+  "parent": "nexus:block/cable/item",
+  "textures": {
+    "cable": "nexus:block/cable/lime"
+  }
+}

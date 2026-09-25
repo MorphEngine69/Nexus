@@ -1,0 +1,169 @@
+package com.morphengine.nexus.client.screen;
+
+import com.morphengine.nexus.block.entity.Renamable;
+import com.morphengine.nexus.menu.DeviceMenu;
+import com.morphengine.nexus.networking.DeviceRenamePayload;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import org.jspecify.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
+
+/**
+ * Base for the panel of a network device: a frame tinted with the network's
+ * color, a close cross, and a title the player renames by clicking it. Enter or
+ * a click elsewhere keeps the new name, Escape drops it. Designed for extension:
+ * subclasses pick the style and draw what lies below the header.
+ *
+ * @param <M> the device's menu
+ */
+abstract class DeviceScreen<M extends DeviceMenu<?>> extends AbstractContainerScreen<M> {
+
+    private static final int TITLE_LEFT = 8;
+    private static final int TITLE_TOP = 6;
+    private static final int TITLE_HEIGHT = 10;
+    private static final int CLOSE_AREA = 20;
+    private static final int UNDERLINE_GAP = 1;
+
+    private @Nullable CloseButton closeButton;
+    private @Nullable EditBox titleEditor;
+    private Component shownTitle;
+
+    protected DeviceScreen(
+            final M menu, final Inventory inventory, final Component title, final int width, final int height) {
+        super(menu, inventory, title, width, height);
+        this.shownTitle = title;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        closeButton = CloseButton.inHeaderOf(panelBounds());
+        titleEditor = null;
+    }
+
+    protected final PanelBounds panelBounds() {
+        return new PanelBounds(leftPos, topPos, imageWidth, imageHeight);
+    }
+
+    /**
+     * @return the name shown in the header; the device's name unless overridden
+     */
+    protected Component panelTitle() {
+        return shownTitle;
+    }
+
+    protected abstract PanelStyle style();
+
+    /**
+     * Draws everything below the header.
+     */
+    protected abstract void extractPanel(GuiGraphicsExtractor graphics, PanelStyle style, int mouseX, int mouseY);
+
+    @Override
+    public final void extractBackground(
+            final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float partialTick) {
+        final PanelStyle style = style();
+        style.drawFrame(graphics, font, panelBounds(), titleEditor != null ? Component.empty() : panelTitle());
+        if (closeButton != null) {
+            closeButton.draw(graphics);
+        }
+        final PanelBounds title = titleBounds();
+        if (titleEditor != null || title.contains(mouseX, mouseY)) {
+            final int underline = title.top() + title.height() + UNDERLINE_GAP;
+            graphics.fill(title.left(), underline, title.left() + title.width(), underline + 1, style.border());
+        }
+        extractPanel(graphics, style, mouseX, mouseY);
+    }
+
+    @Override
+    protected final void extractLabels(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
+    }
+
+    private PanelBounds titleBounds() {
+        return new PanelBounds(leftPos + TITLE_LEFT, topPos + TITLE_TOP,
+                imageWidth - TITLE_LEFT - CLOSE_AREA, TITLE_HEIGHT);
+    }
+
+    @Override
+    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+        if (closeButton != null && closeButton.contains(event.x(), event.y())) {
+            onClose();
+            return true;
+        }
+        final boolean onTitle = titleBounds().contains(event.x(), event.y());
+        if (titleEditor != null && !onTitle) {
+            commitTitle();
+        } else if (titleEditor == null && onTitle) {
+            startEditingTitle();
+            return true;
+        }
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    @Override
+    public boolean keyPressed(final KeyEvent event) {
+        final EditBox editor = titleEditor;
+        if (editor == null) {
+            return super.keyPressed(event);
+        }
+        switch (event.key()) {
+            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> commitTitle();
+            case GLFW.GLFW_KEY_ESCAPE -> stopEditingTitle();
+            default -> editor.keyPressed(event);
+        }
+        return true;
+    }
+
+    @Override
+    public void removed() {
+        if (titleEditor != null) {
+            commitTitle();
+        }
+        super.removed();
+    }
+
+    private void startEditingTitle() {
+        final PanelBounds bounds = titleBounds();
+        final EditBox editor = new EditBox(
+                font, bounds.left(), bounds.top(), bounds.width(), bounds.height(), panelTitle());
+        editor.setBordered(false);
+        editor.setMaxLength(Renamable.MAX_NAME_LENGTH);
+        editor.setTextColor(PanelStyle.TEXT_LIGHT);
+        editor.setValue(panelTitle().getString());
+        titleEditor = addRenderableWidget(editor);
+        setFocused(editor);
+    }
+
+    private void commitTitle() {
+        final EditBox editor = titleEditor;
+        if (editor == null) {
+            return;
+        }
+        final String name = editor.getValue().strip();
+        stopEditingTitle();
+        if (name.equals(panelTitle().getString())) {
+            return;
+        }
+        ClientPacketDistributor.sendToServer(new DeviceRenamePayload(getMenu().pos(), name));
+        shownTitle = name.isEmpty() ? defaultTitle() : Component.literal(name);
+    }
+
+    private void stopEditingTitle() {
+        if (titleEditor != null) {
+            removeWidget(titleEditor);
+            titleEditor = null;
+        }
+    }
+
+    private Component defaultTitle() {
+        final BlockEntity device = getMenu().blockEntity();
+        return device != null ? device.getBlockState().getBlock().getName() : title;
+    }
+}

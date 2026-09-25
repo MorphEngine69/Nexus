@@ -1,0 +1,213 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "generator": "nexus:block/coal_generator/blue",
+    "particle": "nexus:block/coal_generator/blue"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        5,
+        1
+      ],
+      "to": [
+        12,
+        6,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            5.0,
+            4.0,
+            5.5
+          ],
+          "texture": "#generator"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#generator"
+        },
+        "west": {
+          "uv": [
+            4.0,
+            5.0,
+            4.5,
+            5.5
+          ],
+          "texture": "#generator"
+        },
+        "east": {
+          "uv": [
+            4.0,
+            5.0,
+            4.5,
+            5.5
+          ],
+          "texture": "#generator"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#generator"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#generator"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        7,
+        1
+      ],
+      "to": [
+        12,
+        8,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            5.0,
+            4.0,
+            5.5
+          ],
+          "texture": "#generator"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#generator"
+        },
+        "west": {
+          "uv": [
+            4.0,
+            5.0,
+            4.5,
+            5.5
+          ],
+          "texture": "#generator"
+        },
+        "east": {
+          "uv": [
+            4.0,
+            5.0,
+            4.5,
+            5.5
+          ],
+          "texture": "#generator"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#generator"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#generator"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        9,
+        1
+      ],
+      "to": [
+        12,
+        10,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            5.0,
+            4.0,
+            5.5
+          ],
+          "texture": "#generator"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#generator"
+        },
+        "west": {
+          "uv": [
+            4.0,
+            5.0,
+            4.5,
+            5.5
+          ],
+          "texture": "#generator"
+        },
+        "east": {
+          "uv": [
+            4.0,
+            5.0,
+            4.5,
+            5.5
+          ],
+          "texture": "#generator"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#generator"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#generator"
+        }
+      }
+    }
+  ]
+}
