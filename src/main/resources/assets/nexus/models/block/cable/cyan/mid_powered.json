@@ -1,0 +1,6 @@
+{
+  "parent": "nexus:block/cable/mid_powered",
+  "textures": {
+    "cable": "nexus:block/cable/cyan_powered"
+  }
+}

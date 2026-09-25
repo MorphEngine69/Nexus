@@ -35,3 +35,9 @@ crash-reports/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Python
+__pycache__/
+
+# Art sources (Blockbench projects, generator scripts)
+art/

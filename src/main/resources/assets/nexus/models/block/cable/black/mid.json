@@ -1,0 +1,6 @@
+{
+  "parent": "nexus:block/cable/mid",
+  "textures": {
+    "cable": "nexus:block/cable/black"
+  }
+}
