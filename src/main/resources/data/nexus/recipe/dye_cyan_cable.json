@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "nexus_cable",
+  "ingredients": [
+    "#c:dyes/cyan",
+    "#nexus:cables"
+  ],
+  "result": {
+    "id": "nexus:cyan_cable"
+  }
+}

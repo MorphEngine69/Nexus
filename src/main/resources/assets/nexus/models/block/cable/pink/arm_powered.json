@@ -1,0 +1,6 @@
+{
+  "parent": "nexus:block/cable/arm_powered",
+  "textures": {
+    "cable": "nexus:block/cable/pink_powered"
+  }
+}

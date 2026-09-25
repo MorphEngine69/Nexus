@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "nexus_cable",
+  "ingredients": [
+    "#c:dyes/light_gray",
+    "#nexus:cables"
+  ],
+  "result": {
+    "id": "nexus:light_gray_cable"
+  }
+}

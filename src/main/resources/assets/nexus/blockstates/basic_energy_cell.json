@@ -1,0 +1,2793 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/body"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_north"
+      },
+      "when": {
+        "network_color": "white",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_north_charging"
+      },
+      "when": {
+        "network_color": "white",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_north"
+      },
+      "when": {
+        "network_color": "white",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_north"
+      },
+      "when": {
+        "network_color": "orange",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_north_charging"
+      },
+      "when": {
+        "network_color": "orange",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_north"
+      },
+      "when": {
+        "network_color": "orange",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_north"
+      },
+      "when": {
+        "network_color": "magenta",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_north_charging"
+      },
+      "when": {
+        "network_color": "magenta",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_north"
+      },
+      "when": {
+        "network_color": "magenta",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_north"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_north_charging"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_north"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_north"
+      },
+      "when": {
+        "network_color": "yellow",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_north_charging"
+      },
+      "when": {
+        "network_color": "yellow",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_north"
+      },
+      "when": {
+        "network_color": "yellow",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_north"
+      },
+      "when": {
+        "network_color": "lime",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_north_charging"
+      },
+      "when": {
+        "network_color": "lime",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_north"
+      },
+      "when": {
+        "network_color": "lime",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_north"
+      },
+      "when": {
+        "network_color": "pink",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_north_charging"
+      },
+      "when": {
+        "network_color": "pink",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_north"
+      },
+      "when": {
+        "network_color": "pink",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_north"
+      },
+      "when": {
+        "network_color": "gray",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_north_charging"
+      },
+      "when": {
+        "network_color": "gray",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_north"
+      },
+      "when": {
+        "network_color": "gray",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_north"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_north_charging"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_north"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_north"
+      },
+      "when": {
+        "network_color": "cyan",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_north_charging"
+      },
+      "when": {
+        "network_color": "cyan",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_north"
+      },
+      "when": {
+        "network_color": "cyan",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_north"
+      },
+      "when": {
+        "network_color": "purple",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_north_charging"
+      },
+      "when": {
+        "network_color": "purple",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_north"
+      },
+      "when": {
+        "network_color": "purple",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_north"
+      },
+      "when": {
+        "network_color": "blue",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_north_charging"
+      },
+      "when": {
+        "network_color": "blue",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_north"
+      },
+      "when": {
+        "network_color": "blue",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_north"
+      },
+      "when": {
+        "network_color": "brown",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_north_charging"
+      },
+      "when": {
+        "network_color": "brown",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_north"
+      },
+      "when": {
+        "network_color": "brown",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_north"
+      },
+      "when": {
+        "network_color": "green",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_north_charging"
+      },
+      "when": {
+        "network_color": "green",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_north"
+      },
+      "when": {
+        "network_color": "green",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_north"
+      },
+      "when": {
+        "network_color": "red",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_north_charging"
+      },
+      "when": {
+        "network_color": "red",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_north"
+      },
+      "when": {
+        "network_color": "red",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_north"
+      },
+      "when": {
+        "network_color": "black",
+        "north": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_north_charging"
+      },
+      "when": {
+        "network_color": "black",
+        "north": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_north"
+      },
+      "when": {
+        "network_color": "black",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_south"
+      },
+      "when": {
+        "network_color": "white",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_south_charging"
+      },
+      "when": {
+        "network_color": "white",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_south"
+      },
+      "when": {
+        "network_color": "white",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_south"
+      },
+      "when": {
+        "network_color": "orange",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_south_charging"
+      },
+      "when": {
+        "network_color": "orange",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_south"
+      },
+      "when": {
+        "network_color": "orange",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_south"
+      },
+      "when": {
+        "network_color": "magenta",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_south_charging"
+      },
+      "when": {
+        "network_color": "magenta",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_south"
+      },
+      "when": {
+        "network_color": "magenta",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_south"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_south_charging"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_south"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_south"
+      },
+      "when": {
+        "network_color": "yellow",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_south_charging"
+      },
+      "when": {
+        "network_color": "yellow",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_south"
+      },
+      "when": {
+        "network_color": "yellow",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_south"
+      },
+      "when": {
+        "network_color": "lime",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_south_charging"
+      },
+      "when": {
+        "network_color": "lime",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_south"
+      },
+      "when": {
+        "network_color": "lime",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_south"
+      },
+      "when": {
+        "network_color": "pink",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_south_charging"
+      },
+      "when": {
+        "network_color": "pink",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_south"
+      },
+      "when": {
+        "network_color": "pink",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_south"
+      },
+      "when": {
+        "network_color": "gray",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_south_charging"
+      },
+      "when": {
+        "network_color": "gray",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_south"
+      },
+      "when": {
+        "network_color": "gray",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_south"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_south_charging"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_south"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_south"
+      },
+      "when": {
+        "network_color": "cyan",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_south_charging"
+      },
+      "when": {
+        "network_color": "cyan",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_south"
+      },
+      "when": {
+        "network_color": "cyan",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_south"
+      },
+      "when": {
+        "network_color": "purple",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_south_charging"
+      },
+      "when": {
+        "network_color": "purple",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_south"
+      },
+      "when": {
+        "network_color": "purple",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_south"
+      },
+      "when": {
+        "network_color": "blue",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_south_charging"
+      },
+      "when": {
+        "network_color": "blue",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_south"
+      },
+      "when": {
+        "network_color": "blue",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_south"
+      },
+      "when": {
+        "network_color": "brown",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_south_charging"
+      },
+      "when": {
+        "network_color": "brown",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_south"
+      },
+      "when": {
+        "network_color": "brown",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_south"
+      },
+      "when": {
+        "network_color": "green",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_south_charging"
+      },
+      "when": {
+        "network_color": "green",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_south"
+      },
+      "when": {
+        "network_color": "green",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_south"
+      },
+      "when": {
+        "network_color": "red",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_south_charging"
+      },
+      "when": {
+        "network_color": "red",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_south"
+      },
+      "when": {
+        "network_color": "red",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_south"
+      },
+      "when": {
+        "network_color": "black",
+        "south": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_south_charging"
+      },
+      "when": {
+        "network_color": "black",
+        "south": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_south"
+      },
+      "when": {
+        "network_color": "black",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_west"
+      },
+      "when": {
+        "network_color": "white",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_west_charging"
+      },
+      "when": {
+        "network_color": "white",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_west"
+      },
+      "when": {
+        "network_color": "white",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_west"
+      },
+      "when": {
+        "network_color": "orange",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_west_charging"
+      },
+      "when": {
+        "network_color": "orange",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_west"
+      },
+      "when": {
+        "network_color": "orange",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_west"
+      },
+      "when": {
+        "network_color": "magenta",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_west_charging"
+      },
+      "when": {
+        "network_color": "magenta",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_west"
+      },
+      "when": {
+        "network_color": "magenta",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_west"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_west_charging"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_west"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_west"
+      },
+      "when": {
+        "network_color": "yellow",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_west_charging"
+      },
+      "when": {
+        "network_color": "yellow",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_west"
+      },
+      "when": {
+        "network_color": "yellow",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_west"
+      },
+      "when": {
+        "network_color": "lime",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_west_charging"
+      },
+      "when": {
+        "network_color": "lime",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_west"
+      },
+      "when": {
+        "network_color": "lime",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_west"
+      },
+      "when": {
+        "network_color": "pink",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_west_charging"
+      },
+      "when": {
+        "network_color": "pink",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_west"
+      },
+      "when": {
+        "network_color": "pink",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_west"
+      },
+      "when": {
+        "network_color": "gray",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_west_charging"
+      },
+      "when": {
+        "network_color": "gray",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_west"
+      },
+      "when": {
+        "network_color": "gray",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_west"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_west_charging"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_west"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_west"
+      },
+      "when": {
+        "network_color": "cyan",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_west_charging"
+      },
+      "when": {
+        "network_color": "cyan",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_west"
+      },
+      "when": {
+        "network_color": "cyan",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_west"
+      },
+      "when": {
+        "network_color": "purple",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_west_charging"
+      },
+      "when": {
+        "network_color": "purple",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_west"
+      },
+      "when": {
+        "network_color": "purple",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_west"
+      },
+      "when": {
+        "network_color": "blue",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_west_charging"
+      },
+      "when": {
+        "network_color": "blue",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_west"
+      },
+      "when": {
+        "network_color": "blue",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_west"
+      },
+      "when": {
+        "network_color": "brown",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_west_charging"
+      },
+      "when": {
+        "network_color": "brown",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_west"
+      },
+      "when": {
+        "network_color": "brown",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_west"
+      },
+      "when": {
+        "network_color": "green",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_west_charging"
+      },
+      "when": {
+        "network_color": "green",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_west"
+      },
+      "when": {
+        "network_color": "green",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_west"
+      },
+      "when": {
+        "network_color": "red",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_west_charging"
+      },
+      "when": {
+        "network_color": "red",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_west"
+      },
+      "when": {
+        "network_color": "red",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_west"
+      },
+      "when": {
+        "network_color": "black",
+        "west": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_west_charging"
+      },
+      "when": {
+        "network_color": "black",
+        "west": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_west"
+      },
+      "when": {
+        "network_color": "black",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_east"
+      },
+      "when": {
+        "network_color": "white",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_east_charging"
+      },
+      "when": {
+        "network_color": "white",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_east"
+      },
+      "when": {
+        "network_color": "white",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_east"
+      },
+      "when": {
+        "network_color": "orange",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_east_charging"
+      },
+      "when": {
+        "network_color": "orange",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_east"
+      },
+      "when": {
+        "network_color": "orange",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_east"
+      },
+      "when": {
+        "network_color": "magenta",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_east_charging"
+      },
+      "when": {
+        "network_color": "magenta",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_east"
+      },
+      "when": {
+        "network_color": "magenta",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_east"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_east_charging"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_east"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_east"
+      },
+      "when": {
+        "network_color": "yellow",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_east_charging"
+      },
+      "when": {
+        "network_color": "yellow",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_east"
+      },
+      "when": {
+        "network_color": "yellow",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_east"
+      },
+      "when": {
+        "network_color": "lime",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_east_charging"
+      },
+      "when": {
+        "network_color": "lime",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_east"
+      },
+      "when": {
+        "network_color": "lime",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_east"
+      },
+      "when": {
+        "network_color": "pink",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_east_charging"
+      },
+      "when": {
+        "network_color": "pink",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_east"
+      },
+      "when": {
+        "network_color": "pink",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_east"
+      },
+      "when": {
+        "network_color": "gray",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_east_charging"
+      },
+      "when": {
+        "network_color": "gray",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_east"
+      },
+      "when": {
+        "network_color": "gray",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_east"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_east_charging"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_east"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_east"
+      },
+      "when": {
+        "network_color": "cyan",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_east_charging"
+      },
+      "when": {
+        "network_color": "cyan",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_east"
+      },
+      "when": {
+        "network_color": "cyan",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_east"
+      },
+      "when": {
+        "network_color": "purple",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_east_charging"
+      },
+      "when": {
+        "network_color": "purple",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_east"
+      },
+      "when": {
+        "network_color": "purple",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_east"
+      },
+      "when": {
+        "network_color": "blue",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_east_charging"
+      },
+      "when": {
+        "network_color": "blue",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_east"
+      },
+      "when": {
+        "network_color": "blue",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_east"
+      },
+      "when": {
+        "network_color": "brown",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_east_charging"
+      },
+      "when": {
+        "network_color": "brown",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_east"
+      },
+      "when": {
+        "network_color": "brown",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_east"
+      },
+      "when": {
+        "network_color": "green",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_east_charging"
+      },
+      "when": {
+        "network_color": "green",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_east"
+      },
+      "when": {
+        "network_color": "green",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_east"
+      },
+      "when": {
+        "network_color": "red",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_east_charging"
+      },
+      "when": {
+        "network_color": "red",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_east"
+      },
+      "when": {
+        "network_color": "red",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_east"
+      },
+      "when": {
+        "network_color": "black",
+        "east": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_east_charging"
+      },
+      "when": {
+        "network_color": "black",
+        "east": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_east"
+      },
+      "when": {
+        "network_color": "black",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_down"
+      },
+      "when": {
+        "network_color": "white",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_down_charging"
+      },
+      "when": {
+        "network_color": "white",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_down"
+      },
+      "when": {
+        "network_color": "white",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_down"
+      },
+      "when": {
+        "network_color": "orange",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_down_charging"
+      },
+      "when": {
+        "network_color": "orange",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_down"
+      },
+      "when": {
+        "network_color": "orange",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_down"
+      },
+      "when": {
+        "network_color": "magenta",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_down_charging"
+      },
+      "when": {
+        "network_color": "magenta",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_down"
+      },
+      "when": {
+        "network_color": "magenta",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_down"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_down_charging"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_down"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_down"
+      },
+      "when": {
+        "network_color": "yellow",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_down_charging"
+      },
+      "when": {
+        "network_color": "yellow",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_down"
+      },
+      "when": {
+        "network_color": "yellow",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_down"
+      },
+      "when": {
+        "network_color": "lime",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_down_charging"
+      },
+      "when": {
+        "network_color": "lime",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_down"
+      },
+      "when": {
+        "network_color": "lime",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_down"
+      },
+      "when": {
+        "network_color": "pink",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_down_charging"
+      },
+      "when": {
+        "network_color": "pink",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_down"
+      },
+      "when": {
+        "network_color": "pink",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_down"
+      },
+      "when": {
+        "network_color": "gray",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_down_charging"
+      },
+      "when": {
+        "network_color": "gray",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_down"
+      },
+      "when": {
+        "network_color": "gray",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_down"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_down_charging"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_down"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_down"
+      },
+      "when": {
+        "network_color": "cyan",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_down_charging"
+      },
+      "when": {
+        "network_color": "cyan",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_down"
+      },
+      "when": {
+        "network_color": "cyan",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_down"
+      },
+      "when": {
+        "network_color": "purple",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_down_charging"
+      },
+      "when": {
+        "network_color": "purple",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_down"
+      },
+      "when": {
+        "network_color": "purple",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_down"
+      },
+      "when": {
+        "network_color": "blue",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_down_charging"
+      },
+      "when": {
+        "network_color": "blue",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_down"
+      },
+      "when": {
+        "network_color": "blue",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_down"
+      },
+      "when": {
+        "network_color": "brown",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_down_charging"
+      },
+      "when": {
+        "network_color": "brown",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_down"
+      },
+      "when": {
+        "network_color": "brown",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_down"
+      },
+      "when": {
+        "network_color": "green",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_down_charging"
+      },
+      "when": {
+        "network_color": "green",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_down"
+      },
+      "when": {
+        "network_color": "green",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_down"
+      },
+      "when": {
+        "network_color": "red",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_down_charging"
+      },
+      "when": {
+        "network_color": "red",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_down"
+      },
+      "when": {
+        "network_color": "red",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_down"
+      },
+      "when": {
+        "network_color": "black",
+        "down": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_down_charging"
+      },
+      "when": {
+        "network_color": "black",
+        "down": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_down"
+      },
+      "when": {
+        "network_color": "black",
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_up"
+      },
+      "when": {
+        "network_color": "white",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/white/bars_up_charging"
+      },
+      "when": {
+        "network_color": "white",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_up"
+      },
+      "when": {
+        "network_color": "white",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_up"
+      },
+      "when": {
+        "network_color": "orange",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/orange/bars_up_charging"
+      },
+      "when": {
+        "network_color": "orange",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_up"
+      },
+      "when": {
+        "network_color": "orange",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_up"
+      },
+      "when": {
+        "network_color": "magenta",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/magenta/bars_up_charging"
+      },
+      "when": {
+        "network_color": "magenta",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_up"
+      },
+      "when": {
+        "network_color": "magenta",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_up"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_blue/bars_up_charging"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_up"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_up"
+      },
+      "when": {
+        "network_color": "yellow",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/yellow/bars_up_charging"
+      },
+      "when": {
+        "network_color": "yellow",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_up"
+      },
+      "when": {
+        "network_color": "yellow",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_up"
+      },
+      "when": {
+        "network_color": "lime",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/lime/bars_up_charging"
+      },
+      "when": {
+        "network_color": "lime",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_up"
+      },
+      "when": {
+        "network_color": "lime",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_up"
+      },
+      "when": {
+        "network_color": "pink",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/pink/bars_up_charging"
+      },
+      "when": {
+        "network_color": "pink",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_up"
+      },
+      "when": {
+        "network_color": "pink",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_up"
+      },
+      "when": {
+        "network_color": "gray",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/gray/bars_up_charging"
+      },
+      "when": {
+        "network_color": "gray",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_up"
+      },
+      "when": {
+        "network_color": "gray",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_up"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/light_gray/bars_up_charging"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_up"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_up"
+      },
+      "when": {
+        "network_color": "cyan",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/cyan/bars_up_charging"
+      },
+      "when": {
+        "network_color": "cyan",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_up"
+      },
+      "when": {
+        "network_color": "cyan",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_up"
+      },
+      "when": {
+        "network_color": "purple",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/purple/bars_up_charging"
+      },
+      "when": {
+        "network_color": "purple",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_up"
+      },
+      "when": {
+        "network_color": "purple",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_up"
+      },
+      "when": {
+        "network_color": "blue",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/blue/bars_up_charging"
+      },
+      "when": {
+        "network_color": "blue",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_up"
+      },
+      "when": {
+        "network_color": "blue",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_up"
+      },
+      "when": {
+        "network_color": "brown",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/brown/bars_up_charging"
+      },
+      "when": {
+        "network_color": "brown",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_up"
+      },
+      "when": {
+        "network_color": "brown",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_up"
+      },
+      "when": {
+        "network_color": "green",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/green/bars_up_charging"
+      },
+      "when": {
+        "network_color": "green",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_up"
+      },
+      "when": {
+        "network_color": "green",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_up"
+      },
+      "when": {
+        "network_color": "red",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/red/bars_up_charging"
+      },
+      "when": {
+        "network_color": "red",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_up"
+      },
+      "when": {
+        "network_color": "red",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_up"
+      },
+      "when": {
+        "network_color": "black",
+        "up": "false",
+        "charging": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/energy_cell/basic/black/bars_up_charging"
+      },
+      "when": {
+        "network_color": "black",
+        "up": "false",
+        "charging": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_up"
+      },
+      "when": {
+        "network_color": "black",
+        "up": "true"
+      }
+    }
+  ]
+}
