@@ -39,6 +39,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename the Nexus, the Energy Cell and the Coal Generator by clicking the
   title of their panel. A device keeps its name when broken and placed again.
 - Hovering the flame in the Coal Generator panel shows how long the fuel burns.
+- Storage Vault: a drive cabinet that holds up to 16 Vault Cells and puts
+  their contents into the network. Its front shows all 16 cartridges; a lamp
+  on each glows green while
+  the cell has room, orange when it has run out of types or of space, red when
+  it has run out of both, and stays dark for an empty bay or when the network
+  has no energy. Give each vault a priority in its panel: higher priority
+  vaults fill first and are emptied last.
+- Vault Cells for items and for fluids in six sizes, 1k to 512k. A cell holds
+  up to 64 kinds of items or 8 kinds of fluids, and every kind takes some of
+  its space. Cells keep their contents when taken out of a vault.
+- Use a Vault Cell in hand to open its panel: see how full it is, rename it
+  and set a whitelist or blacklist of up to 9 items or fluids. Click a filter
+  slot with an item, or with a bucket for a fluid cell; right-click to clear it.
+  Items go first to cells whose whitelist lists them.
+- Terminal: attaches to a cable like a small screen and shows everything the
+  network stores. Take a stack with a left click, half a stack with a right
+  click, shift-click to move a stack into your inventory. Click with items to
+  store them, or shift-click them in your inventory. Click with a bucket or
+  tank to pour its fluid into the network, or click a fluid to fill it.
+- The terminal has a search box (start a word with @ to search by mod) and
+  buttons beside it to sort by amount, name, mod or id, flip the order, show
+  only items or only fluids, and pick a small, medium, large or full screen
+  window. Each size shows as much as fits the game window. The terminal
+  remembers these choices.
+- The two terminals are easy to tell apart: the Terminal's screen shows a
+  search bar over rows of items, the Crafting Terminal's a row of items over a
+  crafting grid and its result, even without energy.
+- A cross at the end of the terminal's search box clears it. Erasing the text
+  or clicking elsewhere lets the panel's keys work again.
+- Crafting Terminal: a terminal with a crafting grid. Crafting refills the
+  grid from the network, so shift-clicking the result crafts as long as the
+  ingredients last. The Clear button returns the grid to the network.
+- Terminals need energy in the network: without it they show that the
+  network has no power and their screen goes dark.
+- JEI and REI support: the "+" button of a crafting recipe lays it out on the
+  Crafting Terminal's grid with items from your inventory and the network,
+  and marks the ingredients nobody has. Shift-click it to lay out as many
+  crafts as your items last for.
+- Drag an item or a fluid from JEI or REI onto a Vault Cell's filter slot to
+  list it there, without having it in your inventory. The recipe and usage keys work on the
+  items and fluids a terminal lists.
 
 ### Changed
 
@@ -46,5 +87,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Larger Energy Cell and Coal Generator panels; slots are lighter so items
   stand out.
 - The Nexus panel has no Rename button any more: click the title instead.
+- Slimmer panel headers with a smaller title.
 
 ### Fixed
