@@ -37,11 +37,6 @@ public final class StoragePayloadHandlers {
         registrar.playToServer(CellRenamePayload.TYPE, CellRenamePayload.STREAM_CODEC,
                 (payload, context) -> onCellMenu(context, payload.containerId(),
                         menu -> menu.rename(payload.name())));
-        registrar.playToServer(CellFilterPayload.TYPE, CellFilterPayload.STREAM_CODEC,
-                (payload, context) -> onCellMenu(context, payload.containerId(),
-                        menu -> menu.setFilterSlot(payload.slot(), payload.resource())));
-        registrar.playToServer(CellFilterModePayload.TYPE, CellFilterModePayload.STREAM_CODEC,
-                (payload, context) -> onCellMenu(context, payload.containerId(), VaultCellMenu::toggleFilterMode));
         registrar.playToServer(TerminalClickPayload.TYPE, TerminalClickPayload.STREAM_CODEC,
                 StoragePayloadHandlers::handleTerminalClick);
         registrar.playToServer(TerminalSettingsPayload.TYPE, TerminalSettingsPayload.STREAM_CODEC,

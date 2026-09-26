@@ -35,6 +35,10 @@ public final class NexusItems {
     public static final DeferredItem<BlockItem> CRAFTING_TERMINAL =
             ITEMS.registerSimpleBlockItem(NexusBlocks.CRAFTING_TERMINAL);
 
+    public static final DeferredItem<BlockItem> PULLER = ITEMS.registerSimpleBlockItem(NexusBlocks.PULLER);
+
+    public static final DeferredItem<BlockItem> PUSHER = ITEMS.registerSimpleBlockItem(NexusBlocks.PUSHER);
+
     public static final Map<DyeColor, DeferredItem<BlockItem>> CABLES = registerCables();
 
     /** Every Vault Cell, by what it stores and its size. */

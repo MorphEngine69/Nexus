@@ -22,9 +22,7 @@ public final class StorageVaultScreen extends PanelScreen<StorageVaultMenu> {
 
     private static final int IMAGE_WIDTH = 200;
     private static final int IMAGE_HEIGHT = StorageVaultMenu.INVENTORY_TOP + 84;
-    private static final int PADDING = 10;
-    private static final int NETWORK_TOP = 22;
-    private static final int PRIORITY_TOP = 36;
+    private static final int PRIORITY_TOP = 32;
     private static final int BUTTON_WIDTH = 22;
     private static final int BUTTON_HEIGHT = 14;
     private static final int BUTTON_GAP = 2;
@@ -48,8 +46,8 @@ public final class StorageVaultScreen extends PanelScreen<StorageVaultMenu> {
     protected void init() {
         super.init();
         buttons.clear();
-        final int firstLeft = leftPos + IMAGE_WIDTH - PADDING - BUTTON_LABELS.length * (BUTTON_WIDTH + BUTTON_GAP)
-                + BUTTON_GAP;
+        final int firstLeft = leftPos + IMAGE_WIDTH - PanelStyle.PADDING
+                - BUTTON_LABELS.length * (BUTTON_WIDTH + BUTTON_GAP) + BUTTON_GAP;
         for (int i = 0; i < BUTTON_LABELS.length; i++) {
             buttons.add(new PanelBounds(firstLeft + i * (BUTTON_WIDTH + BUTTON_GAP), topPos + PRIORITY_TOP,
                     BUTTON_WIDTH, BUTTON_HEIGHT));
@@ -58,19 +56,16 @@ public final class StorageVaultScreen extends PanelScreen<StorageVaultMenu> {
 
     @Override
     protected PanelStyle style() {
-        final NetworkBadge network = getMenu().badge();
-        return network != null ? PanelStyle.tinted(network.color().rgb()) : PanelStyle.neutral();
+        return PanelStyle.of(getMenu().badge());
     }
 
     @Override
     protected void extractPanel(
             final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final NetworkBadge network = getMenu().badge();
-        graphics.text(font, network != null ? Component.translatable("gui.nexus.network", network.name())
-                : Component.translatable("gui.nexus.no_network"),
-                leftPos + PADDING, topPos + NETWORK_TOP, PanelStyle.TEXT_DIM, false);
+        PanelStyle.drawNetwork(graphics, font, network, leftPos, topPos);
         graphics.text(font, Component.translatable("gui.nexus.vault.priority", getMenu().priority()),
-                leftPos + PADDING, topPos + PRIORITY_TOP + (BUTTON_HEIGHT - font.lineHeight) / 2 + 1,
+                leftPos + PanelStyle.PADDING, topPos + PRIORITY_TOP + (BUTTON_HEIGHT - font.lineHeight) / 2 + 1,
                 PanelStyle.TEXT_LIGHT, false);
         for (int i = 0; i < buttons.size(); i++) {
             style.drawButton(graphics, font, buttons.get(i), Component.literal(BUTTON_LABELS[i]));

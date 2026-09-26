@@ -51,6 +51,23 @@ public final class SideConnections {
         return state.setValue(property(side), attached);
     }
 
+    public static boolean isAttached(final BlockState state, final Direction side) {
+        return state.getValue(property(side));
+    }
+
+    /**
+     * @return one bit per side with something attached, bit {@code side.ordinal()}
+     */
+    public static int attachedMask(final BlockState state) {
+        int mask = 0;
+        for (Direction side : Direction.values()) {
+            if (state.getValue(property(side))) {
+                mask |= 1 << side.ordinal();
+            }
+        }
+        return mask;
+    }
+
     private static BooleanProperty property(final Direction side) {
         return PipeBlock.PROPERTY_BY_DIRECTION.get(side);
     }

@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block;
 
+import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.Paint;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,6 +19,13 @@ public interface NetworkBlock {
      */
     default boolean isDevice() {
         return true;
+    }
+
+    /**
+     * @return what the device does in its network, as the Nexus interface counts it
+     */
+    default DeviceRole role() {
+        return DeviceRole.OTHER;
     }
 
     /**

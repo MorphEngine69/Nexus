@@ -5,6 +5,7 @@ import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.storage.CellSpec;
 import com.morphengine.nexus.api.storage.CellUsage;
 import com.morphengine.nexus.block.entity.Renamable;
+import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.menu.VaultCellMenu;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.storage.CellStorage;
@@ -72,8 +73,8 @@ public final class VaultCellItem extends Item {
         return stack.getOrDefault(NexusDataComponents.CELL_CONTENTS.get(), CellContents.EMPTY).contents();
     }
 
-    public static CellFilter filterOf(final ItemStack stack) {
-        return stack.getOrDefault(NexusDataComponents.CELL_FILTER.get(), CellFilter.EMPTY);
+    public static FilterSlots filterOf(final ItemStack stack) {
+        return stack.getOrDefault(NexusDataComponents.CELL_FILTER.get(), FilterSlots.EMPTY);
     }
 
     @Override
@@ -99,7 +100,7 @@ public final class VaultCellItem extends Item {
                 grouped(usage.usedBytes()), grouped(usage.totalBytes())).withStyle(ChatFormatting.GRAY));
         builder.accept(Component.translatable("tooltip.nexus.cell.types",
                 usage.storedTypes(), usage.maxTypes()).withStyle(ChatFormatting.GRAY));
-        final CellFilter filter = filterOf(stack);
+        final FilterSlots filter = filterOf(stack);
         if (!filter.entries().isEmpty()) {
             final String key = filter.mode() == FilterMode.ALLOW
                     ? "tooltip.nexus.cell.whitelist" : "tooltip.nexus.cell.blacklist";

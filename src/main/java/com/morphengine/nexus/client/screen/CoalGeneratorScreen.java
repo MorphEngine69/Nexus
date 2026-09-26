@@ -16,14 +16,13 @@ import net.minecraft.world.inventory.Slot;
 public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
 
     private static final int IMAGE_WIDTH = 200;
-    private static final int IMAGE_HEIGHT = 196;
+    private static final int IMAGE_HEIGHT = 192;
     private static final int FLAME_RGB = 0xFFD8843A;
     private static final int FLAME_X = 52;
     private static final int FLAME_WIDTH = 6;
     private static final int BAR_X = 70;
-    private static final int BAR_Y = 42;
+    private static final int BAR_Y = 38;
     private static final int BAR_HEIGHT = 12;
-    private static final int PADDING = 10;
     private static final int LINE_HEIGHT = 11;
     private static final int TEXT_GAP = 3;
     private static final int INVENTORY_LABEL_GAP = 11;
@@ -41,7 +40,7 @@ public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
     @Override
     protected PanelStyle style() {
         final NetworkBadge network = getMenu().view().network();
-        return network != null ? PanelStyle.tinted(network.color().rgb()) : PanelStyle.neutral();
+        return PanelStyle.of(network);
     }
 
     @Override
@@ -49,11 +48,7 @@ public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
             final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final CoalGeneratorView view = getMenu().view();
         final NetworkBadge network = view.network();
-        final Component networkLine = network != null
-                ? Component.translatable("gui.nexus.network", network.name())
-                : Component.translatable("gui.nexus.no_network");
-        graphics.text(font, networkLine, leftPos + PADDING, topPos + PanelStyle.HEADER_HEIGHT + PADDING,
-                PanelStyle.TEXT_DIM, false);
+        PanelStyle.drawNetwork(graphics, font, network, leftPos, topPos);
         for (Slot slot : getMenu().slots) {
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
         }
@@ -79,7 +74,7 @@ public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
             final GuiGraphicsExtractor graphics, final PanelStyle style, final CoalGeneratorView view) {
         final int x = leftPos + BAR_X;
         final int y = topPos + BAR_Y;
-        final int width = imageWidth - BAR_X - PADDING;
+        final int width = imageWidth - BAR_X - PanelStyle.PADDING;
         graphics.fill(x, y, x + width, y + BAR_HEIGHT, style.track());
         final long filled = view.capacity() > 0 ? (width - 2) * view.stored() / view.capacity() : 0;
         if (filled > 0) {

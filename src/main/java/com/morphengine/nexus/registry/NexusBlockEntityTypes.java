@@ -6,6 +6,7 @@ import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TerminalBlockEntity;
+import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -38,6 +39,11 @@ public final class NexusBlockEntityTypes {
     public static final Supplier<BlockEntityType<TerminalBlockEntity>> TERMINAL =
             BLOCK_ENTITY_TYPES.register("terminal", () -> new BlockEntityType<>(
                     TerminalBlockEntity::new, Set.of(NexusBlocks.TERMINAL.get(), NexusBlocks.CRAFTING_TERMINAL.get())));
+
+    /** Both the Puller and the Pusher; the block tells which. */
+    public static final Supplier<BlockEntityType<TransferDeviceBlockEntity>> TRANSFER_DEVICE =
+            BLOCK_ENTITY_TYPES.register("transfer_device", () -> new BlockEntityType<>(
+                    TransferDeviceBlockEntity::new, Set.of(NexusBlocks.PULLER.get(), NexusBlocks.PUSHER.get())));
 
     private NexusBlockEntityTypes() {
     }

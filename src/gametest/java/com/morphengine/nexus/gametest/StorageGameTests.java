@@ -10,7 +10,7 @@ import com.morphengine.nexus.block.VaultLamp;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TerminalBlockEntity;
-import com.morphengine.nexus.item.CellFilter;
+import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.item.VaultCellItem;
@@ -143,7 +143,7 @@ public final class StorageGameTests {
     private static void whitelistedCellTakesOnlyListed(final GameTestHelper helper) {
         final ItemStack stoneCell = cell(CellTier.ONE_K);
         stoneCell.set(NexusDataComponents.CELL_FILTER.get(),
-                CellFilter.EMPTY.with(0, stone()).withMode(FilterMode.ALLOW));
+                FilterSlots.EMPTY.with(0, stone()).withMode(FilterMode.ALLOW));
         buildLine(helper, cable(), vault());
         vaultEntity(helper, NEXUS.east(2)).cells().setItem(0, stoneCell);
 

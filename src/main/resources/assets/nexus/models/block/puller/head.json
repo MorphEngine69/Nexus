@@ -1,0 +1,144 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "#device"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        3,
+        0
+      ],
+      "to": [
+        13,
+        13,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            5.0,
+            5.0
+          ],
+          "texture": "#device"
+        },
+        "south": {
+          "uv": [
+            8.0,
+            0.0,
+            13.0,
+            5.0
+          ],
+          "texture": "#device"
+        },
+        "west": {
+          "uv": [
+            5.0,
+            0.0,
+            6.0,
+            5.0
+          ],
+          "texture": "#device"
+        },
+        "east": {
+          "uv": [
+            5.0,
+            0.0,
+            6.0,
+            5.0
+          ],
+          "texture": "#device"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            5.0,
+            5.0,
+            6.0
+          ],
+          "texture": "#device"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            5.0,
+            5.0,
+            6.0
+          ],
+          "texture": "#device"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        4,
+        2
+      ],
+      "to": [
+        12,
+        12,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8.0,
+            0.0,
+            12.0,
+            4.0
+          ],
+          "texture": "#device"
+        },
+        "south": {
+          "uv": [
+            8.0,
+            0.0,
+            12.0,
+            4.0
+          ],
+          "texture": "#device"
+        },
+        "west": {
+          "uv": [
+            6.0,
+            0.0,
+            7.5,
+            4.0
+          ],
+          "texture": "#device"
+        },
+        "east": {
+          "uv": [
+            6.0,
+            0.0,
+            7.5,
+            4.0
+          ],
+          "texture": "#device"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            6.0,
+            4.0,
+            7.5
+          ],
+          "texture": "#device"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            6.0,
+            4.0,
+            7.5
+          ],
+          "texture": "#device"
+        }
+      }
+    }
+  ]
+}

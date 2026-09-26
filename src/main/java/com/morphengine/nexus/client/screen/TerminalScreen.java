@@ -1,7 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
-import com.morphengine.nexus.menu.NetworkBadge;
 import com.morphengine.nexus.menu.TerminalPanel;
 import com.morphengine.nexus.networking.TerminalClickPayload;
 import com.morphengine.nexus.networking.TerminalSettingsPayload;
@@ -100,8 +99,7 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
 
     @Override
     protected PanelStyle style() {
-        final NetworkBadge network = getMenu().badge();
-        return network != null ? PanelStyle.tinted(network.color().rgb()) : PanelStyle.neutral();
+        return PanelStyle.of(getMenu().badge());
     }
 
     @Override

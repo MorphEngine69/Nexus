@@ -20,9 +20,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class CoalGeneratorMenu extends DeviceMenu<CoalGeneratorBlockEntity> {
 
     public static final int FUEL_SLOT_X = 30;
-    public static final int FUEL_SLOT_Y = 46;
+    public static final int FUEL_SLOT_Y = 42;
     public static final int INVENTORY_LEFT = 19;
-    public static final int INVENTORY_TOP = 112;
+    public static final int INVENTORY_TOP = 108;
 
     private static final int REFRESH_INTERVAL_TICKS = 5;
     private static final int FUEL_SLOT = 0;

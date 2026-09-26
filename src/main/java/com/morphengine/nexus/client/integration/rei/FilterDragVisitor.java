@@ -1,6 +1,6 @@
 package com.morphengine.nexus.client.integration.rei;
 
-import com.morphengine.nexus.client.screen.VaultCellScreen;
+import com.morphengine.nexus.client.screen.FilterScreen;
 import com.morphengine.nexus.resource.NexusResource;
 import me.shedaniel.math.Point;
 import me.shedaniel.math.Rectangle;
@@ -20,20 +20,21 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Lets an item or fluid dragged out of REI be dropped on a filter slot of a
- * Vault Cell. Only the filter entry is set; the player gets nothing.
+ * Lets an item or fluid dragged out of REI be dropped on a filter slot of any
+ * panel with a filter. Only the filter entry is set; the player gets nothing.
  */
-final class VaultCellDragVisitor implements DraggableStackVisitor<VaultCellScreen> {
+final class FilterDragVisitor implements DraggableStackVisitor<Screen> {
 
     @Override
     public <R extends Screen> boolean isHandingScreen(final R screen) {
-        return screen instanceof VaultCellScreen;
+        return screen instanceof FilterScreen;
     }
 
     @Override
-    public DraggedAcceptorResult acceptDraggedStack(
-            final DraggingContext<VaultCellScreen> context, final DraggableStack stack) {
-        final VaultCellScreen screen = context.getScreen();
+    public DraggedAcceptorResult acceptDraggedStack(final DraggingContext<Screen> context, final DraggableStack stack) {
+        if (!(context.getScreen() instanceof FilterScreen screen)) {
+            return DraggedAcceptorResult.PASS;
+        }
         final NexusResource resource = entryOf(screen, stack.getStack().getValue());
         if (resource == null) {
             return DraggedAcceptorResult.PASS;
@@ -51,9 +52,9 @@ final class VaultCellDragVisitor implements DraggableStackVisitor<VaultCellScree
 
     @Override
     public Stream<BoundsProvider> getDraggableAcceptingBounds(
-            final DraggingContext<VaultCellScreen> context, final DraggableStack stack) {
-        final VaultCellScreen screen = context.getScreen();
-        if (entryOf(screen, stack.getStack().getValue()) == null) {
+            final DraggingContext<Screen> context, final DraggableStack stack) {
+        if (!(context.getScreen() instanceof FilterScreen screen)
+                || entryOf(screen, stack.getStack().getValue()) == null) {
             return Stream.empty();
         }
         final List<Rectangle> rectangles = new ArrayList<>();
@@ -66,7 +67,7 @@ final class VaultCellDragVisitor implements DraggableStackVisitor<VaultCellScree
     /**
      * REI hands fluids over as Architectury stacks; the filter keeps the fluid only.
      */
-    private static @Nullable NexusResource entryOf(final VaultCellScreen screen, final Object value) {
+    private static @Nullable NexusResource entryOf(final FilterScreen screen, final Object value) {
         return switch (value) {
             case ItemStack item -> screen.filterEntryOf(item);
             case dev.architectury.fluid.FluidStack fluid -> screen.filterEntryOf(

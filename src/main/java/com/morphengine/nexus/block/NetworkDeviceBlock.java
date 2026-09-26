@@ -121,7 +121,12 @@ public abstract class NetworkDeviceBlock extends BaseEntityBlock implements Netw
         return MenuHosts.open(level, pos, player);
     }
 
-    private boolean showsPortTo(final BlockState state, final Direction side, final BlockState neighbour) {
+    /**
+     * Whether the model shows something attached on {@code side}, where
+     * {@code neighbour} stands. By default a port, and only for a cable; a
+     * device that reaches out to every network block overrides it.
+     */
+    protected boolean showsPortTo(final BlockState state, final Direction side, final BlockState neighbour) {
         return neighbour.getBlock() instanceof CableBlock && joins(state, side, neighbour);
     }
 }
