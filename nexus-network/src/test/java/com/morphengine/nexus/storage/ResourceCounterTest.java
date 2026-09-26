@@ -3,9 +3,9 @@ package com.morphengine.nexus.storage;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import org.junit.jupiter.api.Test;
 
-import static com.morphengine.nexus.storage.TestResources.DIRT;
-import static com.morphengine.nexus.storage.TestResources.SAND;
-import static com.morphengine.nexus.storage.TestResources.STONE;
+import static com.morphengine.nexus.test.TestResources.DIRT;
+import static com.morphengine.nexus.test.TestResources.SAND;
+import static com.morphengine.nexus.test.TestResources.STONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

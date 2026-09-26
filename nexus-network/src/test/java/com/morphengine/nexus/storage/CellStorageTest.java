@@ -9,13 +9,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static com.morphengine.nexus.storage.TestResources.DIRT;
-import static com.morphengine.nexus.storage.TestResources.ITEMS;
-import static com.morphengine.nexus.storage.TestResources.SAND;
-import static com.morphengine.nexus.storage.TestResources.SMALL;
-import static com.morphengine.nexus.storage.TestResources.STONE;
-import static com.morphengine.nexus.storage.TestResources.WATER;
-import static com.morphengine.nexus.storage.TestResources.item;
+import static com.morphengine.nexus.test.TestResources.DIRT;
+import static com.morphengine.nexus.test.TestResources.ITEMS;
+import static com.morphengine.nexus.test.TestResources.SAND;
+import static com.morphengine.nexus.test.TestResources.SMALL;
+import static com.morphengine.nexus.test.TestResources.STONE;
+import static com.morphengine.nexus.test.TestResources.WATER;
+import static com.morphengine.nexus.test.TestResources.item;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

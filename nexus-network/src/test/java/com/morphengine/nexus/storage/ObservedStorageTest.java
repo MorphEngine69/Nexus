@@ -7,10 +7,10 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.morphengine.nexus.storage.TestResources.ITEMS;
-import static com.morphengine.nexus.storage.TestResources.SMALL;
-import static com.morphengine.nexus.storage.TestResources.STONE;
-import static com.morphengine.nexus.storage.TestResources.WATER;
+import static com.morphengine.nexus.test.TestResources.ITEMS;
+import static com.morphengine.nexus.test.TestResources.SMALL;
+import static com.morphengine.nexus.test.TestResources.STONE;
+import static com.morphengine.nexus.test.TestResources.WATER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ObservedStorageTest {

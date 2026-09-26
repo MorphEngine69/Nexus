@@ -19,6 +19,8 @@ include(
     "nexus-resource-api",
     "nexus-storage-api",
     "nexus-energy-api",
+    "nexus-transport-api",
     "nexus-network-api",
     "nexus-network",
+    "nexus-network-test",
 )
