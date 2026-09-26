@@ -6,7 +6,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -19,45 +18,44 @@ import org.jspecify.annotations.Nullable;
  *
  * @param <B> the device's block entity
  */
-public abstract class DeviceMenu<B extends BlockEntity & MenuHost> extends AbstractContainerMenu {
+public abstract class DeviceMenu<B extends BlockEntity & MenuHost> extends AbstractContainerMenu
+        implements DevicePanel {
 
-    private final ContainerLevelAccess access;
-    private final BlockPos pos;
-    private final @Nullable B blockEntity;
-    private final @Nullable ServerPlayer viewer;
+    private final DeviceBinding<B> binding;
 
     protected DeviceMenu(
             final MenuType<?> type, final int containerId, final Inventory inventory, final BlockPos pos,
             final Class<B> blockEntityType) {
         super(type, containerId);
-        this.pos = pos;
-        this.access = ContainerLevelAccess.create(inventory.player.level(), pos);
-        final BlockEntity found = inventory.player.level().getBlockEntity(pos);
-        this.blockEntity = blockEntityType.isInstance(found) ? blockEntityType.cast(found) : null;
-        this.viewer = inventory.player instanceof ServerPlayer serverPlayer ? serverPlayer : null;
+        this.binding = new DeviceBinding<>(inventory, pos, blockEntityType);
+    }
+
+    @Override
+    public DeviceBinding<B> binding() {
+        return binding;
     }
 
     public BlockPos pos() {
-        return pos;
+        return binding.pos();
     }
 
     /**
      * @return the device's block entity; {@code null} if it was gone when the menu opened
      */
     public @Nullable B blockEntity() {
-        return blockEntity;
+        return binding.blockEntity();
     }
 
     /**
      * @return the player the panel data is sent to; {@code null} on the client
      */
     protected @Nullable ServerPlayer viewer() {
-        return viewer;
+        return binding.viewer();
     }
 
     @Override
     public boolean stillValid(final Player player) {
-        return blockEntity != null && stillValid(access, player, blockEntity.getBlockState().getBlock());
+        return binding.stillValid(player);
     }
 
     @Override
@@ -68,8 +66,6 @@ public abstract class DeviceMenu<B extends BlockEntity & MenuHost> extends Abstr
     @Override
     public void removed(final Player player) {
         super.removed(player);
-        if (blockEntity != null) {
-            blockEntity.markClosed();
-        }
+        binding.release();
     }
 }

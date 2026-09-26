@@ -1,8 +1,7 @@
 package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.block.entity.Renamable;
-import com.morphengine.nexus.menu.DeviceMenu;
-import com.morphengine.nexus.networking.DeviceRenamePayload;
+import com.morphengine.nexus.menu.PanelMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -10,24 +9,25 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Base for the panel of a network device: a frame tinted with the network's
- * color, a close cross, and a title the player renames by clicking it. Enter or
- * a click elsewhere keeps the new name, Escape drops it. Designed for extension:
- * subclasses pick the style and draw what lies below the header.
+ * Base for a Nexus panel, of a network device or of an item in hand: a frame
+ * tinted with the network's color, a close cross, and a title the player
+ * renames by clicking it, unless {@link #isTitleEditable} says otherwise.
+ * Enter or a click elsewhere keeps the new name, Escape drops it. Designed for
+ * extension: subclasses pick the style and draw what lies below the header.
  *
- * @param <M> the device's menu
+ * @param <M> the panel's menu
  */
-abstract class DeviceScreen<M extends DeviceMenu<?>> extends AbstractContainerScreen<M> {
+abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends AbstractContainerScreen<M> {
 
     private static final int TITLE_LEFT = 8;
-    private static final int TITLE_TOP = 6;
-    private static final int TITLE_HEIGHT = 10;
+    private static final int TITLE_TOP = 4;
+    private static final int TITLE_HEIGHT = 8;
     private static final int CLOSE_AREA = 20;
     private static final int UNDERLINE_GAP = 1;
 
@@ -35,7 +35,7 @@ abstract class DeviceScreen<M extends DeviceMenu<?>> extends AbstractContainerSc
     private @Nullable EditBox titleEditor;
     private Component shownTitle;
 
-    protected DeviceScreen(
+    protected PanelScreen(
             final M menu, final Inventory inventory, final Component title, final int width, final int height) {
         super(menu, inventory, title, width, height);
         this.shownTitle = title;
@@ -62,6 +62,13 @@ abstract class DeviceScreen<M extends DeviceMenu<?>> extends AbstractContainerSc
     protected abstract PanelStyle style();
 
     /**
+     * @return whether a click on the title renames what the panel shows
+     */
+    protected boolean isTitleEditable() {
+        return true;
+    }
+
+    /**
      * Draws everything below the header.
      */
     protected abstract void extractPanel(GuiGraphicsExtractor graphics, PanelStyle style, int mouseX, int mouseY);
@@ -75,7 +82,7 @@ abstract class DeviceScreen<M extends DeviceMenu<?>> extends AbstractContainerSc
             closeButton.draw(graphics);
         }
         final PanelBounds title = titleBounds();
-        if (titleEditor != null || title.contains(mouseX, mouseY)) {
+        if (titleEditor != null || isTitleEditable() && title.contains(mouseX, mouseY)) {
             final int underline = title.top() + title.height() + UNDERLINE_GAP;
             graphics.fill(title.left(), underline, title.left() + title.width(), underline + 1, style.border());
         }
@@ -97,7 +104,7 @@ abstract class DeviceScreen<M extends DeviceMenu<?>> extends AbstractContainerSc
             onClose();
             return true;
         }
-        final boolean onTitle = titleBounds().contains(event.x(), event.y());
+        final boolean onTitle = isTitleEditable() && titleBounds().contains(event.x(), event.y());
         if (titleEditor != null && !onTitle) {
             commitTitle();
         } else if (titleEditor == null && onTitle) {
@@ -151,8 +158,8 @@ abstract class DeviceScreen<M extends DeviceMenu<?>> extends AbstractContainerSc
         if (name.equals(panelTitle().getString())) {
             return;
         }
-        ClientPacketDistributor.sendToServer(new DeviceRenamePayload(getMenu().pos(), name));
-        shownTitle = name.isEmpty() ? defaultTitle() : Component.literal(name);
+        ClientPacketDistributor.sendToServer(getMenu().renamePayload(name));
+        shownTitle = name.isEmpty() ? getMenu().defaultTitle() : Component.literal(name);
     }
 
     private void stopEditingTitle() {
@@ -160,10 +167,5 @@ abstract class DeviceScreen<M extends DeviceMenu<?>> extends AbstractContainerSc
             removeWidget(titleEditor);
             titleEditor = null;
         }
-    }
-
-    private Component defaultTitle() {
-        final BlockEntity device = getMenu().blockEntity();
-        return device != null ? device.getBlockState().getBlock().getName() : title;
     }
 }

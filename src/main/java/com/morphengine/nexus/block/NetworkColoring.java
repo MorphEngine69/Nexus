@@ -50,7 +50,8 @@ public final class NetworkColoring {
             return;
         }
         final BlockState state = level.getBlockState(pos);
-        if (state.getBlock() instanceof NetworkDeviceBlock && state.getValue(NetworkDeviceBlock.NETWORK_COLOR) != dye) {
+        if (state.hasProperty(NetworkDeviceBlock.NETWORK_COLOR)
+                && state.getValue(NetworkDeviceBlock.NETWORK_COLOR) != dye) {
             level.setBlock(pos, state.setValue(NetworkDeviceBlock.NETWORK_COLOR, dye), Block.UPDATE_CLIENTS);
         }
     }

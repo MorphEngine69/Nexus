@@ -13,4 +13,10 @@ public interface NetworkMember {
      * Only takes effect if {@code controller} is the one this member last joined.
      */
     void leaveNetwork(NetworkController controller);
+
+    /**
+     * @return whether the member has left the level, removed or unloaded; the
+     *         network then rebuilds, so it picks the member up again once loaded
+     */
+    boolean isRemoved();
 }

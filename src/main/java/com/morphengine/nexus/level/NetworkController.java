@@ -28,6 +28,12 @@ public interface NetworkController {
     EnergyBuffer energy();
 
     /**
+     * @return the network's component of {@code type}; the same instance for the
+     *         whole life of the controller. Server side only.
+     */
+    <C extends NetworkComponent> C component(NetworkComponentType<C> type);
+
+    /**
      * @return whether the controller has left the level, removed or unloaded
      */
     boolean isRemoved();

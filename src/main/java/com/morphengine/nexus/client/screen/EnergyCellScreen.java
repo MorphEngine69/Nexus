@@ -10,10 +10,10 @@ import net.minecraft.world.entity.player.Inventory;
 /**
  * Charge of one Energy Cell, tinted with the color of the network it belongs to.
  */
-public final class EnergyCellScreen extends DeviceScreen<EnergyCellMenu> {
+public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
 
     private static final int IMAGE_WIDTH = 236;
-    private static final int IMAGE_HEIGHT = 120;
+    private static final int IMAGE_HEIGHT = 116;
     private static final int PADDING = 10;
     private static final int LINE_HEIGHT = 12;
     private static final int BAR_HEIGHT = 16;
