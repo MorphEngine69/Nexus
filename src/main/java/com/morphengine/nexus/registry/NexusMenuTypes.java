@@ -7,8 +7,11 @@ import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.menu.NexusMenu;
 import com.morphengine.nexus.menu.StorageVaultMenu;
 import com.morphengine.nexus.menu.TerminalMenu;
+import com.morphengine.nexus.menu.TransferDeviceMenu;
 import com.morphengine.nexus.menu.VaultCellMenu;
 import com.morphengine.nexus.terminal.TerminalSettings;
+import com.morphengine.nexus.transfer.TransferKind;
+import com.morphengine.nexus.transfer.TransferSettings;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -60,6 +63,13 @@ public final class NexusMenuTypes {
             "vault_cell",
             () -> IMenuTypeExtension.create(
                     (containerId, inventory, buffer) -> new VaultCellMenu(containerId, inventory)));
+
+    public static final Supplier<MenuType<TransferDeviceMenu>> TRANSFER_DEVICE = MENU_TYPES.register(
+            "transfer_device",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) -> new TransferDeviceMenu(containerId, inventory,
+                            buffer.readBlockPos(), buffer.readEnum(TransferKind.class),
+                            TransferSettings.STREAM_CODEC.decode(buffer))));
 
     private NexusMenuTypes() {
     }

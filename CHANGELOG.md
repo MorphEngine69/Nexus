@@ -80,8 +80,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drag an item or a fluid from JEI or REI onto a Vault Cell's filter slot to
   list it there, without having it in your inventory. The recipe and usage keys work on the
   items and fluids a terminal lists.
+- Puller and Pusher: small devices that sit against a chest, a furnace or a
+  machine and move items and fluids between it and the network, one item or
+  one bucket every half second. Place one against a block and it faces that
+  block; sneak to place it against a block that opens a screen. They stand on
+  their own and join the network once a cable or any network block touches
+  them, reaching out to it with a cable arm on any side but their face. Each
+  arm takes the color of the cable it meets and lights up while the network
+  has energy. Lamps on their sides glow green while the network has energy
+  and go dark without it.
+- They work with the side of the block they touch, the way the block offers
+  it: a Puller under a furnace takes out only what it has smelted, a Pusher on
+  its side fills only the fuel, and blocks that let you set their sides follow
+  those settings.
+- The Puller takes whatever its filter allows, as a whitelist or a blacklist.
+  The Pusher delivers what its whitelist lists, in order, in turn or at
+  random, and can keep the block stocked with a set amount of each: scroll
+  over a filter slot to set it. With a blacklist it delivers everything in the
+  network but what is listed.
+- Both can work always, only with a redstone signal, only without one, or once
+  per pulse. Their panels have four upgrade slots for upgrades to come.
+- A Puller or Pusher filter slot clicked with a filled bucket or tank lists
+  the fluid inside; hold Shift to list the container itself. Items and fluids
+  can be dragged onto it from JEI or REI too.
+- The Nexus shows how many Pullers, Pushers and Storage Vaults its network has.
 
 ### Changed
+
+- Shift-click an item in your inventory while a filter is open to list it in
+  the first free filter slot; the item stays where it is. A filter slot takes
+  an item with either mouse button and is cleared by clicking it empty-handed.
+- A device panel outside any network shows the standard blue instead of grey.
+- The network line sits right under the panel title, and the rest of the
+  panel moves up with it.
 
 - Block names are translated in every supported language.
 - Larger Energy Cell and Coal Generator panels; slots are lighter so items

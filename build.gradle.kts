@@ -34,6 +34,7 @@ val coreModules = listOf(
     ":nexus-resource-api",
     ":nexus-storage-api",
     ":nexus-energy-api",
+    ":nexus-transport-api",
     ":nexus-network-api",
     ":nexus-network",
 )
@@ -98,11 +99,26 @@ project(":nexus-energy-api") {
     }
 }
 
+project(":nexus-transport-api") {
+    dependencies {
+        "api"(project(":nexus-resource-api"))
+    }
+}
+
 project(":nexus-network") {
     dependencies {
         "api"(project(":nexus-energy-api"))
         "api"(project(":nexus-storage-api"))
+        "api"(project(":nexus-transport-api"))
         "api"(project(":nexus-network-api"))
+        "testImplementation"(project(":nexus-network-test"))
+    }
+}
+
+// Test fixtures of the core; never part of the mod.
+project(":nexus-network-test") {
+    dependencies {
+        "api"(project(":nexus-storage-api"))
     }
 }
 

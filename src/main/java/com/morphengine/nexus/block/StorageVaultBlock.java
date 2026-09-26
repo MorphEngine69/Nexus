@@ -1,6 +1,7 @@
 package com.morphengine.nexus.block;
 
 import com.mojang.serialization.MapCodec;
+import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import net.minecraft.core.BlockPos;
@@ -49,6 +50,11 @@ public final class StorageVaultBlock extends NetworkDeviceBlock {
     @Override
     protected BlockState orientedFor(final BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    public DeviceRole role() {
+        return DeviceRole.STORAGE;
     }
 
     @Override

@@ -1,0 +1,7 @@
+{
+  "parent": "nexus:block/puller/head",
+  "textures": {
+    "device": "nexus:block/puller/pink",
+    "particle": "nexus:block/puller/pink"
+  }
+}

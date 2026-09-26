@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static com.morphengine.nexus.storage.TestResources.DIRT;
-import static com.morphengine.nexus.storage.TestResources.ITEMS;
-import static com.morphengine.nexus.storage.TestResources.SMALL;
-import static com.morphengine.nexus.storage.TestResources.STONE;
+import static com.morphengine.nexus.test.TestResources.DIRT;
+import static com.morphengine.nexus.test.TestResources.ITEMS;
+import static com.morphengine.nexus.test.TestResources.SMALL;
+import static com.morphengine.nexus.test.TestResources.STONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
