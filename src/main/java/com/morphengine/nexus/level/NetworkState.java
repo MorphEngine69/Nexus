@@ -18,7 +18,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,6 +44,7 @@ public final class NetworkState {
     static final int RETRY_INTERVAL_TICKS = 20;
 
     private final NetworkController controller;
+    private final Map<NetworkComponentType<?>, NetworkComponent> components = createComponents();
     private final EnergyRateMeter meter = new EnergyRateMeter();
     private boolean stale = true;
     private boolean partial;
@@ -68,6 +71,19 @@ public final class NetworkState {
 
     public EnergyBuffer energy() {
         return energy;
+    }
+
+    /**
+     * @return this network's component of {@code type}
+     */
+    public <C extends NetworkComponent> C component(final NetworkComponentType<C> type) {
+        final NetworkComponent component = components.get(type);
+        if (component == null) {
+            throw new IllegalArgumentException("network component type is not registered: " + type);
+        }
+        @SuppressWarnings("unchecked")
+        final C typed = (C) component;
+        return typed;
     }
 
     /**
@@ -157,12 +173,29 @@ public final class NetworkState {
         }
         membership = found;
         energy = new EnergyPool(found.buffers());
+        for (NetworkComponent component : components.values()) {
+            component.adopt(found.members());
+        }
+    }
+
+    private static Map<NetworkComponentType<?>, NetworkComponent> createComponents() {
+        final Map<NetworkComponentType<?>, NetworkComponent> created = new IdentityHashMap<>();
+        for (NetworkComponentType<?> type : NetworkComponentTypes.ALL) {
+            created.put(type, type.create());
+        }
+        return created;
     }
 
     private void refreshStatistics() {
         final List<EnergyContributor> contributors = membership.contributors();
         for (int i = 0; i < contributors.size(); i++) {
             if (contributors.get(i).isRemoved()) {
+                stale = true;
+            }
+        }
+        final List<NetworkMember> members = membership.members();
+        for (int i = 0; i < members.size(); i++) {
+            if (members.get(i).isRemoved()) {
                 stale = true;
             }
         }

@@ -1,0 +1,1492 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/white"
+      },
+      "when": {
+        "network_color": "white",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/white",
+        "y": 90
+      },
+      "when": {
+        "network_color": "white",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/white",
+        "y": 180
+      },
+      "when": {
+        "network_color": "white",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/white",
+        "y": 270
+      },
+      "when": {
+        "network_color": "white",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/orange"
+      },
+      "when": {
+        "network_color": "orange",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/orange",
+        "y": 90
+      },
+      "when": {
+        "network_color": "orange",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/orange",
+        "y": 180
+      },
+      "when": {
+        "network_color": "orange",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/orange",
+        "y": 270
+      },
+      "when": {
+        "network_color": "orange",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/magenta"
+      },
+      "when": {
+        "network_color": "magenta",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/magenta",
+        "y": 90
+      },
+      "when": {
+        "network_color": "magenta",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/magenta",
+        "y": 180
+      },
+      "when": {
+        "network_color": "magenta",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/magenta",
+        "y": 270
+      },
+      "when": {
+        "network_color": "magenta",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/light_blue"
+      },
+      "when": {
+        "network_color": "light_blue",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/light_blue",
+        "y": 90
+      },
+      "when": {
+        "network_color": "light_blue",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/light_blue",
+        "y": 180
+      },
+      "when": {
+        "network_color": "light_blue",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/light_blue",
+        "y": 270
+      },
+      "when": {
+        "network_color": "light_blue",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/yellow"
+      },
+      "when": {
+        "network_color": "yellow",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/yellow",
+        "y": 90
+      },
+      "when": {
+        "network_color": "yellow",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/yellow",
+        "y": 180
+      },
+      "when": {
+        "network_color": "yellow",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/yellow",
+        "y": 270
+      },
+      "when": {
+        "network_color": "yellow",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/lime"
+      },
+      "when": {
+        "network_color": "lime",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/lime",
+        "y": 90
+      },
+      "when": {
+        "network_color": "lime",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/lime",
+        "y": 180
+      },
+      "when": {
+        "network_color": "lime",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/lime",
+        "y": 270
+      },
+      "when": {
+        "network_color": "lime",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/pink"
+      },
+      "when": {
+        "network_color": "pink",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/pink",
+        "y": 90
+      },
+      "when": {
+        "network_color": "pink",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/pink",
+        "y": 180
+      },
+      "when": {
+        "network_color": "pink",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/pink",
+        "y": 270
+      },
+      "when": {
+        "network_color": "pink",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/gray"
+      },
+      "when": {
+        "network_color": "gray",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/gray",
+        "y": 90
+      },
+      "when": {
+        "network_color": "gray",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/gray",
+        "y": 180
+      },
+      "when": {
+        "network_color": "gray",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/gray",
+        "y": 270
+      },
+      "when": {
+        "network_color": "gray",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/light_gray"
+      },
+      "when": {
+        "network_color": "light_gray",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/light_gray",
+        "y": 90
+      },
+      "when": {
+        "network_color": "light_gray",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/light_gray",
+        "y": 180
+      },
+      "when": {
+        "network_color": "light_gray",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/light_gray",
+        "y": 270
+      },
+      "when": {
+        "network_color": "light_gray",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/cyan"
+      },
+      "when": {
+        "network_color": "cyan",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/cyan",
+        "y": 90
+      },
+      "when": {
+        "network_color": "cyan",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/cyan",
+        "y": 180
+      },
+      "when": {
+        "network_color": "cyan",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/cyan",
+        "y": 270
+      },
+      "when": {
+        "network_color": "cyan",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/purple"
+      },
+      "when": {
+        "network_color": "purple",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/purple",
+        "y": 90
+      },
+      "when": {
+        "network_color": "purple",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/purple",
+        "y": 180
+      },
+      "when": {
+        "network_color": "purple",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/purple",
+        "y": 270
+      },
+      "when": {
+        "network_color": "purple",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/blue"
+      },
+      "when": {
+        "network_color": "blue",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/blue",
+        "y": 90
+      },
+      "when": {
+        "network_color": "blue",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/blue",
+        "y": 180
+      },
+      "when": {
+        "network_color": "blue",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/blue",
+        "y": 270
+      },
+      "when": {
+        "network_color": "blue",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/brown"
+      },
+      "when": {
+        "network_color": "brown",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/brown",
+        "y": 90
+      },
+      "when": {
+        "network_color": "brown",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/brown",
+        "y": 180
+      },
+      "when": {
+        "network_color": "brown",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/brown",
+        "y": 270
+      },
+      "when": {
+        "network_color": "brown",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/green"
+      },
+      "when": {
+        "network_color": "green",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/green",
+        "y": 90
+      },
+      "when": {
+        "network_color": "green",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/green",
+        "y": 180
+      },
+      "when": {
+        "network_color": "green",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/green",
+        "y": 270
+      },
+      "when": {
+        "network_color": "green",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/red"
+      },
+      "when": {
+        "network_color": "red",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/red",
+        "y": 90
+      },
+      "when": {
+        "network_color": "red",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/red",
+        "y": 180
+      },
+      "when": {
+        "network_color": "red",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/red",
+        "y": 270
+      },
+      "when": {
+        "network_color": "red",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/black"
+      },
+      "when": {
+        "network_color": "black",
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/black",
+        "y": 90
+      },
+      "when": {
+        "network_color": "black",
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/black",
+        "y": 180
+      },
+      "when": {
+        "network_color": "black",
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/storage_vault/black",
+        "y": 270
+      },
+      "when": {
+        "network_color": "black",
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "white"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "orange"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "magenta"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "light_blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "yellow"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "lime"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "pink"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "light_gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "cyan"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "purple"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "brown"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "green"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "red"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_north"
+      },
+      "when": {
+        "north": "true",
+        "network_color": "black"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "white"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "orange"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "magenta"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "light_blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "yellow"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "lime"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "pink"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "light_gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "cyan"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "purple"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "brown"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "green"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "red"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_south"
+      },
+      "when": {
+        "south": "true",
+        "network_color": "black"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "white"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "orange"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "magenta"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "light_blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "yellow"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "lime"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "pink"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "light_gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "cyan"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "purple"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "brown"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "green"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "red"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_west"
+      },
+      "when": {
+        "west": "true",
+        "network_color": "black"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "white"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "orange"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "magenta"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "light_blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "yellow"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "lime"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "pink"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "light_gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "cyan"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "purple"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "brown"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "green"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "red"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_east"
+      },
+      "when": {
+        "east": "true",
+        "network_color": "black"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "white"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "orange"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "magenta"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "light_blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "yellow"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "lime"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "pink"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "light_gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "cyan"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "purple"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "brown"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "green"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "red"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_down"
+      },
+      "when": {
+        "down": "true",
+        "network_color": "black"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/white/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "white"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/orange/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "orange"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/magenta/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "magenta"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_blue/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "light_blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/yellow/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "yellow"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/lime/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "lime"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/pink/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "pink"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/gray/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/light_gray/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "light_gray"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/cyan/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "cyan"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/purple/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "purple"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/blue/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "blue"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/brown/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "brown"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/green/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "green"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/red/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "red"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/nexus/black/port_up"
+      },
+      "when": {
+        "up": "true",
+        "network_color": "black"
+      }
+    }
+  ]
+}

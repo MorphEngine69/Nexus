@@ -1,0 +1,740 @@
+{
+  "variants": {
+    "facing=north,network_color=white,powered=false": {
+      "model": "nexus:block/crafting_terminal/white"
+    },
+    "facing=north,network_color=white,powered=true": {
+      "model": "nexus:block/crafting_terminal/white_lit"
+    },
+    "facing=east,network_color=white,powered=false": {
+      "model": "nexus:block/crafting_terminal/white",
+      "y": 90
+    },
+    "facing=east,network_color=white,powered=true": {
+      "model": "nexus:block/crafting_terminal/white_lit",
+      "y": 90
+    },
+    "facing=south,network_color=white,powered=false": {
+      "model": "nexus:block/crafting_terminal/white",
+      "y": 180
+    },
+    "facing=south,network_color=white,powered=true": {
+      "model": "nexus:block/crafting_terminal/white_lit",
+      "y": 180
+    },
+    "facing=west,network_color=white,powered=false": {
+      "model": "nexus:block/crafting_terminal/white",
+      "y": 270
+    },
+    "facing=west,network_color=white,powered=true": {
+      "model": "nexus:block/crafting_terminal/white_lit",
+      "y": 270
+    },
+    "facing=up,network_color=white,powered=false": {
+      "model": "nexus:block/crafting_terminal/white",
+      "x": 270
+    },
+    "facing=up,network_color=white,powered=true": {
+      "model": "nexus:block/crafting_terminal/white_lit",
+      "x": 270
+    },
+    "facing=down,network_color=white,powered=false": {
+      "model": "nexus:block/crafting_terminal/white",
+      "x": 90
+    },
+    "facing=down,network_color=white,powered=true": {
+      "model": "nexus:block/crafting_terminal/white_lit",
+      "x": 90
+    },
+    "facing=north,network_color=orange,powered=false": {
+      "model": "nexus:block/crafting_terminal/orange"
+    },
+    "facing=north,network_color=orange,powered=true": {
+      "model": "nexus:block/crafting_terminal/orange_lit"
+    },
+    "facing=east,network_color=orange,powered=false": {
+      "model": "nexus:block/crafting_terminal/orange",
+      "y": 90
+    },
+    "facing=east,network_color=orange,powered=true": {
+      "model": "nexus:block/crafting_terminal/orange_lit",
+      "y": 90
+    },
+    "facing=south,network_color=orange,powered=false": {
+      "model": "nexus:block/crafting_terminal/orange",
+      "y": 180
+    },
+    "facing=south,network_color=orange,powered=true": {
+      "model": "nexus:block/crafting_terminal/orange_lit",
+      "y": 180
+    },
+    "facing=west,network_color=orange,powered=false": {
+      "model": "nexus:block/crafting_terminal/orange",
+      "y": 270
+    },
+    "facing=west,network_color=orange,powered=true": {
+      "model": "nexus:block/crafting_terminal/orange_lit",
+      "y": 270
+    },
+    "facing=up,network_color=orange,powered=false": {
+      "model": "nexus:block/crafting_terminal/orange",
+      "x": 270
+    },
+    "facing=up,network_color=orange,powered=true": {
+      "model": "nexus:block/crafting_terminal/orange_lit",
+      "x": 270
+    },
+    "facing=down,network_color=orange,powered=false": {
+      "model": "nexus:block/crafting_terminal/orange",
+      "x": 90
+    },
+    "facing=down,network_color=orange,powered=true": {
+      "model": "nexus:block/crafting_terminal/orange_lit",
+      "x": 90
+    },
+    "facing=north,network_color=magenta,powered=false": {
+      "model": "nexus:block/crafting_terminal/magenta"
+    },
+    "facing=north,network_color=magenta,powered=true": {
+      "model": "nexus:block/crafting_terminal/magenta_lit"
+    },
+    "facing=east,network_color=magenta,powered=false": {
+      "model": "nexus:block/crafting_terminal/magenta",
+      "y": 90
+    },
+    "facing=east,network_color=magenta,powered=true": {
+      "model": "nexus:block/crafting_terminal/magenta_lit",
+      "y": 90
+    },
+    "facing=south,network_color=magenta,powered=false": {
+      "model": "nexus:block/crafting_terminal/magenta",
+      "y": 180
+    },
+    "facing=south,network_color=magenta,powered=true": {
+      "model": "nexus:block/crafting_terminal/magenta_lit",
+      "y": 180
+    },
+    "facing=west,network_color=magenta,powered=false": {
+      "model": "nexus:block/crafting_terminal/magenta",
+      "y": 270
+    },
+    "facing=west,network_color=magenta,powered=true": {
+      "model": "nexus:block/crafting_terminal/magenta_lit",
+      "y": 270
+    },
+    "facing=up,network_color=magenta,powered=false": {
+      "model": "nexus:block/crafting_terminal/magenta",
+      "x": 270
+    },
+    "facing=up,network_color=magenta,powered=true": {
+      "model": "nexus:block/crafting_terminal/magenta_lit",
+      "x": 270
+    },
+    "facing=down,network_color=magenta,powered=false": {
+      "model": "nexus:block/crafting_terminal/magenta",
+      "x": 90
+    },
+    "facing=down,network_color=magenta,powered=true": {
+      "model": "nexus:block/crafting_terminal/magenta_lit",
+      "x": 90
+    },
+    "facing=north,network_color=light_blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_blue"
+    },
+    "facing=north,network_color=light_blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_blue_lit"
+    },
+    "facing=east,network_color=light_blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_blue",
+      "y": 90
+    },
+    "facing=east,network_color=light_blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_blue_lit",
+      "y": 90
+    },
+    "facing=south,network_color=light_blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_blue",
+      "y": 180
+    },
+    "facing=south,network_color=light_blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_blue_lit",
+      "y": 180
+    },
+    "facing=west,network_color=light_blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_blue",
+      "y": 270
+    },
+    "facing=west,network_color=light_blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_blue_lit",
+      "y": 270
+    },
+    "facing=up,network_color=light_blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_blue",
+      "x": 270
+    },
+    "facing=up,network_color=light_blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_blue_lit",
+      "x": 270
+    },
+    "facing=down,network_color=light_blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_blue",
+      "x": 90
+    },
+    "facing=down,network_color=light_blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_blue_lit",
+      "x": 90
+    },
+    "facing=north,network_color=yellow,powered=false": {
+      "model": "nexus:block/crafting_terminal/yellow"
+    },
+    "facing=north,network_color=yellow,powered=true": {
+      "model": "nexus:block/crafting_terminal/yellow_lit"
+    },
+    "facing=east,network_color=yellow,powered=false": {
+      "model": "nexus:block/crafting_terminal/yellow",
+      "y": 90
+    },
+    "facing=east,network_color=yellow,powered=true": {
+      "model": "nexus:block/crafting_terminal/yellow_lit",
+      "y": 90
+    },
+    "facing=south,network_color=yellow,powered=false": {
+      "model": "nexus:block/crafting_terminal/yellow",
+      "y": 180
+    },
+    "facing=south,network_color=yellow,powered=true": {
+      "model": "nexus:block/crafting_terminal/yellow_lit",
+      "y": 180
+    },
+    "facing=west,network_color=yellow,powered=false": {
+      "model": "nexus:block/crafting_terminal/yellow",
+      "y": 270
+    },
+    "facing=west,network_color=yellow,powered=true": {
+      "model": "nexus:block/crafting_terminal/yellow_lit",
+      "y": 270
+    },
+    "facing=up,network_color=yellow,powered=false": {
+      "model": "nexus:block/crafting_terminal/yellow",
+      "x": 270
+    },
+    "facing=up,network_color=yellow,powered=true": {
+      "model": "nexus:block/crafting_terminal/yellow_lit",
+      "x": 270
+    },
+    "facing=down,network_color=yellow,powered=false": {
+      "model": "nexus:block/crafting_terminal/yellow",
+      "x": 90
+    },
+    "facing=down,network_color=yellow,powered=true": {
+      "model": "nexus:block/crafting_terminal/yellow_lit",
+      "x": 90
+    },
+    "facing=north,network_color=lime,powered=false": {
+      "model": "nexus:block/crafting_terminal/lime"
+    },
+    "facing=north,network_color=lime,powered=true": {
+      "model": "nexus:block/crafting_terminal/lime_lit"
+    },
+    "facing=east,network_color=lime,powered=false": {
+      "model": "nexus:block/crafting_terminal/lime",
+      "y": 90
+    },
+    "facing=east,network_color=lime,powered=true": {
+      "model": "nexus:block/crafting_terminal/lime_lit",
+      "y": 90
+    },
+    "facing=south,network_color=lime,powered=false": {
+      "model": "nexus:block/crafting_terminal/lime",
+      "y": 180
+    },
+    "facing=south,network_color=lime,powered=true": {
+      "model": "nexus:block/crafting_terminal/lime_lit",
+      "y": 180
+    },
+    "facing=west,network_color=lime,powered=false": {
+      "model": "nexus:block/crafting_terminal/lime",
+      "y": 270
+    },
+    "facing=west,network_color=lime,powered=true": {
+      "model": "nexus:block/crafting_terminal/lime_lit",
+      "y": 270
+    },
+    "facing=up,network_color=lime,powered=false": {
+      "model": "nexus:block/crafting_terminal/lime",
+      "x": 270
+    },
+    "facing=up,network_color=lime,powered=true": {
+      "model": "nexus:block/crafting_terminal/lime_lit",
+      "x": 270
+    },
+    "facing=down,network_color=lime,powered=false": {
+      "model": "nexus:block/crafting_terminal/lime",
+      "x": 90
+    },
+    "facing=down,network_color=lime,powered=true": {
+      "model": "nexus:block/crafting_terminal/lime_lit",
+      "x": 90
+    },
+    "facing=north,network_color=pink,powered=false": {
+      "model": "nexus:block/crafting_terminal/pink"
+    },
+    "facing=north,network_color=pink,powered=true": {
+      "model": "nexus:block/crafting_terminal/pink_lit"
+    },
+    "facing=east,network_color=pink,powered=false": {
+      "model": "nexus:block/crafting_terminal/pink",
+      "y": 90
+    },
+    "facing=east,network_color=pink,powered=true": {
+      "model": "nexus:block/crafting_terminal/pink_lit",
+      "y": 90
+    },
+    "facing=south,network_color=pink,powered=false": {
+      "model": "nexus:block/crafting_terminal/pink",
+      "y": 180
+    },
+    "facing=south,network_color=pink,powered=true": {
+      "model": "nexus:block/crafting_terminal/pink_lit",
+      "y": 180
+    },
+    "facing=west,network_color=pink,powered=false": {
+      "model": "nexus:block/crafting_terminal/pink",
+      "y": 270
+    },
+    "facing=west,network_color=pink,powered=true": {
+      "model": "nexus:block/crafting_terminal/pink_lit",
+      "y": 270
+    },
+    "facing=up,network_color=pink,powered=false": {
+      "model": "nexus:block/crafting_terminal/pink",
+      "x": 270
+    },
+    "facing=up,network_color=pink,powered=true": {
+      "model": "nexus:block/crafting_terminal/pink_lit",
+      "x": 270
+    },
+    "facing=down,network_color=pink,powered=false": {
+      "model": "nexus:block/crafting_terminal/pink",
+      "x": 90
+    },
+    "facing=down,network_color=pink,powered=true": {
+      "model": "nexus:block/crafting_terminal/pink_lit",
+      "x": 90
+    },
+    "facing=north,network_color=gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/gray"
+    },
+    "facing=north,network_color=gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/gray_lit"
+    },
+    "facing=east,network_color=gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/gray",
+      "y": 90
+    },
+    "facing=east,network_color=gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/gray_lit",
+      "y": 90
+    },
+    "facing=south,network_color=gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/gray",
+      "y": 180
+    },
+    "facing=south,network_color=gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/gray_lit",
+      "y": 180
+    },
+    "facing=west,network_color=gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/gray",
+      "y": 270
+    },
+    "facing=west,network_color=gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/gray_lit",
+      "y": 270
+    },
+    "facing=up,network_color=gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/gray",
+      "x": 270
+    },
+    "facing=up,network_color=gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/gray_lit",
+      "x": 270
+    },
+    "facing=down,network_color=gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/gray",
+      "x": 90
+    },
+    "facing=down,network_color=gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/gray_lit",
+      "x": 90
+    },
+    "facing=north,network_color=light_gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_gray"
+    },
+    "facing=north,network_color=light_gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_gray_lit"
+    },
+    "facing=east,network_color=light_gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_gray",
+      "y": 90
+    },
+    "facing=east,network_color=light_gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_gray_lit",
+      "y": 90
+    },
+    "facing=south,network_color=light_gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_gray",
+      "y": 180
+    },
+    "facing=south,network_color=light_gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_gray_lit",
+      "y": 180
+    },
+    "facing=west,network_color=light_gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_gray",
+      "y": 270
+    },
+    "facing=west,network_color=light_gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_gray_lit",
+      "y": 270
+    },
+    "facing=up,network_color=light_gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_gray",
+      "x": 270
+    },
+    "facing=up,network_color=light_gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_gray_lit",
+      "x": 270
+    },
+    "facing=down,network_color=light_gray,powered=false": {
+      "model": "nexus:block/crafting_terminal/light_gray",
+      "x": 90
+    },
+    "facing=down,network_color=light_gray,powered=true": {
+      "model": "nexus:block/crafting_terminal/light_gray_lit",
+      "x": 90
+    },
+    "facing=north,network_color=cyan,powered=false": {
+      "model": "nexus:block/crafting_terminal/cyan"
+    },
+    "facing=north,network_color=cyan,powered=true": {
+      "model": "nexus:block/crafting_terminal/cyan_lit"
+    },
+    "facing=east,network_color=cyan,powered=false": {
+      "model": "nexus:block/crafting_terminal/cyan",
+      "y": 90
+    },
+    "facing=east,network_color=cyan,powered=true": {
+      "model": "nexus:block/crafting_terminal/cyan_lit",
+      "y": 90
+    },
+    "facing=south,network_color=cyan,powered=false": {
+      "model": "nexus:block/crafting_terminal/cyan",
+      "y": 180
+    },
+    "facing=south,network_color=cyan,powered=true": {
+      "model": "nexus:block/crafting_terminal/cyan_lit",
+      "y": 180
+    },
+    "facing=west,network_color=cyan,powered=false": {
+      "model": "nexus:block/crafting_terminal/cyan",
+      "y": 270
+    },
+    "facing=west,network_color=cyan,powered=true": {
+      "model": "nexus:block/crafting_terminal/cyan_lit",
+      "y": 270
+    },
+    "facing=up,network_color=cyan,powered=false": {
+      "model": "nexus:block/crafting_terminal/cyan",
+      "x": 270
+    },
+    "facing=up,network_color=cyan,powered=true": {
+      "model": "nexus:block/crafting_terminal/cyan_lit",
+      "x": 270
+    },
+    "facing=down,network_color=cyan,powered=false": {
+      "model": "nexus:block/crafting_terminal/cyan",
+      "x": 90
+    },
+    "facing=down,network_color=cyan,powered=true": {
+      "model": "nexus:block/crafting_terminal/cyan_lit",
+      "x": 90
+    },
+    "facing=north,network_color=purple,powered=false": {
+      "model": "nexus:block/crafting_terminal/purple"
+    },
+    "facing=north,network_color=purple,powered=true": {
+      "model": "nexus:block/crafting_terminal/purple_lit"
+    },
+    "facing=east,network_color=purple,powered=false": {
+      "model": "nexus:block/crafting_terminal/purple",
+      "y": 90
+    },
+    "facing=east,network_color=purple,powered=true": {
+      "model": "nexus:block/crafting_terminal/purple_lit",
+      "y": 90
+    },
+    "facing=south,network_color=purple,powered=false": {
+      "model": "nexus:block/crafting_terminal/purple",
+      "y": 180
+    },
+    "facing=south,network_color=purple,powered=true": {
+      "model": "nexus:block/crafting_terminal/purple_lit",
+      "y": 180
+    },
+    "facing=west,network_color=purple,powered=false": {
+      "model": "nexus:block/crafting_terminal/purple",
+      "y": 270
+    },
+    "facing=west,network_color=purple,powered=true": {
+      "model": "nexus:block/crafting_terminal/purple_lit",
+      "y": 270
+    },
+    "facing=up,network_color=purple,powered=false": {
+      "model": "nexus:block/crafting_terminal/purple",
+      "x": 270
+    },
+    "facing=up,network_color=purple,powered=true": {
+      "model": "nexus:block/crafting_terminal/purple_lit",
+      "x": 270
+    },
+    "facing=down,network_color=purple,powered=false": {
+      "model": "nexus:block/crafting_terminal/purple",
+      "x": 90
+    },
+    "facing=down,network_color=purple,powered=true": {
+      "model": "nexus:block/crafting_terminal/purple_lit",
+      "x": 90
+    },
+    "facing=north,network_color=blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/blue"
+    },
+    "facing=north,network_color=blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/blue_lit"
+    },
+    "facing=east,network_color=blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/blue",
+      "y": 90
+    },
+    "facing=east,network_color=blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/blue_lit",
+      "y": 90
+    },
+    "facing=south,network_color=blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/blue",
+      "y": 180
+    },
+    "facing=south,network_color=blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/blue_lit",
+      "y": 180
+    },
+    "facing=west,network_color=blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/blue",
+      "y": 270
+    },
+    "facing=west,network_color=blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/blue_lit",
+      "y": 270
+    },
+    "facing=up,network_color=blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/blue",
+      "x": 270
+    },
+    "facing=up,network_color=blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/blue_lit",
+      "x": 270
+    },
+    "facing=down,network_color=blue,powered=false": {
+      "model": "nexus:block/crafting_terminal/blue",
+      "x": 90
+    },
+    "facing=down,network_color=blue,powered=true": {
+      "model": "nexus:block/crafting_terminal/blue_lit",
+      "x": 90
+    },
+    "facing=north,network_color=brown,powered=false": {
+      "model": "nexus:block/crafting_terminal/brown"
+    },
+    "facing=north,network_color=brown,powered=true": {
+      "model": "nexus:block/crafting_terminal/brown_lit"
+    },
+    "facing=east,network_color=brown,powered=false": {
+      "model": "nexus:block/crafting_terminal/brown",
+      "y": 90
+    },
+    "facing=east,network_color=brown,powered=true": {
+      "model": "nexus:block/crafting_terminal/brown_lit",
+      "y": 90
+    },
+    "facing=south,network_color=brown,powered=false": {
+      "model": "nexus:block/crafting_terminal/brown",
+      "y": 180
+    },
+    "facing=south,network_color=brown,powered=true": {
+      "model": "nexus:block/crafting_terminal/brown_lit",
+      "y": 180
+    },
+    "facing=west,network_color=brown,powered=false": {
+      "model": "nexus:block/crafting_terminal/brown",
+      "y": 270
+    },
+    "facing=west,network_color=brown,powered=true": {
+      "model": "nexus:block/crafting_terminal/brown_lit",
+      "y": 270
+    },
+    "facing=up,network_color=brown,powered=false": {
+      "model": "nexus:block/crafting_terminal/brown",
+      "x": 270
+    },
+    "facing=up,network_color=brown,powered=true": {
+      "model": "nexus:block/crafting_terminal/brown_lit",
+      "x": 270
+    },
+    "facing=down,network_color=brown,powered=false": {
+      "model": "nexus:block/crafting_terminal/brown",
+      "x": 90
+    },
+    "facing=down,network_color=brown,powered=true": {
+      "model": "nexus:block/crafting_terminal/brown_lit",
+      "x": 90
+    },
+    "facing=north,network_color=green,powered=false": {
+      "model": "nexus:block/crafting_terminal/green"
+    },
+    "facing=north,network_color=green,powered=true": {
+      "model": "nexus:block/crafting_terminal/green_lit"
+    },
+    "facing=east,network_color=green,powered=false": {
+      "model": "nexus:block/crafting_terminal/green",
+      "y": 90
+    },
+    "facing=east,network_color=green,powered=true": {
+      "model": "nexus:block/crafting_terminal/green_lit",
+      "y": 90
+    },
+    "facing=south,network_color=green,powered=false": {
+      "model": "nexus:block/crafting_terminal/green",
+      "y": 180
+    },
+    "facing=south,network_color=green,powered=true": {
+      "model": "nexus:block/crafting_terminal/green_lit",
+      "y": 180
+    },
+    "facing=west,network_color=green,powered=false": {
+      "model": "nexus:block/crafting_terminal/green",
+      "y": 270
+    },
+    "facing=west,network_color=green,powered=true": {
+      "model": "nexus:block/crafting_terminal/green_lit",
+      "y": 270
+    },
+    "facing=up,network_color=green,powered=false": {
+      "model": "nexus:block/crafting_terminal/green",
+      "x": 270
+    },
+    "facing=up,network_color=green,powered=true": {
+      "model": "nexus:block/crafting_terminal/green_lit",
+      "x": 270
+    },
+    "facing=down,network_color=green,powered=false": {
+      "model": "nexus:block/crafting_terminal/green",
+      "x": 90
+    },
+    "facing=down,network_color=green,powered=true": {
+      "model": "nexus:block/crafting_terminal/green_lit",
+      "x": 90
+    },
+    "facing=north,network_color=red,powered=false": {
+      "model": "nexus:block/crafting_terminal/red"
+    },
+    "facing=north,network_color=red,powered=true": {
+      "model": "nexus:block/crafting_terminal/red_lit"
+    },
+    "facing=east,network_color=red,powered=false": {
+      "model": "nexus:block/crafting_terminal/red",
+      "y": 90
+    },
+    "facing=east,network_color=red,powered=true": {
+      "model": "nexus:block/crafting_terminal/red_lit",
+      "y": 90
+    },
+    "facing=south,network_color=red,powered=false": {
+      "model": "nexus:block/crafting_terminal/red",
+      "y": 180
+    },
+    "facing=south,network_color=red,powered=true": {
+      "model": "nexus:block/crafting_terminal/red_lit",
+      "y": 180
+    },
+    "facing=west,network_color=red,powered=false": {
+      "model": "nexus:block/crafting_terminal/red",
+      "y": 270
+    },
+    "facing=west,network_color=red,powered=true": {
+      "model": "nexus:block/crafting_terminal/red_lit",
+      "y": 270
+    },
+    "facing=up,network_color=red,powered=false": {
+      "model": "nexus:block/crafting_terminal/red",
+      "x": 270
+    },
+    "facing=up,network_color=red,powered=true": {
+      "model": "nexus:block/crafting_terminal/red_lit",
+      "x": 270
+    },
+    "facing=down,network_color=red,powered=false": {
+      "model": "nexus:block/crafting_terminal/red",
+      "x": 90
+    },
+    "facing=down,network_color=red,powered=true": {
+      "model": "nexus:block/crafting_terminal/red_lit",
+      "x": 90
+    },
+    "facing=north,network_color=black,powered=false": {
+      "model": "nexus:block/crafting_terminal/black"
+    },
+    "facing=north,network_color=black,powered=true": {
+      "model": "nexus:block/crafting_terminal/black_lit"
+    },
+    "facing=east,network_color=black,powered=false": {
+      "model": "nexus:block/crafting_terminal/black",
+      "y": 90
+    },
+    "facing=east,network_color=black,powered=true": {
+      "model": "nexus:block/crafting_terminal/black_lit",
+      "y": 90
+    },
+    "facing=south,network_color=black,powered=false": {
+      "model": "nexus:block/crafting_terminal/black",
+      "y": 180
+    },
+    "facing=south,network_color=black,powered=true": {
+      "model": "nexus:block/crafting_terminal/black_lit",
+      "y": 180
+    },
+    "facing=west,network_color=black,powered=false": {
+      "model": "nexus:block/crafting_terminal/black",
+      "y": 270
+    },
+    "facing=west,network_color=black,powered=true": {
+      "model": "nexus:block/crafting_terminal/black_lit",
+      "y": 270
+    },
+    "facing=up,network_color=black,powered=false": {
+      "model": "nexus:block/crafting_terminal/black",
+      "x": 270
+    },
+    "facing=up,network_color=black,powered=true": {
+      "model": "nexus:block/crafting_terminal/black_lit",
+      "x": 270
+    },
+    "facing=down,network_color=black,powered=false": {
+      "model": "nexus:block/crafting_terminal/black",
+      "x": 90
+    },
+    "facing=down,network_color=black,powered=true": {
+      "model": "nexus:block/crafting_terminal/black_lit",
+      "x": 90
+    }
+  }
+}
