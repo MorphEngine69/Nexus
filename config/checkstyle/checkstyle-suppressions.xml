@@ -5,8 +5,9 @@
 <!--
     Tests spell out their scenarios with literal amounts, live in packages that
     need no package documentation, and a test class holds as many tests as the
-    feature has cases.
+    feature has cases. The fixtures of the core are test code too.
 -->
 <suppressions>
     <suppress checks="MagicNumber|JavadocPackage|MethodCount" files="[/\\]src[/\\](test|gametest)[/\\]"/>
+    <suppress checks="MagicNumber" files="[/\\]nexus-network-test[/\\]"/>
 </suppressions>
