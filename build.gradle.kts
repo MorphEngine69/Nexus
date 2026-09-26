@@ -29,7 +29,14 @@ base {
 
 // Core modules: plain Java without Minecraft, each built and tested on its own.
 // Their sources are compiled into the mod itself, so the mod ships as one jar.
-val coreModules = listOf(":nexus-core-api", ":nexus-energy-api", ":nexus-network-api", ":nexus-network")
+val coreModules = listOf(
+    ":nexus-core-api",
+    ":nexus-resource-api",
+    ":nexus-storage-api",
+    ":nexus-energy-api",
+    ":nexus-network-api",
+    ":nexus-network",
+)
 
 val junitVersion = "5.11.3"
 val assertjVersion = "3.26.3"
@@ -78,6 +85,13 @@ subprojects {
     }
 }
 
+project(":nexus-storage-api") {
+    dependencies {
+        "api"(project(":nexus-core-api"))
+        "api"(project(":nexus-resource-api"))
+    }
+}
+
 project(":nexus-energy-api") {
     dependencies {
         "api"(project(":nexus-core-api"))
@@ -87,6 +101,7 @@ project(":nexus-energy-api") {
 project(":nexus-network") {
     dependencies {
         "api"(project(":nexus-energy-api"))
+        "api"(project(":nexus-storage-api"))
         "api"(project(":nexus-network-api"))
     }
 }
