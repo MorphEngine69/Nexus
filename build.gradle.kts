@@ -146,8 +146,23 @@ neoForge {
     }
 }
 
+repositories {
+    maven("https://maven.blamejared.com") {
+        content { includeGroup("mezz.jei") }
+    }
+    maven("https://maven.shedaniel.me") {
+        content {
+            includeGroup("me.shedaniel")
+            includeGroup("me.shedaniel.cloth")
+            includeGroup("dev.architectury")
+        }
+    }
+}
+
 dependencies {
     implementation("org.jspecify:jspecify:$jspecifyVersion")
+    compileOnly("mezz.jei:jei-${property("minecraft_version")}-neoforge-api:${property("jei_version")}")
+    compileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${property("rei_version")}")
 }
 
 tasks.processResources {
