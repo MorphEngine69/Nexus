@@ -21,10 +21,10 @@ import java.util.List;
 /**
  * The Nexus panel: the network's name in the title, its color and its figures.
  */
-public final class NexusScreen extends DeviceScreen<NexusMenu> {
+public final class NexusScreen extends PanelScreen<NexusMenu> {
 
     private static final int IMAGE_WIDTH = 236;
-    private static final int IMAGE_HEIGHT = 184;
+    private static final int IMAGE_HEIGHT = 180;
     private static final int PADDING = 8;
     private static final int ROW_GAP = 8;
     private static final int LINE_HEIGHT = 11;

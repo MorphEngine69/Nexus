@@ -13,15 +13,15 @@ import net.minecraft.world.inventory.Slot;
  * network, the fuel slot with a flame that burns down, the charge bar and what
  * the generator is doing.
  */
-public final class CoalGeneratorScreen extends DeviceScreen<CoalGeneratorMenu> {
+public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
 
     private static final int IMAGE_WIDTH = 200;
-    private static final int IMAGE_HEIGHT = 200;
+    private static final int IMAGE_HEIGHT = 196;
     private static final int FLAME_RGB = 0xFFD8843A;
     private static final int FLAME_X = 52;
     private static final int FLAME_WIDTH = 6;
     private static final int BAR_X = 70;
-    private static final int BAR_Y = 46;
+    private static final int BAR_Y = 42;
     private static final int BAR_HEIGHT = 12;
     private static final int PADDING = 10;
     private static final int LINE_HEIGHT = 11;

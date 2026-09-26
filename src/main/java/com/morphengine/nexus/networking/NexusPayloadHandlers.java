@@ -5,7 +5,7 @@ import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.Renamable;
 import com.morphengine.nexus.menu.CoalGeneratorMenu;
-import com.morphengine.nexus.menu.DeviceMenu;
+import com.morphengine.nexus.menu.DevicePanel;
 import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.menu.NexusMenu;
 import net.minecraft.core.BlockPos;
@@ -44,8 +44,9 @@ public final class NexusPayloadHandlers {
 
     private static void handleRename(final DeviceRenamePayload payload, final IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (!(context.player().containerMenu instanceof DeviceMenu<?> menu) || !menu.pos().equals(payload.pos())
-                    || !(menu.blockEntity() instanceof Renamable device)) {
+            if (!(context.player().containerMenu instanceof DevicePanel panel)
+                    || !panel.binding().pos().equals(payload.pos())
+                    || !(panel.binding().blockEntity() instanceof Renamable device)) {
                 return;
             }
             try {

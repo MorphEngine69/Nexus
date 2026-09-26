@@ -16,6 +16,8 @@ rootProject.name = "nexus"
 
 include(
     "nexus-core-api",
+    "nexus-resource-api",
+    "nexus-storage-api",
     "nexus-energy-api",
     "nexus-network-api",
     "nexus-network",

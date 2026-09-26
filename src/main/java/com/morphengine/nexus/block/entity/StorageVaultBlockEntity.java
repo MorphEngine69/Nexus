@@ -1,0 +1,214 @@
+package com.morphengine.nexus.block.entity;
+
+import com.morphengine.nexus.api.storage.Storage;
+import com.morphengine.nexus.block.StorageVaultBlock;
+import com.morphengine.nexus.block.VaultLamp;
+import com.morphengine.nexus.level.NetworkComponentTypes;
+import com.morphengine.nexus.level.NetworkController;
+import com.morphengine.nexus.level.StorageHost;
+import com.morphengine.nexus.menu.StorageVaultMenu;
+import com.morphengine.nexus.registry.NexusBlockEntityTypes;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.Container;
+import net.minecraft.world.Containers;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Storage Vault: holds up to {@value VaultCellSlots#SIZE} Vault Cells and lends
+ * them to its network at its priority. Once a second it saves the contents of
+ * changed cells onto their items and shows on its lamps how full each cell is;
+ * with no energy in the network every lamp is dark. Cells that lost their slot
+ * when the vault got fewer slots are dropped in front of it on its next tick.
+ */
+public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
+        implements StorageHost, Renamable, VaultCellSlots.Owner {
+
+    public static final int SLOTS = VaultCellSlots.SIZE;
+    public static final int MIN_PRIORITY = -9999;
+    public static final int MAX_PRIORITY = 9999;
+
+    private static final String TAG_PRIORITY = "priority";
+    private static final String TAG_LAMPS = "lamps";
+    private static final String TAG_HOMELESS = "homeless_cells";
+    private static final int REFRESH_INTERVAL_TICKS = 20;
+
+    private final VaultCellSlots cells = new VaultCellSlots(this);
+    private final List<ItemStack> homeless = new ArrayList<>();
+    private int priority;
+    /** Lamps of all slots as packed by {@link VaultLamp}; on the client, as last sent. */
+    private long lamps;
+
+    public StorageVaultBlockEntity(final BlockPos pos, final BlockState state) {
+        super(NexusBlockEntityTypes.STORAGE_VAULT.get(), pos, state);
+    }
+
+    public static void serverTick(
+            final Level level, final BlockPos pos, final BlockState state, final StorageVaultBlockEntity vault) {
+        if (!vault.homeless.isEmpty()) {
+            vault.dropHomeless(level, pos, state.getValue(StorageVaultBlock.FACING));
+        }
+        if (level.getGameTime() % REFRESH_INTERVAL_TICKS == 0) {
+            vault.cells.flush();
+            vault.refreshLamps();
+        }
+    }
+
+    private void dropHomeless(final Level world, final BlockPos pos, final Direction front) {
+        for (ItemStack cell : homeless) {
+            Block.popResourceFromFace(world, pos, front, cell);
+        }
+        homeless.clear();
+        setChanged();
+    }
+
+    public Container cells() {
+        return cells;
+    }
+
+    public VaultLamp lampAt(final int slot) {
+        return VaultLamp.unpack(lamps, slot);
+    }
+
+    /**
+     * @param newPriority clamped to [{@value #MIN_PRIORITY}, {@value #MAX_PRIORITY}]
+     */
+    public void setPriority(final int newPriority) {
+        final int clamped = Math.clamp(newPriority, MIN_PRIORITY, MAX_PRIORITY);
+        if (clamped != priority) {
+            priority = clamped;
+            setChanged();
+            refreshNetwork();
+        }
+    }
+
+    @Override
+    public void rename(final String newName) {
+        changeName(newName);
+    }
+
+    @Override
+    public int storagePriority() {
+        return priority;
+    }
+
+    @Override
+    public List<Storage> storages() {
+        return cells.storages();
+    }
+
+    @Override
+    public void cellsChanged() {
+        refreshNetwork();
+    }
+
+    @Override
+    public void contentsChanged() {
+        setChanged();
+    }
+
+    private void refreshNetwork() {
+        final NetworkController controller = controller();
+        if (controller != null) {
+            controller.component(NetworkComponentTypes.STORAGE).refresh(this);
+        }
+    }
+
+    private void detachFromNetwork() {
+        final NetworkController controller = controller();
+        if (controller != null) {
+            controller.component(NetworkComponentTypes.STORAGE).detach(this);
+        }
+    }
+
+    private void refreshLamps() {
+        final boolean powered = isNetworkPowered();
+        long shown = 0;
+        for (int slot = 0; slot < SLOTS; slot++) {
+            shown = VaultLamp.of(powered ? cells.statusOf(slot) : null).packInto(shown, slot);
+        }
+        if (shown != lamps && level != null) {
+            lamps = shown;
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(final int containerId, final Inventory inventory, final Player player) {
+        return new StorageVaultMenu(containerId, inventory, worldPosition);
+    }
+
+    /**
+     * Leaves the network before the cells drop, so nothing is stored into a cell
+     * already on the ground.
+     */
+    @Override
+    public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        detachFromNetwork();
+        if (level != null) {
+            cells.flush();
+            Containers.dropContents(level, pos, cells);
+            homeless.forEach(cell -> Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), cell));
+            homeless.clear();
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        detachFromNetwork();
+        super.setRemoved();
+    }
+
+    @Override
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
+        cells.save(output);
+        if (!homeless.isEmpty()) {
+            final ValueOutput.TypedOutputList<ItemStack> list = output.list(TAG_HOMELESS, ItemStack.CODEC);
+            homeless.forEach(list::add);
+        }
+        output.putInt(TAG_PRIORITY, priority);
+    }
+
+    @Override
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
+        homeless.clear();
+        homeless.addAll(cells.load(input));
+        input.listOrEmpty(TAG_HOMELESS, ItemStack.CODEC).forEach(homeless::add);
+        priority = Math.clamp(input.getIntOr(TAG_PRIORITY, priority), MIN_PRIORITY, MAX_PRIORITY);
+        lamps = input.getLongOr(TAG_LAMPS, lamps);
+    }
+
+    /**
+     * Clients only need the lamps; cells reach them through the menu.
+     */
+    @Override
+    public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
+        final CompoundTag tag = new CompoundTag();
+        tag.putLong(TAG_LAMPS, lamps);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+}
