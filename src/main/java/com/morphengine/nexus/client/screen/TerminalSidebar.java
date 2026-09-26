@@ -7,7 +7,6 @@ import com.morphengine.nexus.terminal.EnumCycle;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
@@ -23,21 +22,13 @@ import java.util.Locale;
  */
 final class TerminalSidebar {
 
-    private static final int BUTTON_SIZE = 18;
-    private static final int ICON_SIZE = 16;
-    private static final int SPACING = 20;
-    private static final int OFFSET_LEFT = 22;
-    private static final int OFFSET_TOP = 18;
-
-    private final int left;
-    private final int top;
+    private final SideButtons buttons;
 
     /**
      * @param panelLeft left edge of the panel; the buttons stand just left of it
      */
     TerminalSidebar(final int panelLeft, final int panelTop) {
-        this.left = panelLeft - OFFSET_LEFT;
-        this.top = panelTop + OFFSET_TOP;
+        this.buttons = new SideButtons(panelLeft, panelTop, Control.values().length);
     }
 
     boolean contains(final double x, final double y) {
@@ -45,19 +36,14 @@ final class TerminalSidebar {
     }
 
     PanelBounds area() {
-        return new PanelBounds(left, top, BUTTON_SIZE, Control.values().length * SPACING);
+        return buttons.area();
     }
 
     void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final TerminalSettings settings,
               final int mouseX, final int mouseY) {
+        final int hovered = buttons.buttonAt(mouseX, mouseY);
         for (Control control : Control.values()) {
-            final PanelBounds bounds = boundsOf(control);
-            graphics.fill(bounds.left(), bounds.top(), bounds.left() + BUTTON_SIZE, bounds.top() + BUTTON_SIZE,
-                    style.buttonFill());
-            graphics.outline(bounds.left(), bounds.top(), BUTTON_SIZE, BUTTON_SIZE,
-                    bounds.contains(mouseX, mouseY) ? PanelStyle.TEXT_LIGHT : style.border());
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, icon(control, settings), bounds.left() + 1,
-                    bounds.top() + 1, ICON_SIZE, ICON_SIZE);
+            buttons.draw(graphics, style, control.ordinal(), icon(control, settings), control.ordinal() == hovered);
         }
     }
 
@@ -92,16 +78,8 @@ final class TerminalSidebar {
     }
 
     private @Nullable Control controlAt(final double x, final double y) {
-        for (Control control : Control.values()) {
-            if (boundsOf(control).contains(x, y)) {
-                return control;
-            }
-        }
-        return null;
-    }
-
-    private PanelBounds boundsOf(final Control control) {
-        return new PanelBounds(left, top + control.ordinal() * SPACING, BUTTON_SIZE, BUTTON_SIZE);
+        final int index = buttons.buttonAt(x, y);
+        return index < 0 ? null : Control.values()[index];
     }
 
     /**

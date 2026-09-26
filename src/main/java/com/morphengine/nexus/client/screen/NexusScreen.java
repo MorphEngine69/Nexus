@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.Network;
 import com.morphengine.nexus.api.network.NetworkStatistics;
 import com.morphengine.nexus.block.NetworkColoring;
@@ -79,7 +80,7 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
     @Override
     protected PanelStyle style() {
         final Network network = currentNetwork();
-        return network != null ? PanelStyle.tinted(network.color().rgb()) : PanelStyle.neutral();
+        return PanelStyle.of(network != null ? network.color() : null);
     }
 
     private static int rgbOf(final DyeColor color) {
@@ -122,10 +123,10 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
                                 + EnergyFormat.amount(statistics.energyCapacity())),
                 Component.translatable("gui.nexus.stats.input", EnergyFormat.amount(statistics.energyInput())),
                 Component.translatable("gui.nexus.stats.output", EnergyFormat.amount(statistics.energyOutput())),
-                Component.translatable("gui.nexus.stats.machines", 0),
-                Component.translatable("gui.nexus.stats.pullers", 0),
-                Component.translatable("gui.nexus.stats.pushers", 0),
-                Component.translatable("gui.nexus.stats.storages", 0));
+                Component.translatable("gui.nexus.stats.machines", statistics.count(DeviceRole.MACHINE)),
+                Component.translatable("gui.nexus.stats.pullers", statistics.count(DeviceRole.PULLER)),
+                Component.translatable("gui.nexus.stats.pushers", statistics.count(DeviceRole.PUSHER)),
+                Component.translatable("gui.nexus.stats.storages", statistics.count(DeviceRole.STORAGE)));
         int y = startY;
         for (Component line : lines) {
             graphics.text(font, line, x, y, PanelStyle.TEXT_DIM, false);

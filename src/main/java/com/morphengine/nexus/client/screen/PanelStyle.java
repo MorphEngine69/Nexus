@@ -1,9 +1,12 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.api.network.NetworkColor;
+import com.morphengine.nexus.menu.NetworkBadge;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Colors and drawing of a device panel. Every panel of one network is tinted
@@ -14,12 +17,14 @@ final class PanelStyle {
     static final int TEXT_LIGHT = 0xFFE6E6EE;
     static final int TEXT_DIM = 0xFFA0A6B4;
     static final int HEADER_HEIGHT = 16;
+    /** Where the line naming the device's network sits, just under the header. */
+    static final int NETWORK_TOP = HEADER_HEIGHT + 4;
+    static final int PADDING = 10;
     /** The title is drawn smaller than body text, so the header stays a slim bar. */
     static final float TITLE_SCALE = 0.875F;
     static final int SLOT_SIZE = 18;
     static final int CROSS_SIZE = 6;
 
-    private static final int NEUTRAL_ACCENT_RGB = 0x2C2D32;
     private static final int PANEL_BASE_RGB = 0x16171E;
     private static final int PANEL_BORDER_RGB = 0x2C2D32;
     private static final int BUTTON_FILL_RGB = 0x20222A;
@@ -49,10 +54,32 @@ final class PanelStyle {
     }
 
     /**
-     * For a device that is not in any network.
+     * @param network the network the device belongs to; {@code null} when it
+     *                belongs to none, which shows the standard blue of Nexus,
+     *                as the device's model does
      */
-    static PanelStyle neutral() {
-        return new PanelStyle(NEUTRAL_ACCENT_RGB);
+    static PanelStyle of(final @Nullable NetworkBadge network) {
+        return of(network != null ? network.color() : null);
+    }
+
+    /**
+     * @param color the color of the device's network; {@code null} when it
+     *              belongs to none, which shows the standard blue of Nexus
+     */
+    static PanelStyle of(final @Nullable NetworkColor color) {
+        return tinted(color != null ? color.rgb() : NetworkColor.DEFAULT.rgb());
+    }
+
+    /**
+     * Writes which network the device belongs to, or that it belongs to none,
+     * at {@link #NETWORK_TOP}, where every panel shows it.
+     */
+    static void drawNetwork(
+            final GuiGraphicsExtractor graphics, final Font font, final @Nullable NetworkBadge network,
+            final int panelLeft, final int panelTop) {
+        final Component line = network != null ? Component.translatable("gui.nexus.network", network.name())
+                : Component.translatable("gui.nexus.no_network");
+        graphics.text(font, line, panelLeft + PADDING, panelTop + NETWORK_TOP, TEXT_DIM, false);
     }
 
     int accent() {

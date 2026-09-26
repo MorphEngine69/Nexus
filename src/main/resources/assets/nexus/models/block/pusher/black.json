@@ -1,0 +1,7 @@
+{
+  "parent": "nexus:block/pusher/head",
+  "textures": {
+    "device": "nexus:block/pusher/black",
+    "particle": "nexus:block/pusher/black"
+  }
+}

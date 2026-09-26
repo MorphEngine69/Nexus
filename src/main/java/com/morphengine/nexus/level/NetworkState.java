@@ -1,6 +1,7 @@
 package com.morphengine.nexus.level;
 
 import com.morphengine.nexus.api.energy.EnergyBuffer;
+import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.api.network.NetworkNode;
 import com.morphengine.nexus.api.network.NetworkStatistics;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +202,8 @@ public final class NetworkState {
             }
         }
         meter.sample(energy, STATISTICS_INTERVAL_TICKS);
-        statistics = new NetworkStatistics(membership.deviceCount(), energy.stored(), energy.capacity(),
+        statistics = new NetworkStatistics(membership.deviceCount(), membership.roles(), energy.stored(),
+                energy.capacity(),
                 meter.inputPerTick(), meter.outputPerTick());
     }
 
@@ -230,6 +233,7 @@ public final class NetworkState {
      *
      * @param devices     devices to paint, the Nexus itself included
      * @param deviceCount devices shown in the Nexus interface, the Nexus itself excluded
+     * @param roles       the same devices by what they do
      */
     private record Membership(
             List<NetworkMember> members,
@@ -237,9 +241,11 @@ public final class NetworkState {
             List<EnergyBuffer> buffers,
             List<BlockPos> devices,
             List<BlockPos> cables,
-            int deviceCount) {
+            int deviceCount,
+            Map<DeviceRole, Integer> roles) {
 
-        static final Membership EMPTY = new Membership(List.of(), List.of(), List.of(), List.of(), List.of(), 0);
+        static final Membership EMPTY =
+                new Membership(List.of(), List.of(), List.of(), List.of(), List.of(), 0, Map.of());
 
         static Membership scan(
                 final Level level, final Set<NetworkNode> reachable, final BlockNode controllerNode,
@@ -249,6 +255,7 @@ public final class NetworkState {
             final List<EnergyBuffer> buffers = new ArrayList<>();
             final List<BlockPos> devices = new ArrayList<>();
             final List<BlockPos> cables = new ArrayList<>();
+            final Map<DeviceRole, Integer> roles = new EnumMap<>(DeviceRole.class);
             for (NetworkNode node : reachable) {
                 if (!(node instanceof BlockNode blockNode) || node.equals(controllerNode)) {
                     continue;
@@ -260,6 +267,9 @@ public final class NetworkState {
                 }
                 if (level.getBlockState(pos).getBlock() instanceof NetworkBlock block) {
                     (block.isDevice() ? devices : cables).add(pos);
+                    if (block.isDevice()) {
+                        roles.merge(block.role(), 1, Integer::sum);
+                    }
                 }
                 if (blockEntity instanceof EnergyContributor contributor) {
                     contributors.add(contributor);
@@ -272,7 +282,7 @@ public final class NetworkState {
             final int deviceCount = devices.size();
             devices.add(origin);
             return new Membership(List.copyOf(members), List.copyOf(contributors), List.copyOf(buffers),
-                    List.copyOf(devices), List.copyOf(cables), deviceCount);
+                    List.copyOf(devices), List.copyOf(cables), deviceCount, Map.copyOf(roles));
         }
     }
 }

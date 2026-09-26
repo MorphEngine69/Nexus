@@ -11,22 +11,22 @@ import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Client to server: the player set a filter slot of the Vault Cell they hold.
+ * Client to server: the player set a slot of the filter in the panel they look at.
  *
  * @param slot     the filter slot
  * @param resource what to list in it; {@code null} empties the slot
  */
-public record CellFilterPayload(int containerId, int slot, @Nullable NexusResource resource)
+public record FilterSlotPayload(int containerId, int slot, @Nullable NexusResource resource)
         implements CustomPacketPayload {
 
-    public static final Type<CellFilterPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "cell_filter"));
+    public static final Type<FilterSlotPayload> TYPE =
+            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "filter_slot"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, CellFilterPayload> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, CellFilterPayload::containerId,
-            ByteBufCodecs.VAR_INT, CellFilterPayload::slot,
-            NullableStreamCodec.of(NexusResources.STREAM_CODEC), CellFilterPayload::resource,
-            CellFilterPayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, FilterSlotPayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, FilterSlotPayload::containerId,
+            ByteBufCodecs.VAR_INT, FilterSlotPayload::slot,
+            NullableStreamCodec.of(NexusResources.STREAM_CODEC), FilterSlotPayload::resource,
+            FilterSlotPayload::new);
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

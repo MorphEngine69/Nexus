@@ -1,12 +1,14 @@
 package com.morphengine.nexus.client;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.client.model.CableArmsModel;
 import com.morphengine.nexus.client.render.StorageVaultRenderer;
 import com.morphengine.nexus.client.screen.CoalGeneratorScreen;
 import com.morphengine.nexus.client.screen.EnergyCellScreen;
 import com.morphengine.nexus.client.screen.NexusScreen;
 import com.morphengine.nexus.client.screen.StorageVaultScreen;
 import com.morphengine.nexus.client.screen.TerminalScreen;
+import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import com.morphengine.nexus.client.screen.VaultCellScreen;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.TerminalMenu;
@@ -16,6 +18,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 @EventBusSubscriber(modid = Nexus.MOD_ID, value = Dist.CLIENT)
@@ -33,6 +36,12 @@ public final class NexusClientSetup {
         event.register(NexusMenuTypes.VAULT_CELL.get(), VaultCellScreen::new);
         event.register(NexusMenuTypes.TERMINAL.get(), TerminalScreen<TerminalMenu>::new);
         event.register(NexusMenuTypes.CRAFTING_TERMINAL.get(), TerminalScreen<CraftingTerminalMenu>::new);
+        event.register(NexusMenuTypes.TRANSFER_DEVICE.get(), TransferDeviceScreen::new);
+    }
+
+    @SubscribeEvent
+    static void registerBlockStateModels(final RegisterBlockStateModels event) {
+        event.registerModel(CableArmsModel.ID, CableArmsModel.Unbaked.CODEC);
     }
 
     @SubscribeEvent

@@ -13,8 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
 public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
 
     private static final int IMAGE_WIDTH = 236;
-    private static final int IMAGE_HEIGHT = 116;
-    private static final int PADDING = 10;
+    private static final int IMAGE_HEIGHT = 110;
     private static final int LINE_HEIGHT = 12;
     private static final int BAR_HEIGHT = 16;
     private static final int GAP = 8;
@@ -27,7 +26,7 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
     @Override
     protected PanelStyle style() {
         final NetworkBadge network = getMenu().view().network();
-        return network != null ? PanelStyle.tinted(network.color().rgb()) : PanelStyle.neutral();
+        return PanelStyle.of(network);
     }
 
     @Override
@@ -35,15 +34,12 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
             final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final EnergyCellView view = getMenu().view();
         final NetworkBadge network = view.network();
-        final int x = leftPos + PADDING;
-        int y = topPos + PanelStyle.HEADER_HEIGHT + PADDING;
-        final Component networkLine = network != null
-                ? Component.translatable("gui.nexus.network", network.name())
-                : Component.translatable("gui.nexus.no_network");
-        graphics.text(font, networkLine, x, y, PanelStyle.TEXT_DIM, false);
+        final int x = leftPos + PanelStyle.PADDING;
+        int y = topPos + PanelStyle.NETWORK_TOP;
+        PanelStyle.drawNetwork(graphics, font, network, leftPos, topPos);
 
         y += LINE_HEIGHT + GAP;
-        drawChargeBar(graphics, style, view, new PanelBounds(x, y, imageWidth - PADDING * 2, BAR_HEIGHT));
+        drawChargeBar(graphics, style, view, new PanelBounds(x, y, imageWidth - PanelStyle.PADDING * 2, BAR_HEIGHT));
 
         y += BAR_HEIGHT + GAP;
         graphics.text(font, Component.translatable("gui.nexus.stats.energy",

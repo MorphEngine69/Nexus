@@ -1,9 +1,10 @@
 package com.morphengine.nexus.client.integration.jei;
 
-import com.morphengine.nexus.client.screen.VaultCellScreen;
+import com.morphengine.nexus.client.screen.FilterScreen;
 import com.morphengine.nexus.resource.NexusResource;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import mezz.jei.api.ingredients.ITypedIngredient;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -13,14 +14,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Lets an item or fluid dragged out of JEI be dropped on a filter slot of a
- * Vault Cell. Only the filter entry is set; the player gets nothing.
+ * Lets an item or fluid dragged out of JEI be dropped on a filter slot of any
+ * panel with a filter. Only the filter entry is set; the player gets nothing.
+ *
+ * @param <S> the panel
  */
-final class VaultCellGhostHandler implements IGhostIngredientHandler<VaultCellScreen> {
+final class FilterGhostHandler<S extends Screen & FilterScreen> implements IGhostIngredientHandler<S> {
 
     @Override
     public <I> List<Target<I>> getTargetsTyped(
-            final VaultCellScreen screen, final ITypedIngredient<I> ingredient, final boolean doStart) {
+            final S screen, final ITypedIngredient<I> ingredient, final boolean doStart) {
         final NexusResource resource = entryOf(screen, ingredient.getIngredient());
         if (resource == null) {
             return List.of();
@@ -33,7 +36,7 @@ final class VaultCellGhostHandler implements IGhostIngredientHandler<VaultCellSc
         return targets;
     }
 
-    private static @Nullable NexusResource entryOf(final VaultCellScreen screen, final Object ingredient) {
+    private static @Nullable NexusResource entryOf(final FilterScreen screen, final Object ingredient) {
         return switch (ingredient) {
             case ItemStack stack -> screen.filterEntryOf(stack);
             case FluidStack fluid -> screen.filterEntryOf(fluid);
@@ -48,7 +51,7 @@ final class VaultCellGhostHandler implements IGhostIngredientHandler<VaultCellSc
     /**
      * One filter slot as a place to drop on.
      */
-    private record FilterTarget<I>(VaultCellScreen screen, int slot, Rect2i area, NexusResource resource)
+    private record FilterTarget<I>(FilterScreen screen, int slot, Rect2i area, NexusResource resource)
             implements Target<I> {
 
         @Override

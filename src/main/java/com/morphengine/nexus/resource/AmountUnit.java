@@ -29,6 +29,13 @@ public enum AmountUnit {
     }
 
     /**
+     * @return units in one whole of this unit: one item, or a bucket of 1000 millibuckets
+     */
+    public long unitsPerWhole() {
+        return unitsPerWhole;
+    }
+
+    /**
      * @return at most five characters for the corner of a slot, such as
      *         {@code 64}, {@code 1.2K}, {@code 15B} or {@code 250mB}
      */

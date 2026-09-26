@@ -24,9 +24,9 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
     /** Four by four, as on the vault's front. */
     public static final int CELL_COLUMNS = 4;
     public static final int CELLS_LEFT = 64;
-    public static final int CELLS_TOP = 56;
+    public static final int CELLS_TOP = 52;
     public static final int INVENTORY_LEFT = 19;
-    public static final int INVENTORY_TOP = 146;
+    public static final int INVENTORY_TOP = 142;
 
     /** Menu button ids; the change they make to the priority is {@link #PRIORITY_STEPS}. */
     public static final int BUTTON_LOWER_TEN = 0;

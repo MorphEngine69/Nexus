@@ -23,8 +23,6 @@ final class ResourceGrid {
     private static final int ICON_INSET = 1;
     private static final int ICON_SIZE = 16;
     private static final int HOVER_RGB = 0x80FFFFFF;
-    private static final int AMOUNT_RGB = 0xFFFFFFFF;
-    private static final float AMOUNT_SCALE = 0.5F;
     private static final int MIN_THUMB = 8;
 
     private final PanelBounds cells;
@@ -68,16 +66,9 @@ final class ResourceGrid {
         for (int index = first; index < last; index++) {
             cellAt(index).icon().draw(graphics, cellLeft(index - first), cellTop(index - first));
         }
-        graphics.pose().pushMatrix();
-        graphics.pose().scale(AMOUNT_SCALE, AMOUNT_SCALE);
         for (int index = first; index < last; index++) {
-            final String amount = cellAt(index).amount();
-            final int textRight = (int) ((cellLeft(index - first) + ICON_SIZE) / AMOUNT_SCALE);
-            final int textBottom = (int) ((cellTop(index - first) + ICON_SIZE) / AMOUNT_SCALE);
-            graphics.text(font, amount, textRight - font.width(amount), textBottom - font.lineHeight + 1,
-                    AMOUNT_RGB, true);
+            SlotAmounts.draw(graphics, font, cellAt(index).amount(), cellLeft(index - first), cellTop(index - first));
         }
-        graphics.pose().popMatrix();
         final PanelBounds hovered = hoveredCell(mouseX, mouseY);
         if (hovered != null) {
             graphics.fill(hovered.left(), hovered.top(), hovered.left() + ICON_SIZE, hovered.top() + ICON_SIZE,

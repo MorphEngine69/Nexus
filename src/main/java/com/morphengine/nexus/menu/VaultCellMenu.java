@@ -1,11 +1,11 @@
 package com.morphengine.nexus.menu;
 
-import com.morphengine.nexus.item.CellFilter;
+import com.morphengine.nexus.filter.FilterKinds;
+import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.item.VaultCellItem;
 import com.morphengine.nexus.networking.CellRenamePayload;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusMenuTypes;
-import com.morphengine.nexus.resource.NexusResource;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -23,12 +23,13 @@ import org.jspecify.annotations.Nullable;
  * container lists that resource without taking anything. The held cell's slot
  * is locked while the panel is open.
  */
-public final class VaultCellMenu extends AbstractContainerMenu implements PanelMenu {
+public final class VaultCellMenu extends AbstractContainerMenu implements PanelMenu, FilterMenu {
 
+    public static final int FILTER_SLOTS = 9;
     public static final int FILTER_LEFT = 19;
-    public static final int FILTER_TOP = 66;
+    public static final int FILTER_TOP = 62;
     public static final int INVENTORY_LEFT = 19;
-    public static final int INVENTORY_TOP = 108;
+    public static final int INVENTORY_TOP = 104;
 
     private static final int SLOT_SPACING = 18;
     private static final int INVENTORY_ROWS = 3;
@@ -66,29 +67,29 @@ public final class VaultCellMenu extends AbstractContainerMenu implements PanelM
         return cell().getItem() instanceof VaultCellItem item ? item : null;
     }
 
-    public CellFilter filter() {
+    @Override
+    public FilterSlots filter() {
         return VaultCellItem.filterOf(cell());
     }
 
-    /**
-     * Lists {@code resource} in filter slot {@code slot}, or empties the slot.
-     * A resource the cell cannot store is ignored. Server side only.
-     */
-    public void setFilterSlot(final int slot, final @Nullable NexusResource resource) {
-        final VaultCellItem item = cellItem();
-        final boolean fits = resource == null || item != null && resource.type() == item.kind().resourceType();
-        if (item == null || slot < 0 || slot >= CellFilter.SLOTS || !fits) {
-            return;
-        }
-        cell().set(NexusDataComponents.CELL_FILTER.get(), filter().with(slot, resource));
+    @Override
+    public int filterSlotCount() {
+        return FILTER_SLOTS;
     }
 
     /**
-     * Switches the filter between whitelist and blacklist. Server side only.
+     * @return the one kind of resource the held cell stores
      */
-    public void toggleFilterMode() {
+    @Override
+    public FilterKinds filterKinds() {
+        final VaultCellItem item = cellItem();
+        return item != null ? item.kind().filterKinds() : FilterKinds.ITEMS;
+    }
+
+    @Override
+    public void changeFilter(final FilterSlots changed) {
         if (cellItem() != null) {
-            cell().set(NexusDataComponents.CELL_FILTER.get(), filter().withMode(filter().mode().toggled()));
+            cell().set(NexusDataComponents.CELL_FILTER.get(), changed);
         }
     }
 
@@ -125,8 +126,14 @@ public final class VaultCellMenu extends AbstractContainerMenu implements PanelM
         super.clicked(slotIndex, buttonNum, input, clicker);
     }
 
+    /**
+     * Shift click on an item lists it in the filter; nothing moves.
+     */
     @Override
     public ItemStack quickMoveStack(final Player clicker, final int slotIndex) {
+        if (!clicker.level().isClientSide()) {
+            addToFilter(slots.get(slotIndex).getItem());
+        }
         return ItemStack.EMPTY;
     }
 
