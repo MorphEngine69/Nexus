@@ -6,6 +6,9 @@ import com.morphengine.nexus.block.CoalGeneratorBlock;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
 import com.morphengine.nexus.block.NexusBlock;
+import com.morphengine.nexus.block.StorageVaultBlock;
+import com.morphengine.nexus.block.TerminalBlock;
+import com.morphengine.nexus.terminal.TerminalKind;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -34,6 +37,21 @@ public final class NexusBlocks {
             "coal_generator",
             CoalGeneratorBlock::new,
             NexusBlocks::generator);
+
+    public static final DeferredBlock<StorageVaultBlock> STORAGE_VAULT = BLOCKS.registerBlock(
+            "storage_vault",
+            StorageVaultBlock::new,
+            NexusBlocks::device);
+
+    public static final DeferredBlock<TerminalBlock> TERMINAL = BLOCKS.registerBlock(
+            "terminal",
+            properties -> new TerminalBlock(TerminalKind.TERMINAL, properties),
+            NexusBlocks::device);
+
+    public static final DeferredBlock<TerminalBlock> CRAFTING_TERMINAL = BLOCKS.registerBlock(
+            "crafting_terminal",
+            properties -> new TerminalBlock(TerminalKind.CRAFTING_TERMINAL, properties),
+            NexusBlocks::device);
 
     public static final Map<DyeColor, DeferredBlock<CableBlock>> CABLES = registerCables();
 

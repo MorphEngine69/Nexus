@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
  */
 final class NetworkBadgeCodec {
 
-    private static final StreamCodec<RegistryFriendlyByteBuf, NetworkBadge> BADGE = StreamCodec.composite(
+    static final StreamCodec<RegistryFriendlyByteBuf, NetworkBadge> BADGE = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, NetworkBadge::name,
             ByteBufCodecs.INT.map(NetworkColor::new, NetworkColor::rgb), NetworkBadge::color,
             NetworkBadge::new);

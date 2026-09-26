@@ -2,8 +2,13 @@ package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.menu.CoalGeneratorMenu;
+import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.menu.NexusMenu;
+import com.morphengine.nexus.menu.StorageVaultMenu;
+import com.morphengine.nexus.menu.TerminalMenu;
+import com.morphengine.nexus.menu.VaultCellMenu;
+import com.morphengine.nexus.terminal.TerminalSettings;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -32,6 +37,29 @@ public final class NexusMenuTypes {
             () -> IMenuTypeExtension.create(
                     (containerId, inventory, buffer) ->
                             new CoalGeneratorMenu(containerId, inventory, buffer.readBlockPos())));
+
+    public static final Supplier<MenuType<StorageVaultMenu>> STORAGE_VAULT = MENU_TYPES.register(
+            "storage_vault",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) ->
+                            new StorageVaultMenu(containerId, inventory, buffer.readBlockPos())));
+
+    public static final Supplier<MenuType<TerminalMenu>> TERMINAL = MENU_TYPES.register(
+            "terminal",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) -> new TerminalMenu(containerId, inventory,
+                            buffer.readBlockPos(), TerminalSettings.STREAM_CODEC.decode(buffer))));
+
+    public static final Supplier<MenuType<CraftingTerminalMenu>> CRAFTING_TERMINAL = MENU_TYPES.register(
+            "crafting_terminal",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) -> new CraftingTerminalMenu(containerId, inventory,
+                            buffer.readBlockPos(), TerminalSettings.STREAM_CODEC.decode(buffer))));
+
+    public static final Supplier<MenuType<VaultCellMenu>> VAULT_CELL = MENU_TYPES.register(
+            "vault_cell",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) -> new VaultCellMenu(containerId, inventory)));
 
     private NexusMenuTypes() {
     }

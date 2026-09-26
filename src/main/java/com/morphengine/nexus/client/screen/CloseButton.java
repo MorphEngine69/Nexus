@@ -7,9 +7,9 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
  */
 final class CloseButton {
 
-    private static final int SIZE = 12;
-    private static final int MARGIN = 4;
-    private static final int GLYPH_RADIUS = 3;
+    private static final int SIZE = 10;
+    private static final int MARGIN = 3;
+    private static final int GLYPH_RADIUS = 2;
 
     private final PanelBounds bounds;
 

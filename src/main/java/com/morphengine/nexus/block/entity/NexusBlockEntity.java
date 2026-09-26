@@ -6,6 +6,8 @@ import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.api.network.NetworkStatistics;
 import com.morphengine.nexus.block.NexusBlock;
 import com.morphengine.nexus.block.NexusStatus;
+import com.morphengine.nexus.level.NetworkComponent;
+import com.morphengine.nexus.level.NetworkComponentType;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.NetworkState;
 import com.morphengine.nexus.menu.NexusMenu;
@@ -94,6 +96,11 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
     @Override
     public EnergyBuffer energy() {
         return networkState.energy();
+    }
+
+    @Override
+    public <C extends NetworkComponent> C component(final NetworkComponentType<C> type) {
+        return networkState.component(type);
     }
 
     @Override
