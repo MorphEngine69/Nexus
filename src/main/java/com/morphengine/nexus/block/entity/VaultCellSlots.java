@@ -2,8 +2,8 @@ package com.morphengine.nexus.block.entity;
 
 import com.morphengine.nexus.api.storage.CellStatus;
 import com.morphengine.nexus.api.storage.Storage;
+import com.morphengine.nexus.api.storage.StorageCell;
 import com.morphengine.nexus.item.VaultCellItem;
-import com.morphengine.nexus.storage.CellStorage;
 import com.morphengine.nexus.storage.FilteredStorage;
 import com.morphengine.nexus.storage.ObservedStorage;
 import net.minecraft.world.ContainerHelper;
@@ -166,7 +166,7 @@ final class VaultCellSlots extends SimpleContainer {
         if (!(stack.getItem() instanceof VaultCellItem item)) {
             return null;
         }
-        final CellStorage cell = item.openStorage(stack);
+        final StorageCell cell = item.openStorage(stack);
         final Storage filtered = new FilteredStorage(cell, VaultCellItem.filterOf(stack).toResourceFilter());
         return new LiveCell(stack, cell, new ObservedStorage(filtered, () -> markDirty(slot)));
     }
@@ -191,6 +191,6 @@ final class VaultCellSlots extends SimpleContainer {
     /**
      * A cell item, the storage over its contents, and that storage as the network sees it.
      */
-    private record LiveCell(ItemStack stack, CellStorage cell, Storage storage) {
+    private record LiveCell(ItemStack stack, StorageCell cell, Storage storage) {
     }
 }

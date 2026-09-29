@@ -14,12 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   colors run side by side without joining.
 - Dye a cable in the crafting grid to change its color.
 - The Nexus opens a port on each side where a cable is attached.
-- Basic Energy Cell: stores RF, accepts and gives energy on every side and adds
+- Basic Energy Cell: stores FE, accepts and gives energy on every side and adds
   its capacity to the network's energy pool. Any number of cells can join one
   network.
 - The Nexus interface shows the number of devices connected to it, the stored
   energy and the energy flowing in and out. Cables are not counted.
-- Coal Generator: burns coal, charcoal and coal blocks into RF. It joins the
+- Coal Generator: burns coal, charcoal and coal blocks into FE. It joins the
   network like any device and feeds the network's Energy Cells, and still
   pushes energy into neighbouring blocks. It looks like a furnace, glows while
   working and takes a cable on every side except its firebox.
@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tank to pour its fluid into the network, or click a fluid to fill it.
 - The terminal has a search box (start a word with @ to search by mod) and
   buttons beside it to sort by amount, name, mod or id, flip the order, show
-  only items or only fluids, and pick a small, medium, large or full screen
+  only items, only fluids or only energy, and pick a small, medium, large or full screen
   window. Each size shows as much as fits the game window. The terminal
   remembers these choices.
 - The two terminals are easy to tell apart: the Terminal's screen shows a
@@ -95,18 +95,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   those settings.
 - The Puller takes whatever its filter allows, as a whitelist or a blacklist.
   The Pusher delivers what its whitelist lists, in order, in turn or at
-  random, and can keep the block stocked with a set amount of each: scroll
-  over a filter slot to set it. With a blacklist it delivers everything in the
-  network but what is listed.
+  random. With a blacklist it delivers everything in the network but what is
+  listed.
 - Both can work always, only with a redstone signal, only without one, or once
-  per pulse. Their panels have four upgrade slots for upgrades to come.
+  per pulse, and have four upgrade slots.
 - A Puller or Pusher filter slot clicked with a filled bucket or tank lists
   the fluid inside; hold Shift to list the container itself. Items and fluids
   can be dragged onto it from JEI or REI too.
 - The Nexus shows how many Pullers, Pushers and Storage Vaults its network has.
+- A button at the top of the Puller and Pusher panels picks what the device
+  moves: items, fluids or energy. New devices move items. A device moves only
+  that kind, so an empty Puller filter no longer takes fluids along with
+  items; on a fluid device a bucket on the filter lists its fluid. Each kind
+  keeps a filter of its own: switching to fluids and back finds the item
+  filter as it was.
+- Pullers and Pushers move energy too, up to 10,000 FE every half second. A
+  Puller draws FE from any block that gives it, such as a generator, a solar
+  panel or a battery of another mod, into the network; a Pusher powers a
+  machine from the network's energy. With energy there is nothing to filter:
+  the filter shows a lightning bolt and locked slots, and a Pusher can still
+  keep an amount of FE in the machine.
+- The Nexus takes FE from the cables and generators of other mods and gives it
+  back, so a Pusher of one network can feed another through its Nexus.
+- Energy Vault Cells in six sizes, from 8.4 million FE at 1k to 4.3 billion FE
+  at 512k. They hold energy only, so they have no filter, and their lamp stays
+  green until the cell is full. Their energy joins the network's energy pool
+  after the Energy Cells.
+- The terminal lists the network's energy, Energy Cells included, as a
+  lightning bolt next to its items and fluids.
+- Upgrades for Pullers and Pushers. Speed Upgrade: works more often, up to
+  four stacked in one slot. Stack Upgrade: moves a whole stack at once, 64
+  items or 64 buckets. Regulator Upgrade: a Pusher keeps a set amount in the
+  block and stops there, a Puller leaves a set amount behind instead of
+  emptying the block; scroll over a filter slot to set it. Capacity Upgrade:
+  adds a full row of 9 filter slots, up to 3 stacked in one slot, for 36 in all.
+- Range, Fortune, Silk Touch and Autocrafting Upgrades are in the creative tab
+  already; their tooltip says they are still in development, and no device
+  takes them yet.
+- A Match button on Pullers and Pushers picks how closely the filter compares
+  an item: exactly, ignoring wear, or ignoring every component. It applies
+  wherever the filter decides yes or no, so a blacklisted item still gets
+  blocked however worn or enchanted it is.
 
 ### Changed
 
+- Keeping an amount stocked now takes a Regulator Upgrade in the Pusher; a
+  Pusher set to keep stock without one delivers as long as the block takes
+  more.
 - Shift-click an item in your inventory while a filter is open to list it in
   the first free filter slot; the item stays where it is. A filter slot takes
   an item with either mouse button and is cleared by clicking it empty-handed.
@@ -115,8 +150,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   panel moves up with it.
 
 - Block names are translated in every supported language.
-- Larger Energy Cell and Coal Generator panels; slots are lighter so items
-  stand out.
+- Larger Energy Cell and Coal Generator panels.
+- Slots in every panel are darker, close to black.
+- Energy is shown in FE instead of RF.
 - The Nexus panel has no Rename button any more: click the title instead.
 - Slimmer panel headers with a smaller title.
 

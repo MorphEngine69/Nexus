@@ -42,7 +42,7 @@ import java.util.List;
 
 /**
  * Burns fuel into its own buffer and passes the energy on: first into the energy
- * pool of its network, then into neighbouring blocks that accept RF. It never
+ * pool of its network, then into neighbouring blocks that accept FE. It never
  * draws energy from the network.
  */
 public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuHost, NetworkMember, Renamable {

@@ -30,7 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Coal Generator: a network device that burns coal, charcoal or coal blocks into
- * RF for its network and for neighbouring blocks. Its front, the firebox, faces
+ * FE for its network and for neighbouring blocks. Its front, the firebox, faces
  * the player who placed it, glows while it produces and takes no cable.
  */
 public final class CoalGeneratorBlock extends NetworkDeviceBlock {

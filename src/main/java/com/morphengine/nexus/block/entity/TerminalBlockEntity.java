@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block.entity;
 
+import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.TerminalBlock;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
@@ -88,6 +89,19 @@ public final class TerminalBlockEntity extends NetworkDeviceBlockEntity {
             return TerminalStatus.NO_NETWORK;
         }
         return isNetworkPowered() ? TerminalStatus.ONLINE : TerminalStatus.NO_ENERGY;
+    }
+
+    /**
+     * @return everything the network holds, its energy pool included, while the
+     *         terminal is {@link TerminalStatus#ONLINE}; {@code null} otherwise.
+     *         Server side only.
+     */
+    public @Nullable Storage onlineResources() {
+        final NetworkController controller = controller();
+        if (controller == null || status() != TerminalStatus.ONLINE) {
+            return null;
+        }
+        return controller.resources();
     }
 
     /**

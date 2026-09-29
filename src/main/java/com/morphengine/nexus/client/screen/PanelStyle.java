@@ -30,11 +30,13 @@ final class PanelStyle {
     private static final int BUTTON_FILL_RGB = 0x20222A;
     private static final int HEADER_BASE_RGB = 0x24252C;
     private static final int TRACK_BASE_RGB = 0x0E0E14;
-    /** Light enough that dark items such as a coal block stand out on it. */
-    private static final int SLOT_BASE_RGB = 0x33353D;
-    private static final int SLOT_SHADOW_RGB = 0x1C1D23;
-    private static final int SLOT_LIGHT_RGB = 0x474953;
+    private static final int SLOT_BASE_RGB = 0x181920;
+    private static final int SLOT_SHADOW_RGB = 0x14151B;
+    private static final int SLOT_LIGHT_RGB = 0x3F414B;
     private static final float SLOT_TINT = 0.12F;
+    private static final int LOCKED_BASE_RGB = 0x0F1015;
+    private static final int LOCKED_HATCH_RGB = 0x1F2027;
+    private static final int LOCKED_HATCH_SPACING = 4;
     private static final float PANEL_TINT = 0.10F;
     private static final float BORDER_TINT = 0.55F;
     private static final float BUTTON_TINT = 0.22F;
@@ -160,6 +162,23 @@ final class PanelStyle {
             graphics.fill(x, top, x + 1, bottom, border);
             graphics.fill(x + SLOT_SIZE - 1, top, x + SLOT_SIZE, bottom, border);
         }
+    }
+
+    /**
+     * A slot that takes nothing, such as one of a filter that is fixed: the
+     * border of a slot around a flat dark interior with diagonal hatching.
+     */
+    void drawLockedSlot(final GuiGraphicsExtractor graphics, final int x, final int y) {
+        graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, ARGB.opaque(LOCKED_BASE_RGB));
+        final int hatch = ARGB.opaque(LOCKED_HATCH_RGB);
+        final int inner = SLOT_SIZE - 2;
+        for (int row = 0; row < inner; row++) {
+            for (int column = (LOCKED_HATCH_SPACING - row % LOCKED_HATCH_SPACING) % LOCKED_HATCH_SPACING;
+                 column < inner; column += LOCKED_HATCH_SPACING) {
+                graphics.fill(x + 1 + column, y + 1 + row, x + 2 + column, y + 2 + row, hatch);
+            }
+        }
+        graphics.outline(x, y, SLOT_SIZE, SLOT_SIZE, border());
     }
 
     void drawButton(

@@ -7,8 +7,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * Size of an Energy Cell. A new tier is a new instance registered with its own
  * block; no other code changes.
  *
- * @param capacity    RF the cell holds, must be positive
- * @param maxTransfer RF the cell accepts or gives per operation, must be positive
+ * @param capacity    FE the cell holds, must be positive
+ * @param maxTransfer FE the cell accepts or gives per operation, must be positive
  */
 public record EnergyCellTier(long capacity, long maxTransfer) {
 

@@ -4,17 +4,22 @@ import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.transport.RedstoneMode;
 import com.morphengine.nexus.api.transport.TransferQuota;
 import com.morphengine.nexus.block.TransferDeviceBlock;
-import com.morphengine.nexus.level.NetworkComponentTypes;
+import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.SideStorage;
 import com.morphengine.nexus.menu.TransferDeviceMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.resource.NexusResources;
-import com.morphengine.nexus.storage.NetworkStorage;
+import com.morphengine.nexus.storage.SingleTypeStorage;
+import com.morphengine.nexus.transfer.DeliveryMode;
 import com.morphengine.nexus.transfer.TransferKind;
 import com.morphengine.nexus.transfer.TransferSettings;
 import com.morphengine.nexus.transport.RedstoneGate;
+import com.morphengine.nexus.transport.TransferRate;
 import com.morphengine.nexus.transport.TransferTask;
+import com.morphengine.nexus.upgrade.UpgradeContainer;
+import com.morphengine.nexus.upgrade.UpgradeLimits;
+import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -22,7 +27,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -34,41 +38,52 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Map;
 import java.util.SplittableRandom;
 import java.util.random.RandomGenerator;
 
 /**
- * A Puller or Pusher. Once every {@value #OPERATION_INTERVAL_TICKS} ticks,
- * while its network has energy and its redstone mode lets it, it moves one
- * resource between the network and the block its face touches, as that block
- * offers it on that face. Once a second it lights or darkens its cable arms
- * with the network's energy. It keeps its settings and its upgrades.
+ * A Puller or Pusher. Once every few ticks, while its network has energy and
+ * its redstone mode lets it, it moves one resource between the network and the
+ * block its face touches, as that block offers it on that face. It moves only
+ * the kind of resource it is set to: items, fluids, or FE between the block and
+ * the network's energy pool. Speed Upgrades make it work more often, a Stack
+ * Upgrade move more at once, a Regulator Upgrade lets it keep stock, and
+ * Capacity Upgrades widen its filter; see {@link TransferRate}. Once a second
+ * it lights or darkens its cable arms with the network's energy. It keeps its
+ * settings and its upgrades.
  */
 public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
 
     public static final int FILTER_SLOTS = 9;
+    /** A Capacity Upgrade adds this many filter slots; placeholder balance. */
+    public static final int FILTER_SLOTS_PER_CAPACITY_UPGRADE = 9;
     public static final int UPGRADE_SLOTS = 4;
-    static final int OPERATION_INTERVAL_TICKS = 10;
+    /**
+     * Placeholder balance: up to four Speed Upgrades share one slot, Stack and
+     * Regulator take one slot each, and up to three Capacity Upgrades share the
+     * last slot, for {@value #FILTER_SLOTS} + 3 &times; {@value
+     * #FILTER_SLOTS_PER_CAPACITY_UPGRADE} = 36 filter slots at most.
+     */
+    public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(Map.of(
+            UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.REGULATOR, 1, UpgradeTypes.CAPACITY, 3));
     private static final int POWER_CHECK_INTERVAL_TICKS = 20;
 
     private static final String TAG_SETTINGS = "settings";
     private static final String TAG_SIGNAL = "redstone_signal";
-    /** One item or one bucket per operation until upgrades raise it. */
-    private static final TransferQuota QUOTA =
-            resource -> NexusResources.of(resource).type().unit().unitsPerWhole();
-
     private final TransferKind kind;
-    private final SimpleContainer upgrades = new SimpleContainer(UPGRADE_SLOTS) {
-        @Override
-        public void setChanged() {
-            super.setChanged();
-            TransferDeviceBlockEntity.this.setChanged();
-        }
-    };
+    private final UpgradeContainer upgrades =
+            new UpgradeContainer(UPGRADE_SLOTS, UPGRADE_LIMITS, this::upgradesChanged);
+    private TransferRate rate = TransferRate.BASE;
+    private boolean regulated;
+    /** One step of the resource per operation, times what a Stack Upgrade adds. */
+    private final TransferQuota quota =
+            resource -> NexusResources.of(resource).type().unit().step() * rate.multiplier();
     private final RedstoneGate gate = new RedstoneGate(RedstoneMode.IGNORED);
     private final RandomGenerator random = new SplittableRandom();
     private TransferSettings settings = TransferSettings.DEFAULT;
@@ -76,6 +91,7 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     private @Nullable Direction watchedFace;
     private @Nullable BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> items;
     private @Nullable BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> fluids;
+    private @Nullable BlockCapabilityCache<EnergyHandler, Direction> energy;
     private boolean signalKnown;
     private int cooldown;
 
@@ -96,7 +112,7 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
         if (--device.cooldown > 0 || !(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        device.cooldown = OPERATION_INTERVAL_TICKS;
+        device.cooldown = device.rate.intervalTicks();
         device.operate(serverLevel, pos, state.getValue(TransferDeviceBlock.FACING));
     }
 
@@ -140,6 +156,31 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     }
 
     /**
+     * @return filter slots the device offers now: {@value #FILTER_SLOTS} plus
+     *         {@value #FILTER_SLOTS_PER_CAPACITY_UPGRADE} for every Capacity
+     *         Upgrade it holds
+     */
+    public static int filterSlotCount(final Container upgrades) {
+        final int capacityUpgrades = UpgradeLimits.count(upgrades, UpgradeTypes.CAPACITY.get());
+        return FILTER_SLOTS + FILTER_SLOTS_PER_CAPACITY_UPGRADE * capacityUpgrades;
+    }
+
+    private void upgradesChanged() {
+        readUpgrades();
+        setChanged();
+    }
+
+    /**
+     * Takes in the upgrades held now: how often and how much the device works,
+     * and whether it may keep stock.
+     */
+    private void readUpgrades() {
+        rate = TransferRate.of(upgrades.count(UpgradeTypes.SPEED), upgrades.count(UpgradeTypes.STACK));
+        regulated = upgrades.count(UpgradeTypes.REGULATOR) > 0;
+        task = null;
+    }
+
+    /**
      * Takes the redstone signal the device receives now. Server side only.
      */
     public void receiveSignal(final boolean signal) {
@@ -160,33 +201,52 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
         if (!beside.isPresent()) {
             return;
         }
-        final NetworkStorage network = controller.component(NetworkComponentTypes.STORAGE).storage();
+        final SingleTypeStorage network =
+                new SingleTypeStorage(controller.resources(), settings.resource().resourceType());
         task().runOnce(kind.route(beside, network, Actor.NOBODY));
         gate.operated();
     }
 
     /**
-     * What the block the device's face touches offers on the face touched.
-     * The lookups are cached until the device turns to another face.
+     * What the block the device's face touches offers on the face touched, of
+     * the resource the device moves. The lookups are cached until the device
+     * turns to another face.
      */
     private SideStorage besideStorage(final ServerLevel level, final BlockPos pos, final Direction face) {
         BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> itemCache = items;
         BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> fluidCache = fluids;
-        if (face != watchedFace || itemCache == null || fluidCache == null) {
+        BlockCapabilityCache<EnergyHandler, Direction> energyCache = energy;
+        if (face != watchedFace || itemCache == null || fluidCache == null || energyCache == null) {
             final BlockPos target = pos.relative(face);
-            itemCache = BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, target, face.getOpposite());
-            fluidCache = BlockCapabilityCache.create(Capabilities.Fluid.BLOCK, level, target, face.getOpposite());
+            final Direction side = face.getOpposite();
+            itemCache = BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, target, side);
+            fluidCache = BlockCapabilityCache.create(Capabilities.Fluid.BLOCK, level, target, side);
+            energyCache = BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, target, side);
             items = itemCache;
             fluids = fluidCache;
+            energy = energyCache;
             watchedFace = face;
         }
-        return new SideStorage(itemCache.getCapability(), fluidCache.getCapability());
+        return switch (settings.resource()) {
+            case ITEM -> new SideStorage(itemCache.getCapability(), null, null);
+            case FLUID -> new SideStorage(null, fluidCache.getCapability(), null);
+            case ENERGY -> new SideStorage(null, null, energyCache.getCapability());
+        };
     }
 
+    /**
+     * What the device does as set, except that without a Regulator Upgrade it
+     * does not keep stock, and its filter only reaches the slots its Capacity
+     * Upgrades unlock now: entries left over from a removed one stay saved but
+     * take no part until it is added back.
+     */
     private TransferTask task() {
         TransferTask current = task;
         if (current == null) {
-            current = kind.taskFor(settings, QUOTA, random);
+            final FilterSlots activeFilter = settings.filter().limitedTo(filterSlotCount(upgrades));
+            final TransferSettings limited = settings.withFilter(activeFilter);
+            final TransferSettings effective = regulated ? limited : limited.withDelivery(DeliveryMode.UNLIMITED);
+            current = kind.taskFor(effective, quota, random);
             task = current;
         }
         return current;
@@ -226,5 +286,6 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
         gate.restore(input.getBooleanOr(TAG_SIGNAL, false));
         signalKnown = true;
         ContainerHelper.loadAllItems(input, upgrades.getItems());
+        readUpgrades();
     }
 }

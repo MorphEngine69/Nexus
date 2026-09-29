@@ -15,8 +15,9 @@ import java.util.Map;
 
 /**
  * How much of the resource in each filter slot a Pusher keeps the storage
- * beside it stocked with. A slot without an amount of its own keeps one whole
- * of its resource: one item, or one bucket.
+ * beside it stocked with. A slot without an amount of its own keeps one
+ * {@linkplain com.morphengine.nexus.resource.AmountUnit#step step} of its
+ * resource: one item, one bucket, 10,000 FE.
  *
  * @param bySlot units set for a slot, each in [1, {@value #MAX}]; copied
  */
@@ -49,7 +50,7 @@ public record KeepAmounts(Map<Integer, Long> bySlot) {
      */
     public long of(final int slot, final NexusResource resource) {
         final Long set = bySlot.get(slot);
-        return set != null ? set : resource.type().unit().unitsPerWhole();
+        return set != null ? set : resource.type().unit().step();
     }
 
     /**

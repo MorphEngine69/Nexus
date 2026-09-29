@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Energy Cell: a battery that joins the network and adds its buffer to the
- * network's energy pool. Accepts and gives RF on every side.
+ * network's energy pool. Accepts and gives FE on every side.
  */
 public final class EnergyCellBlock extends NetworkDeviceBlock {
 

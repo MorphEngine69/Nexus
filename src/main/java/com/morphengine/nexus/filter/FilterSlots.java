@@ -2,6 +2,7 @@ package com.morphengine.nexus.filter;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.morphengine.nexus.api.resource.FilterMatchMode;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.resource.ResourceFilter;
 import com.morphengine.nexus.api.resource.ResourceKey;
@@ -104,6 +105,20 @@ public record FilterSlots(FilterMode mode, List<Entry> entries) {
     }
 
     /**
+     * @return this filter with only the entries below {@code slots}; the rest
+     *         stay out of matching without being dropped from what is saved
+     */
+    public FilterSlots limitedTo(final int slots) {
+        final List<Entry> kept = new ArrayList<>(entries.size());
+        for (Entry entry : entries) {
+            if (entry.slot() < slots) {
+                kept.add(entry);
+            }
+        }
+        return kept.size() == entries.size() ? this : new FilterSlots(mode, kept);
+    }
+
+    /**
      * @return the entries in slot order
      */
     public List<Entry> inSlotOrder() {
@@ -113,11 +128,15 @@ public record FilterSlots(FilterMode mode, List<Entry> entries) {
     }
 
     public ResourceFilter toResourceFilter() {
+        return toResourceFilter(FilterMatchMode.EXACT);
+    }
+
+    public ResourceFilter toResourceFilter(final FilterMatchMode matchMode) {
         final Set<ResourceKey> listed = new HashSet<>();
         for (Entry entry : entries) {
             listed.add(entry.resource());
         }
-        return new ResourceFilter(mode, listed);
+        return new ResourceFilter(mode, matchMode, listed);
     }
 
     private static FilterMode modeOf(final boolean whitelist) {

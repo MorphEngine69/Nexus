@@ -7,8 +7,9 @@ import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.api.transport.TransferQuota;
 import com.morphengine.nexus.filter.FilterSlots;
-import com.morphengine.nexus.transport.PushEntry;
+import com.morphengine.nexus.transport.PullTask;
 import com.morphengine.nexus.transport.PushTask;
+import com.morphengine.nexus.transport.StockEntry;
 import com.morphengine.nexus.transport.StorageRoute;
 import com.morphengine.nexus.transport.SweepTask;
 import com.morphengine.nexus.transport.TransferTask;
@@ -25,12 +26,19 @@ import java.util.random.RandomGenerator;
  */
 public enum TransferKind implements StringRepresentable {
 
-    /** Takes whatever its filter allows out of the block into the network. */
+    /**
+     * Takes whatever its filter allows out of the block into the network. Set
+     * to keep stock, it takes only what the block holds beyond the amounts its
+     * whitelist keeps.
+     */
     PULLER(DeviceRole.PULLER) {
         @Override
         public TransferTask taskFor(
                 final TransferSettings settings, final TransferQuota quota, final RandomGenerator random) {
-            return new SweepTask(settings.filter().toResourceFilter(), quota);
+            if (settings.delivery() == DeliveryMode.KEEP_STOCKED && settings.filter().mode() == FilterMode.ALLOW) {
+                return new PullTask(stockOf(settings), quota);
+            }
+            return new SweepTask(settings.filter().toResourceFilter(settings.matchMode()), quota);
         }
 
         @Override
@@ -39,7 +47,7 @@ public enum TransferKind implements StringRepresentable {
         }
 
         @Override
-        public boolean hasDeliverySettings() {
+        public boolean hasScheduling() {
             return false;
         }
     },
@@ -53,16 +61,9 @@ public enum TransferKind implements StringRepresentable {
         public TransferTask taskFor(
                 final TransferSettings settings, final TransferQuota quota, final RandomGenerator random) {
             if (settings.filter().mode() == FilterMode.DENY) {
-                return new SweepTask(settings.filter().toResourceFilter(), quota);
+                return new SweepTask(settings.filter().toResourceFilter(settings.matchMode()), quota);
             }
-            final List<FilterSlots.Entry> listed = settings.filter().inSlotOrder();
-            final List<PushEntry> entries = new ArrayList<>(listed.size());
-            for (FilterSlots.Entry entry : listed) {
-                entries.add(settings.delivery() == DeliveryMode.KEEP_STOCKED
-                        ? new PushEntry(entry.resource(), settings.keepAmount(entry.slot(), entry.resource()))
-                        : PushEntry.unlimited(entry.resource()));
-            }
-            return new PushTask(entries, settings.scheduling(), quota, random);
+            return new PushTask(stockOf(settings), settings.scheduling(), quota, random);
         }
 
         @Override
@@ -71,7 +72,7 @@ public enum TransferKind implements StringRepresentable {
         }
 
         @Override
-        public boolean hasDeliverySettings() {
+        public boolean hasScheduling() {
             return true;
         }
     };
@@ -102,10 +103,25 @@ public enum TransferKind implements StringRepresentable {
     public abstract StorageRoute route(Storage beside, Storage network, Actor actor);
 
     /**
-     * @return whether the device has an order of delivery and amounts to keep
-     *         stocked, both for the resources a whitelist lists
+     * @return whether the device delivers the resources its whitelist lists in
+     *         an order that can be chosen
      */
-    public abstract boolean hasDeliverySettings();
+    public abstract boolean hasScheduling();
+
+    /**
+     * @return what the filter lists in slot order, each with the amount kept in
+     *         stock when the settings keep stock, or without limit otherwise
+     */
+    private static List<StockEntry> stockOf(final TransferSettings settings) {
+        final List<FilterSlots.Entry> listed = settings.filter().inSlotOrder();
+        final List<StockEntry> entries = new ArrayList<>(listed.size());
+        for (FilterSlots.Entry entry : listed) {
+            entries.add(settings.delivery() == DeliveryMode.KEEP_STOCKED
+                    ? new StockEntry(entry.resource(), settings.keepAmount(entry.slot(), entry.resource()))
+                    : StockEntry.unlimited(entry.resource()));
+        }
+        return entries;
+    }
 
     @Override
     public String getSerializedName() {

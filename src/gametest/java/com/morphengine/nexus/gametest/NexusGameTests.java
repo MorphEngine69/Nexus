@@ -173,7 +173,7 @@ public final class NexusGameTests {
                         energyHandler(helper, cellPos).insert(500, transaction);
                     }
                     final long stored = cellEntity(helper, cellPos).energyBuffer().stored();
-                    helper.assertTrue(stored == 0, Component.literal("aborted insert left " + stored + " RF"));
+                    helper.assertTrue(stored == 0, Component.literal("aborted insert left " + stored + " FE"));
                 })
                 .thenSucceed();
     }
@@ -209,7 +209,7 @@ public final class NexusGameTests {
                     final long stored = cellEntity(helper, cellPos).energyBuffer().stored();
                     final boolean lit = helper.getBlockState(generatorPos).getValue(CoalGeneratorBlock.LIT);
                     helper.assertTrue(stored > 0 && lit,
-                            Component.literal("cell holds " + stored + " RF, generator lit=" + lit));
+                            Component.literal("cell holds " + stored + " FE, generator lit=" + lit));
                 })
                 .thenSucceed();
     }
@@ -256,7 +256,7 @@ public final class NexusGameTests {
                         .fuel().setItem(0, new ItemStack(Items.CHARCOAL, 1)))
                 .thenWaitUntil(() -> {
                     final long stored = cellEntity(helper, cellPos).energyBuffer().stored();
-                    helper.assertTrue(stored > 0, Component.literal("cell away from the generator holds no RF"));
+                    helper.assertTrue(stored > 0, Component.literal("cell away from the generator holds no FE"));
                 })
                 .thenSucceed();
     }
@@ -377,7 +377,7 @@ public final class NexusGameTests {
     private static void assertStatistics(final GameTestHelper helper, final int devices, final long capacity) {
         final NetworkStatistics statistics = nexus(helper).statistics();
         helper.assertTrue(statistics.devices() == devices && statistics.energyCapacity() == capacity,
-                Component.literal("expected " + devices + " devices and " + capacity + " RF capacity, got "
+                Component.literal("expected " + devices + " devices and " + capacity + " FE capacity, got "
                         + statistics));
     }
 

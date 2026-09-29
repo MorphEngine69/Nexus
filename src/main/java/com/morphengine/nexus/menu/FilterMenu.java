@@ -33,21 +33,27 @@ public interface FilterMenu {
 
     /**
      * Lists {@code resource} in filter slot {@code slot}, or empties the slot for
-     * {@code null}. A slot out of range or a resource of a kind the filter does
-     * not list changes nothing. Server side only.
+     * {@code null}. A locked filter, a slot out of range or a resource of a kind
+     * the filter does not list changes nothing. Server side only.
      */
     default void setFilterSlot(final int slot, final @Nullable NexusResource resource) {
-        if (slot < 0 || slot >= filterSlotCount() || resource != null && !filterKinds().accepts(resource)) {
+        if (!filterKinds().listsAnything() || slot < 0 || slot >= filterSlotCount()) {
+            return;
+        }
+        if (resource != null && !filterKinds().accepts(resource)) {
             return;
         }
         changeFilter(filter().with(slot, resource));
     }
 
     /**
-     * Switches the filter between whitelist and blacklist. Server side only.
+     * Switches the filter between whitelist and blacklist; a locked filter stays
+     * as it is. Server side only.
      */
     default void toggleFilterMode() {
-        changeFilter(filter().withMode(filter().mode().toggled()));
+        if (filterKinds().listsAnything()) {
+            changeFilter(filter().withMode(filter().mode().toggled()));
+        }
     }
 
     /**

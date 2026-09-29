@@ -1,6 +1,9 @@
 package com.morphengine.nexus.resource;
 
 import com.mojang.serialization.MapCodec;
+import com.morphengine.nexus.api.resource.FilterMatchMode;
+import com.morphengine.nexus.api.resource.ResourceKey;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -42,6 +45,15 @@ public record ItemKey(ItemResource item) implements NexusResource {
     @Override
     public NexusResourceType<?> type() {
         return ResourceTypes.ITEM.get();
+    }
+
+    @Override
+    public ResourceKey normalized(final FilterMatchMode mode) {
+        return switch (mode) {
+            case EXACT -> this;
+            case IGNORE_DURABILITY -> new ItemKey(item.without(DataComponents.DAMAGE));
+            case IGNORE_COMPONENTS -> new ItemKey(ItemResource.of(item.getItem()));
+        };
     }
 
     @Override
