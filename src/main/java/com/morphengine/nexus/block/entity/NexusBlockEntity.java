@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 public final class NexusBlockEntity extends BlockEntity implements NetworkController, MenuHost, Renamable {
 
@@ -96,6 +97,14 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
     @Override
     public EnergyBuffer energy() {
         return networkState.energy();
+    }
+
+    /**
+     * @return the handler through which other mods put FE into the network and
+     *         take it out, on any side; empty on the client
+     */
+    public EnergyHandler energyHandler() {
+        return networkState.energyHandler();
     }
 
     @Override

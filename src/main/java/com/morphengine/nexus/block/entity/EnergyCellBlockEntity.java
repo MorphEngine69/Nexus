@@ -39,6 +39,7 @@ public final class EnergyCellBlockEntity extends BlockEntity
     private final NetworkLink network = new NetworkLink();
     private final DeviceName name = new DeviceName();
     private long insertedAtLastCheck;
+    private long extractedAtLastCheck;
 
     public EnergyCellBlockEntity(final BlockPos pos, final BlockState state) {
         super(NexusBlockEntityTypes.ENERGY_CELL.get(), pos, state);
@@ -48,7 +49,10 @@ public final class EnergyCellBlockEntity extends BlockEntity
     }
 
     /**
-     * Once a second, shows on the block whether energy came in since the last check.
+     * Once a second, shows on the block whether energy came in since the last
+     * check, and marks the cell for saving if its charge changed. The network's
+     * pool moves energy straight through the buffer, past the handler that
+     * marks the cell on every change.
      */
     public static void serverTick(
             final Level level, final BlockPos pos, final BlockState state, final EnergyCellBlockEntity cell) {
@@ -56,8 +60,13 @@ public final class EnergyCellBlockEntity extends BlockEntity
             return;
         }
         final long inserted = cell.buffer.totalInserted();
+        final long extracted = cell.buffer.totalExtracted();
         final boolean charging = inserted != cell.insertedAtLastCheck;
+        if (charging || extracted != cell.extractedAtLastCheck) {
+            cell.setChanged();
+        }
         cell.insertedAtLastCheck = inserted;
+        cell.extractedAtLastCheck = extracted;
         if (state.getValue(EnergyCellBlock.CHARGING) != charging) {
             level.setBlock(pos, state.setValue(EnergyCellBlock.CHARGING, charging), Block.UPDATE_CLIENTS);
         }
@@ -76,8 +85,9 @@ public final class EnergyCellBlockEntity extends BlockEntity
     }
 
     /**
-     * @return the handler other mods use to push RF in and pull RF out, on any side
+     * @return the handler other mods use to push FE in and pull FE out, on any side
      */
+    @Override
     public EnergyHandler energyHandler() {
         return handler;
     }

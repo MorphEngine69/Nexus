@@ -1,12 +1,14 @@
 package com.morphengine.nexus.menu;
 
-import com.morphengine.nexus.registry.NexusTags;
+import com.morphengine.nexus.upgrade.UpgradeContainer;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * An upgrade slot of a device: takes one upgrade.
+ * An upgrade slot of a device: takes upgrades of a kind and in a number its
+ * container accepts, several copies of one kind sharing a slot where the
+ * device takes more than one.
  */
 final class UpgradeSlot extends Slot {
 
@@ -16,11 +18,12 @@ final class UpgradeSlot extends Slot {
 
     @Override
     public boolean mayPlace(final ItemStack stack) {
-        return stack.is(NexusTags.UPGRADES);
+        return container.canPlaceItem(getContainerSlot(), stack);
     }
 
     @Override
-    public int getMaxStackSize() {
-        return 1;
+    public int getMaxStackSize(final ItemStack stack) {
+        return container instanceof UpgradeContainer upgrades
+                ? upgrades.capacityOf(getContainerSlot(), stack) : super.getMaxStackSize(stack);
     }
 }

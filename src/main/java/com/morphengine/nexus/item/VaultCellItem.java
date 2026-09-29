@@ -3,12 +3,11 @@ package com.morphengine.nexus.item;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.storage.CellSpec;
-import com.morphengine.nexus.api.storage.CellUsage;
+import com.morphengine.nexus.api.storage.StorageCell;
 import com.morphengine.nexus.block.entity.Renamable;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.menu.VaultCellMenu;
 import com.morphengine.nexus.registry.NexusDataComponents;
-import com.morphengine.nexus.storage.CellStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,14 +22,13 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
  * A Vault Cell: a storage of one kind and size that works inside a Storage
  * Vault. Its contents, filter and name live on the item, so they travel with it.
- * Used in the main hand, it opens its panel.
+ * Used in the main hand, a cell with a filter opens its panel.
  */
 public final class VaultCellItem extends Item {
 
@@ -61,8 +59,8 @@ public final class VaultCellItem extends Item {
      * @return a storage over the contents saved on {@code stack}; changes to it
      *         reach the stack only through {@link #saveContents}
      */
-    public CellStorage openStorage(final ItemStack stack) {
-        return new CellStorage(kind.resourceType(), spec(), contentsOf(stack));
+    public StorageCell openStorage(final ItemStack stack) {
+        return kind.createStorage(spec(), contentsOf(stack));
     }
 
     public static void saveContents(final ItemStack stack, final List<ResourceAmount> contents) {
@@ -77,9 +75,12 @@ public final class VaultCellItem extends Item {
         return stack.getOrDefault(NexusDataComponents.CELL_FILTER.get(), FilterSlots.EMPTY);
     }
 
+    /**
+     * Opens the panel of the cell's filter; a cell without a filter has no panel.
+     */
     @Override
     public InteractionResult use(final Level level, final Player player, final InteractionHand hand) {
-        if (hand != InteractionHand.MAIN_HAND) {
+        if (hand != InteractionHand.MAIN_HAND || !kind.hasFilter()) {
             return InteractionResult.PASS;
         }
         if (player instanceof ServerPlayer serverPlayer) {
@@ -95,20 +96,12 @@ public final class VaultCellItem extends Item {
     public void appendHoverText(
             final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display,
             final Consumer<Component> builder, final TooltipFlag flag) {
-        final CellUsage usage = openStorage(stack).usage();
-        builder.accept(Component.translatable("tooltip.nexus.cell.bytes",
-                grouped(usage.usedBytes()), grouped(usage.totalBytes())).withStyle(ChatFormatting.GRAY));
-        builder.accept(Component.translatable("tooltip.nexus.cell.types",
-                usage.storedTypes(), usage.maxTypes()).withStyle(ChatFormatting.GRAY));
+        kind.describe(openStorage(stack), builder);
         final FilterSlots filter = filterOf(stack);
         if (!filter.entries().isEmpty()) {
             final String key = filter.mode() == FilterMode.ALLOW
                     ? "tooltip.nexus.cell.whitelist" : "tooltip.nexus.cell.blacklist";
             builder.accept(Component.translatable(key, filter.entries().size()).withStyle(ChatFormatting.GRAY));
         }
-    }
-
-    private static String grouped(final long value) {
-        return String.format(Locale.ROOT, "%,d", value);
     }
 }

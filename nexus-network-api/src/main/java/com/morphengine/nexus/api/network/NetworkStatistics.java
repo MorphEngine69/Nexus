@@ -4,14 +4,14 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Figures shown in the Nexus interface. Energy values are in RF, rates in RF per tick.
+ * Figures shown in the Nexus interface. Energy values are in FE, rates in FE per tick.
  *
  * @param devices        devices connected to the Nexus; cables and the Nexus itself are not counted
  * @param devicesByRole  the same devices by what they do; a role left out counts zero; copied
- * @param energyStored   RF held by all energy buffers of the network
- * @param energyCapacity RF all energy buffers of the network can hold
- * @param energyInput    average RF/t entering the network's buffers
- * @param energyOutput   average RF/t leaving the network's buffers
+ * @param energyStored   FE held by all energy buffers of the network
+ * @param energyCapacity FE all energy buffers of the network can hold
+ * @param energyInput    average FE/t entering the network's buffers
+ * @param energyOutput   average FE/t leaving the network's buffers
  */
 public record NetworkStatistics(
         int devices, Map<DeviceRole, Integer> devicesByRole, long energyStored, long energyCapacity,

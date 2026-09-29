@@ -2,7 +2,10 @@ package com.morphengine.nexus.level;
 
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.api.network.Network;
+import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.NexusStatus;
+import com.morphengine.nexus.resource.EnergyKey;
+import com.morphengine.nexus.storage.EnergyBackedStorage;
 import net.minecraft.core.BlockPos;
 
 /**
@@ -26,6 +29,17 @@ public interface NetworkController {
      *         feed it, consumers draw from it. Server side only.
      */
     EnergyBuffer energy();
+
+    /**
+     * @return everything the network holds as one storage: the items and fluids
+     *         of its storage and its whole energy pool as {@link EnergyKey}. A new
+     *         view on every call, over the storage and pool of the moment. Server
+     *         side only.
+     */
+    default Storage resources() {
+        return new EnergyBackedStorage(component(NetworkComponentTypes.STORAGE).storage(), energy(),
+                EnergyKey.INSTANCE);
+    }
 
     /**
      * @return the network's component of {@code type}; the same instance for the

@@ -31,10 +31,12 @@ import java.util.Locale;
 /**
  * Puller or Pusher panel, tinted with its network's color: the network, the
  * filter, the upgrade slots right of it and the inventory, with the mode
- * buttons in a column left of the panel. The order and amounts of delivery
- * show only on a Pusher with a whitelist, the only one they apply to; when it
- * keeps amounts stocked, each filter slot shows its amount, changed with the
- * mouse wheel.
+ * buttons in a column left of the panel. The first button picks what the
+ * device moves; for energy the filter is locked and its mode button hidden.
+ * The order of delivery shows only on a Pusher with a whitelist, and not for
+ * energy, a single resource. The amount shows with a Regulator Upgrade and a
+ * whitelist; when the device keeps stock, each filter slot shows its amount,
+ * changed with the mouse wheel.
  */
 public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> implements FilterScreen {
 
@@ -95,8 +97,7 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
             final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final NetworkBadge network = getMenu().badge();
         PanelStyle.drawNetwork(graphics, font, network, leftPos, topPos);
-        graphics.text(font, Component.translatable(getMenu().deliversListed()
-                        ? "gui.nexus.transfer.deliver" : "gui.nexus.filter"),
+        graphics.text(font, Component.translatable("gui.nexus.filter"),
                 leftPos + PanelStyle.PADDING, topPos + FILTER_LABEL_TOP, PanelStyle.TEXT_DIM, false);
         filterGrid.draw(graphics, style, mouseX, mouseY);
         if (getMenu().showsKeepAmounts()) {
@@ -143,7 +144,7 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
     private List<Component> tooltipAt(final int mouseX, final int mouseY) {
         final int button = sideButtons().buttonAt(mouseX, mouseY);
         if (button >= 0) {
-            return controls().get(button).tooltip(getMenu().settings());
+            return controls().get(button).tooltip(getMenu());
         }
         final int slot = filterGrid.slotAt(mouseX, mouseY);
         final NexusResource resource = filterGrid.resourceAt(mouseX, mouseY);
@@ -153,8 +154,8 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
         final List<Component> lines = new ArrayList<>(ResourceRenderers.tooltip(resource));
         if (getMenu().showsKeepAmounts()) {
             final AmountUnit unit = resource.type().unit();
-            lines.add(Component.translatable("gui.nexus.transfer.keep_amount",
-                    unit.exact(getMenu().settings().keepAmount(slot, resource))).withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("gui.nexus.transfer.keep_amount." + getMenu().kind().getSerializedName(),
+                    unit.quantity(getMenu().settings().keepAmount(slot, resource))).withStyle(ChatFormatting.GRAY));
         }
         return lines;
     }
@@ -180,7 +181,7 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
 
     /**
      * Over a filter slot of a Pusher that keeps amounts stocked, the wheel
-     * changes that slot's amount by one whole of its resource, or ten with Shift.
+     * changes that slot's amount by one step of its resource, or ten with Shift.
      */
     @Override
     public boolean mouseScrolled(final double x, final double y, final double scrollX, final double scrollY) {
@@ -189,8 +190,8 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
         if (resource == null || !getMenu().showsKeepAmounts() || scrollY == 0) {
             return super.mouseScrolled(x, y, scrollX, scrollY);
         }
-        final long wholes = minecraft != null && minecraft.hasShiftDown() ? SHIFT_STEP : 1;
-        final long step = wholes * resource.type().unit().unitsPerWhole() * (long) Math.signum(scrollY);
+        final long steps = minecraft != null && minecraft.hasShiftDown() ? SHIFT_STEP : 1;
+        final long step = steps * resource.type().unit().step() * (long) Math.signum(scrollY);
         final long current = getMenu().settings().keepAmount(slot, resource);
         ClientPacketDistributor.sendToServer(new KeepAmountPayload(getMenu().containerId, slot, current + step));
         return true;
@@ -220,13 +221,12 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
      * A mode button of the panel.
      */
     private enum Control {
+        RESOURCE(TransferDeviceMenu.BUTTON_RESOURCE),
         FILTER_MODE(-1),
+        MATCH_MODE(TransferDeviceMenu.BUTTON_MATCH_MODE),
         REDSTONE(TransferDeviceMenu.BUTTON_REDSTONE),
         SCHEDULING(TransferDeviceMenu.BUTTON_SCHEDULING),
         DELIVERY(TransferDeviceMenu.BUTTON_DELIVERY);
-
-        private static final List<Control> COMMON = List.of(FILTER_MODE, REDSTONE);
-        private static final List<Control> DELIVERING = List.of(FILTER_MODE, REDSTONE, SCHEDULING, DELIVERY);
 
         private final int buttonId;
         private final String key = name().toLowerCase(Locale.ROOT);
@@ -235,33 +235,61 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
             this.buttonId = buttonId;
         }
 
+        /**
+         * @return the buttons that apply now: the filter mode for a filter the
+         *         player sets, the order for a Pusher's whitelist of items or
+         *         fluids, the amount with a Regulator Upgrade
+         */
         static List<Control> shownBy(final TransferDeviceMenu menu) {
-            return menu.deliversListed() ? DELIVERING : COMMON;
+            final List<Control> shown = new ArrayList<>(values().length);
+            shown.add(RESOURCE);
+            if (menu.filterKinds().listsAnything()) {
+                shown.add(FILTER_MODE);
+                shown.add(MATCH_MODE);
+            }
+            shown.add(REDSTONE);
+            if (menu.showsScheduling()) {
+                shown.add(SCHEDULING);
+            }
+            if (menu.regulates()) {
+                shown.add(DELIVERY);
+            }
+            return shown;
         }
 
         /**
-         * @return the button's name, the choice made, and for the order and
-         *         amount of delivery what that choice does
+         * @return the button's name, the choice made, and for the resource,
+         *         the order and the amount what that choice does; the amount
+         *         reads differently on a Puller, which leaves stock behind,
+         *         and a Pusher, which fills it up
          */
-        List<Component> tooltip(final TransferSettings settings) {
+        List<Component> tooltip(final TransferDeviceMenu menu) {
             final String prefix = this == FILTER_MODE ? "gui.nexus.filter" : "gui.nexus.transfer." + key;
+            final String choice = (this == DELIVERY ? prefix + "." + menu.kind().getSerializedName() : prefix)
+                    + "." + choiceName(menu.settings());
             final List<Component> lines = new ArrayList<>(3);
             lines.add(Component.translatable(prefix));
-            lines.add(Component.translatable(prefix + "." + choiceName(settings)).withStyle(ChatFormatting.GRAY));
-            if (this == SCHEDULING || this == DELIVERY) {
-                lines.add(Component.translatable(prefix + "." + choiceName(settings) + ".hint")
-                        .withStyle(ChatFormatting.DARK_GRAY));
+            lines.add(Component.translatable(choice).withStyle(ChatFormatting.GRAY));
+            if (this != FILTER_MODE && this != REDSTONE) {
+                lines.add(Component.translatable(choice + ".hint").withStyle(ChatFormatting.DARK_GRAY));
             }
             return lines;
         }
 
+        /**
+         * @return the button's icon; the resource shares the icons of the
+         *         terminal's button that picks the type shown
+         */
         Identifier icon(final TransferSettings settings) {
-            return Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "transfer/" + key + "_" + choiceName(settings));
+            final String path = this == RESOURCE ? "terminal/type_" : "transfer/" + key + "_";
+            return Identifier.fromNamespaceAndPath(Nexus.MOD_ID, path + choiceName(settings));
         }
 
         private String choiceName(final TransferSettings settings) {
             return switch (this) {
+                case RESOURCE -> settings.resource().getSerializedName();
                 case FILTER_MODE -> settings.filter().mode() == FilterMode.ALLOW ? "whitelist" : "blacklist";
+                case MATCH_MODE -> settings.matchMode().name().toLowerCase(Locale.ROOT);
                 case REDSTONE -> settings.redstone().name().toLowerCase(Locale.ROOT);
                 case SCHEDULING -> settings.scheduling().name().toLowerCase(Locale.ROOT);
                 case DELIVERY -> settings.delivery().getSerializedName();

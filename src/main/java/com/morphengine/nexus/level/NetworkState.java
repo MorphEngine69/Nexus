@@ -5,17 +5,22 @@ import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.api.network.NetworkNode;
 import com.morphengine.nexus.api.network.NetworkStatistics;
+import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.block.CableBlock;
 import com.morphengine.nexus.block.NetworkBlock;
 import com.morphengine.nexus.block.NetworkColoring;
 import com.morphengine.nexus.block.NexusStatus;
 import com.morphengine.nexus.energy.EnergyPool;
 import com.morphengine.nexus.energy.EnergyRateMeter;
+import com.morphengine.nexus.energy.StorageEnergyBuffer;
 import com.morphengine.nexus.network.NetworkGraphs;
+import com.morphengine.nexus.resource.EnergyKey;
+import com.morphengine.nexus.storage.NetworkStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -29,6 +34,9 @@ import java.util.Set;
  * Live state of one network on the server: which blocks belong to it, the energy
  * pool they form, the status its Nexus shows, and the figures shown in the Nexus
  * interface.
+ *
+ * <p>The energy pool is every Energy Cell, filled and drained first, then the
+ * energy in the cells of the network's storage.
  *
  * <p>A network is led by one Nexus. When a traversal finds another Nexus that
  * {@linkplain #leads leads}, this one stands down: it keeps no members and
@@ -48,11 +56,15 @@ public final class NetworkState {
     private final NetworkController controller;
     private final Map<NetworkComponentType<?>, NetworkComponent> components = createComponents();
     private final EnergyRateMeter meter = new EnergyRateMeter();
+    private final StorageEnergyBuffer storedEnergy;
+    private final EnergyHandler storedEnergyHandler;
+    private final EnergyHandler energyHandler = new NetworkEnergyHandler(this);
     private boolean stale = true;
     private boolean partial;
     private boolean conflict;
     private Membership membership = Membership.EMPTY;
     private EnergyPool energy = EnergyPool.EMPTY;
+    private List<EnergyHandler> energyHandlers = List.of();
     private NetworkStatistics statistics = NetworkStatistics.EMPTY;
     private NexusStatus status = NexusStatus.NO_ENERGY;
 
@@ -61,6 +73,9 @@ public final class NetworkState {
      */
     public NetworkState(final NetworkController controller) {
         this.controller = controller;
+        final NetworkStorage storage = component(NetworkComponentTypes.STORAGE).storage();
+        this.storedEnergy = new StorageEnergyBuffer(storage, EnergyKey.INSTANCE, Actor.NOBODY);
+        this.storedEnergyHandler = new StoredEnergyHandler(storedEnergy);
     }
 
     public void invalidate() {
@@ -73,6 +88,21 @@ public final class NetworkState {
 
     public EnergyBuffer energy() {
         return energy;
+    }
+
+    /**
+     * @return the network's energy as other mods reach it through the Nexus;
+     *         the same instance for the whole life of this state
+     */
+    public EnergyHandler energyHandler() {
+        return energyHandler;
+    }
+
+    /**
+     * @return transaction-aware handlers of the pool's buffers, in pool order
+     */
+    List<EnergyHandler> energyHandlers() {
+        return energyHandlers;
     }
 
     /**
@@ -174,10 +204,18 @@ public final class NetworkState {
             member.joinNetwork(controller);
         }
         membership = found;
-        energy = new EnergyPool(found.buffers());
         for (NetworkComponent component : components.values()) {
             component.adopt(found.members());
         }
+        energy = new EnergyPool(append(found.buffers(), storedEnergy));
+        energyHandlers = append(found.handlers(), storedEnergyHandler);
+    }
+
+    private static <T> List<T> append(final List<? extends T> list, final T last) {
+        final List<T> appended = new ArrayList<>(list.size() + 1);
+        appended.addAll(list);
+        appended.add(last);
+        return List.copyOf(appended);
     }
 
     private static Map<NetworkComponentType<?>, NetworkComponent> createComponents() {
@@ -229,7 +267,8 @@ public final class NetworkState {
 
     /**
      * What one traversal found: the members told about the network, the energy
-     * buffers of its pool, and the positions of its devices and cables.
+     * buffers of its pool with their handlers, and the positions of its devices
+     * and cables.
      *
      * @param devices     devices to paint, the Nexus itself included
      * @param deviceCount devices shown in the Nexus interface, the Nexus itself excluded
@@ -239,13 +278,14 @@ public final class NetworkState {
             List<NetworkMember> members,
             List<EnergyContributor> contributors,
             List<EnergyBuffer> buffers,
+            List<EnergyHandler> handlers,
             List<BlockPos> devices,
             List<BlockPos> cables,
             int deviceCount,
             Map<DeviceRole, Integer> roles) {
 
         static final Membership EMPTY =
-                new Membership(List.of(), List.of(), List.of(), List.of(), List.of(), 0, Map.of());
+                new Membership(List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), 0, Map.of());
 
         static Membership scan(
                 final Level level, final Set<NetworkNode> reachable, final BlockNode controllerNode,
@@ -253,6 +293,7 @@ public final class NetworkState {
             final List<NetworkMember> members = new ArrayList<>();
             final List<EnergyContributor> contributors = new ArrayList<>();
             final List<EnergyBuffer> buffers = new ArrayList<>();
+            final List<EnergyHandler> handlers = new ArrayList<>();
             final List<BlockPos> devices = new ArrayList<>();
             final List<BlockPos> cables = new ArrayList<>();
             final Map<DeviceRole, Integer> roles = new EnumMap<>(DeviceRole.class);
@@ -274,6 +315,7 @@ public final class NetworkState {
                 if (blockEntity instanceof EnergyContributor contributor) {
                     contributors.add(contributor);
                     buffers.add(contributor.energyBuffer());
+                    handlers.add(contributor.energyHandler());
                 }
                 if (blockEntity instanceof NetworkMember member) {
                     members.add(member);
@@ -282,7 +324,8 @@ public final class NetworkState {
             final int deviceCount = devices.size();
             devices.add(origin);
             return new Membership(List.copyOf(members), List.copyOf(contributors), List.copyOf(buffers),
-                    List.copyOf(devices), List.copyOf(cables), deviceCount, Map.copyOf(roles));
+                    List.copyOf(handlers), List.copyOf(devices), List.copyOf(cables), deviceCount,
+                    Map.copyOf(roles));
         }
     }
 }

@@ -27,8 +27,8 @@ class PushTaskTest {
     void inOrderDeliversTheFirstEntryTheNetworkHas() {
         final CellStorage network = network();
         final CellStorage target = empty();
-        final PushTask task = task(SchedulingMode.IN_ORDER, PushEntry.unlimited(item("clay")),
-                PushEntry.unlimited(DIRT), PushEntry.unlimited(STONE));
+        final PushTask task = task(SchedulingMode.IN_ORDER, StockEntry.unlimited(item("clay")),
+                StockEntry.unlimited(DIRT), StockEntry.unlimited(STONE));
 
         task.runOnce(route(network, target));
         task.runOnce(route(network, target));
@@ -40,8 +40,8 @@ class PushTaskTest {
     void roundRobinGoesOnAfterTheEntryDeliveredLast() {
         final CellStorage network = network();
         final CellStorage target = empty();
-        final PushTask task = task(SchedulingMode.ROUND_ROBIN, PushEntry.unlimited(STONE),
-                PushEntry.unlimited(item("clay")), PushEntry.unlimited(DIRT));
+        final PushTask task = task(SchedulingMode.ROUND_ROBIN, StockEntry.unlimited(STONE),
+                StockEntry.unlimited(item("clay")), StockEntry.unlimited(DIRT));
 
         task.runOnce(route(network, target));
         task.runOnce(route(network, target));
@@ -54,8 +54,8 @@ class PushTaskTest {
     @Test
     void randomStartsFromThePickedEntry() {
         final CellStorage target = empty();
-        final PushTask task = new PushTask(List.of(PushEntry.unlimited(STONE), PushEntry.unlimited(DIRT),
-                PushEntry.unlimited(SAND)), SchedulingMode.RANDOM, FOUR, alwaysPicking(2));
+        final PushTask task = new PushTask(List.of(StockEntry.unlimited(STONE), StockEntry.unlimited(DIRT),
+                StockEntry.unlimited(SAND)), SchedulingMode.RANDOM, FOUR, alwaysPicking(2));
 
         task.runOnce(route(network(), target));
 
@@ -65,7 +65,7 @@ class PushTaskTest {
     @Test
     void keepsTheTargetStockedUpToTheAmount() {
         final CellStorage target = chest(new ResourceAmount(STONE, 6));
-        final PushTask task = task(SchedulingMode.IN_ORDER, new PushEntry(STONE, 8));
+        final PushTask task = task(SchedulingMode.IN_ORDER, new StockEntry(STONE, 8));
 
         final long moved = task.runOnce(route(network(), target));
 
@@ -76,7 +76,7 @@ class PushTaskTest {
     @Test
     void deliversNothingToAFullyStockedTargetAndGoesOn() {
         final CellStorage target = chest(new ResourceAmount(STONE, 8));
-        final PushTask task = task(SchedulingMode.IN_ORDER, new PushEntry(STONE, 8), PushEntry.unlimited(DIRT));
+        final PushTask task = task(SchedulingMode.IN_ORDER, new StockEntry(STONE, 8), StockEntry.unlimited(DIRT));
 
         task.runOnce(route(network(), target));
 
@@ -93,7 +93,7 @@ class PushTaskTest {
 
     @Test
     void deliversNothingTheNetworkLacks() {
-        final long moved = task(SchedulingMode.IN_ORDER, PushEntry.unlimited(item("clay")))
+        final long moved = task(SchedulingMode.IN_ORDER, StockEntry.unlimited(item("clay")))
                 .runOnce(route(network(), empty()));
 
         assertThat(moved).isZero();
@@ -101,10 +101,10 @@ class PushTaskTest {
 
     @Test
     void entryMustKeepAPositiveAmount() {
-        assertThatThrownBy(() -> new PushEntry(STONE, 0)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new StockEntry(STONE, 0)).isInstanceOf(IllegalArgumentException.class);
     }
 
-    private static PushTask task(final SchedulingMode scheduling, final PushEntry... entries) {
+    private static PushTask task(final SchedulingMode scheduling, final StockEntry... entries) {
         return new PushTask(List.of(entries), scheduling, FOUR, alwaysPicking(0));
     }
 

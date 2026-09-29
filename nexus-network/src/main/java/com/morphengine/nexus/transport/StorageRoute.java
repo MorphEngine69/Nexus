@@ -30,6 +30,13 @@ public record StorageRoute(Storage source, Storage destination, Actor actor) {
     }
 
     /**
+     * @return units of {@code resource} the source holds
+     */
+    public long held(final ResourceKey resource) {
+        return source.amountOf(resource);
+    }
+
+    /**
      * @return units of {@code resource} the destination already holds
      */
     public long delivered(final ResourceKey resource) {

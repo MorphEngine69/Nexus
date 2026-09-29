@@ -16,9 +16,10 @@ import org.jspecify.annotations.Nullable;
  */
 public enum FilterKinds {
 
+    /** Lists nothing: a filter that is fixed, such as that of a device moving energy. */
+    NONE(false, false),
     ITEMS(true, false),
-    FLUIDS(false, true),
-    ITEMS_AND_FLUIDS(true, true);
+    FLUIDS(false, true);
 
     private final boolean listsItems;
     private final boolean listsFluids;
@@ -26,6 +27,14 @@ public enum FilterKinds {
     FilterKinds(final boolean listsItems, final boolean listsFluids) {
         this.listsItems = listsItems;
         this.listsFluids = listsFluids;
+    }
+
+    /**
+     * @return whether the player can list anything in such a filter; a filter
+     *         that lists nothing is fixed and its slots are locked
+     */
+    public boolean listsAnything() {
+        return listsItems || listsFluids;
     }
 
     public boolean accepts(final NexusResource resource) {

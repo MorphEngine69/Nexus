@@ -2,6 +2,7 @@ package com.morphengine.nexus.energy;
 
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
+import com.morphengine.nexus.math.SaturatedMath;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,7 +34,7 @@ public final class EnergyPool implements EnergyBuffer {
     public long stored() {
         long total = 0;
         for (EnergyBuffer buffer : buffers) {
-            total = saturatedAdd(total, buffer.stored());
+            total = SaturatedMath.add(total, buffer.stored());
         }
         return total;
     }
@@ -42,7 +43,7 @@ public final class EnergyPool implements EnergyBuffer {
     public long capacity() {
         long total = 0;
         for (EnergyBuffer buffer : buffers) {
-            total = saturatedAdd(total, buffer.capacity());
+            total = SaturatedMath.add(total, buffer.capacity());
         }
         return total;
     }
@@ -71,7 +72,7 @@ public final class EnergyPool implements EnergyBuffer {
     public long totalInserted() {
         long total = 0;
         for (EnergyBuffer buffer : buffers) {
-            total = saturatedAdd(total, buffer.totalInserted());
+            total = SaturatedMath.add(total, buffer.totalInserted());
         }
         return total;
     }
@@ -80,14 +81,9 @@ public final class EnergyPool implements EnergyBuffer {
     public long totalExtracted() {
         long total = 0;
         for (EnergyBuffer buffer : buffers) {
-            total = saturatedAdd(total, buffer.totalExtracted());
+            total = SaturatedMath.add(total, buffer.totalExtracted());
         }
         return total;
-    }
-
-    private static long saturatedAdd(final long left, final long right) {
-        final long sum = left + right;
-        return sum < left ? Long.MAX_VALUE : sum;
     }
 
     private static void requireNotNegative(final long amount) {

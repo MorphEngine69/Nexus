@@ -3,7 +3,7 @@ package com.morphengine.nexus.menu;
 import org.jspecify.annotations.Nullable;
 
 /**
- * What the Energy Cell panel shows. Energy in RF, rates in RF per tick.
+ * What the Energy Cell panel shows. Energy in FE, rates in FE per tick.
  *
  * @param network the network the cell is in; {@code null} when no Nexus is connected
  */

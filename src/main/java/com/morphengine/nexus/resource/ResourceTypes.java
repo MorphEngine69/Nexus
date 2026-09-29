@@ -12,8 +12,8 @@ import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 
 /**
- * The registry of resource kinds and the two kinds Nexus brings: items and
- * fluids. Other mods register more kinds into {@link #REGISTRY}.
+ * The registry of resource kinds and the kinds Nexus brings: items, fluids and
+ * energy. Other mods register more kinds into {@link #REGISTRY}.
  */
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class ResourceTypes {
@@ -31,6 +31,9 @@ public final class ResourceTypes {
 
     public static final DeferredHolder<NexusResourceType<?>, NexusResourceType<FluidKey>> FLUID = TYPES.register(
             "fluid", () -> new NexusResourceType<>(FluidKey.CODEC, FluidKey.STREAM_CODEC, AmountUnit.MILLIBUCKETS));
+
+    public static final DeferredHolder<NexusResourceType<?>, NexusResourceType<EnergyKey>> ENERGY = TYPES.register(
+            "energy", () -> new NexusResourceType<>(EnergyKey.CODEC, EnergyKey.STREAM_CODEC, AmountUnit.ENERGY));
 
     private ResourceTypes() {
     }

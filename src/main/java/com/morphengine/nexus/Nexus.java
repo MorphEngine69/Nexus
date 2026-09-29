@@ -7,6 +7,7 @@ import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusItems;
 import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.resource.ResourceTypes;
+import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
@@ -21,6 +22,7 @@ public final class Nexus {
 
     private void registerContent(final IEventBus modBus) {
         ResourceTypes.TYPES.register(modBus);
+        UpgradeTypes.TYPES.register(modBus);
         NexusDataComponents.COMPONENTS.register(modBus);
         NexusBlocks.BLOCKS.register(modBus);
         NexusItems.ITEMS.register(modBus);

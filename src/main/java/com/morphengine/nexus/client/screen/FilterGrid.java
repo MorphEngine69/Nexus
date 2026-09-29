@@ -20,7 +20,8 @@ import java.util.List;
  * with either button, lists what the item stands for in this filter: the fluid
  * in a filled container where fluids are listed, or with Shift the item
  * itself. A click with an empty cursor clears the slot. Nothing is taken or
- * given.
+ * given. A filter that lists nothing is fixed: its empty slots show locked and
+ * no click or drag changes it.
  *
  * @param <M> the panel's menu
  */
@@ -50,14 +51,19 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
     }
 
     void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+        final boolean locked = isLocked();
         for (int index = 0; index < menu.filterSlotCount(); index++) {
             final PanelBounds bounds = slot(index);
-            style.drawSlot(graphics, bounds.left(), bounds.top());
             final NexusResource resource = menu.filter().resourceAt(index);
+            if (resource == null && locked) {
+                style.drawLockedSlot(graphics, bounds.left(), bounds.top());
+                continue;
+            }
+            style.drawSlot(graphics, bounds.left(), bounds.top());
             if (resource != null) {
                 ResourceRenderers.icon(resource).draw(graphics, bounds.left() + 1, bounds.top() + 1);
             }
-            if (bounds.contains(mouseX, mouseY)) {
+            if (!locked && bounds.contains(mouseX, mouseY)) {
                 graphics.fill(bounds.left() + 1, bounds.top() + 1, bounds.left() + 1 + ICON_SIZE,
                         bounds.top() + 1 + ICON_SIZE, HOVER_RGB);
             }
@@ -92,6 +98,9 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
         if (index < 0) {
             return false;
         }
+        if (isLocked()) {
+            return true;
+        }
         final ItemStack carried = menu.getCarried();
         if (carried.isEmpty()) {
             send(index, null);
@@ -105,7 +114,13 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
         return true;
     }
 
+    /**
+     * @return the slots something may be dragged onto; none while the filter is locked
+     */
     List<Rect2i> areas() {
+        if (isLocked()) {
+            return List.of();
+        }
         final List<Rect2i> areas = new ArrayList<>(menu.filterSlotCount());
         for (int index = 0; index < menu.filterSlotCount(); index++) {
             areas.add(slot(index).toRect());
@@ -119,6 +134,10 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
 
     @Nullable NexusResource entryOf(final FluidStack fluid) {
         return menu.filterKinds().fluidOf(fluid);
+    }
+
+    private boolean isLocked() {
+        return !menu.filterKinds().listsAnything();
     }
 
     void send(final int index, final @Nullable NexusResource resource) {

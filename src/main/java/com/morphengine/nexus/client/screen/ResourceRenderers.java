@@ -17,7 +17,8 @@ final class ResourceRenderers {
 
     private static final Map<NexusResourceType<?>, ResourceRenderer<?>> BY_TYPE = Map.of(
             ResourceTypes.ITEM.get(), new ItemResourceRenderer(),
-            ResourceTypes.FLUID.get(), new FluidResourceRenderer());
+            ResourceTypes.FLUID.get(), new FluidResourceRenderer(),
+            ResourceTypes.ENERGY.get(), new EnergyResourceRenderer());
 
     private ResourceRenderers() {
     }

@@ -81,7 +81,7 @@ public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
             graphics.fill(x + 1, y + 1, x + 1 + (int) filled, y + BAR_HEIGHT - 1, style.accent());
         }
         graphics.outline(x, y, width, BAR_HEIGHT, style.border());
-        graphics.text(font, EnergyFormat.amount(view.stored()) + " / " + EnergyFormat.amount(view.capacity()) + " RF",
+        graphics.text(font, EnergyFormat.amount(view.stored()) + " / " + EnergyFormat.amount(view.capacity()) + " FE",
                 x, y + BAR_HEIGHT + TEXT_GAP, PanelStyle.TEXT_LIGHT, false);
     }
 

@@ -16,7 +16,7 @@ import java.util.random.RandomGenerator;
  */
 public final class PushTask implements TransferTask {
 
-    private final List<PushEntry> entries;
+    private final List<StockEntry> entries;
     private final SchedulingMode scheduling;
     private final TransferQuota quota;
     private final RandomGenerator random;
@@ -27,7 +27,7 @@ public final class PushTask implements TransferTask {
      * @param random  picks the first entry tried under {@link SchedulingMode#RANDOM}
      */
     public PushTask(
-            final List<PushEntry> entries, final SchedulingMode scheduling, final TransferQuota quota,
+            final List<StockEntry> entries, final SchedulingMode scheduling, final TransferQuota quota,
             final RandomGenerator random) {
         this.entries = List.copyOf(entries);
         this.scheduling = Objects.requireNonNull(scheduling, "scheduling must not be null");
@@ -60,7 +60,7 @@ public final class PushTask implements TransferTask {
         return 0;
     }
 
-    private long deliver(final PushEntry entry, final StorageRoute route) {
+    private long deliver(final StockEntry entry, final StorageRoute route) {
         final long missing = entry.keep() - route.delivered(entry.resource());
         final long wanted = Math.min(quota.unitsPerOperation(entry.resource()), missing);
         return wanted > 0 ? route.move(entry.resource(), wanted) : 0;
