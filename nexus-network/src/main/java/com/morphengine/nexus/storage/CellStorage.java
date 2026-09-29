@@ -9,6 +9,7 @@ import com.morphengine.nexus.api.storage.CellSpec;
 import com.morphengine.nexus.api.storage.CellStatus;
 import com.morphengine.nexus.api.storage.CellUsage;
 import com.morphengine.nexus.api.storage.StorageCell;
+import com.morphengine.nexus.math.SaturatedMath;
 
 import java.util.List;
 import java.util.Objects;
@@ -86,8 +87,9 @@ public final class CellStorage implements StorageCell {
      */
     @Override
     public CellUsage usage() {
-        final long unitBytes = ceilDiv(stored.total(), spec.unitsPerByte());
-        final long usedBytes = saturatedAdd(saturatedMultiply(stored.size(), spec.bytesPerType()), unitBytes);
+        final long unitBytes = Math.ceilDiv(stored.total(), spec.unitsPerByte());
+        final long usedBytes = SaturatedMath.add(SaturatedMath.multiply(stored.size(), spec.bytesPerType()),
+                unitBytes);
         final boolean typesFull = stored.size() >= spec.maxTypes();
         final boolean bytesFull = stored.size() > 0 && unitsFreeFor(stored.size()) == 0;
         return new CellUsage(Math.min(usedBytes, spec.totalBytes()), spec.totalBytes(),
@@ -107,25 +109,10 @@ public final class CellStorage implements StorageCell {
      * @return units that still fit once {@code types} resources have their bytes reserved
      */
     private long unitsFreeFor(final int types) {
-        final long bytesForUnits = spec.totalBytes() - saturatedMultiply(types, spec.bytesPerType());
+        final long bytesForUnits = spec.totalBytes() - SaturatedMath.multiply(types, spec.bytesPerType());
         if (bytesForUnits <= 0) {
             return 0;
         }
-        return Math.max(0, saturatedMultiply(bytesForUnits, spec.unitsPerByte()) - stored.total());
-    }
-
-    private static long ceilDiv(final long dividend, final long divisor) {
-        return dividend == 0 ? 0 : (dividend - 1) / divisor + 1;
-    }
-
-    private static long saturatedMultiply(final long left, final long right) {
-        final long high = Math.multiplyHigh(left, right);
-        final long product = left * right;
-        return high == 0 && product >= 0 ? product : Long.MAX_VALUE;
-    }
-
-    private static long saturatedAdd(final long left, final long right) {
-        final long sum = left + right;
-        return sum < left ? Long.MAX_VALUE : sum;
+        return Math.max(0, SaturatedMath.multiply(bytesForUnits, spec.unitsPerByte()) - stored.total());
     }
 }

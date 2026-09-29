@@ -59,11 +59,52 @@ class ResourceFilterTest {
         assertThat(FilterMode.DENY.toggled()).isEqualTo(FilterMode.ALLOW);
     }
 
+    @Test
+    void looseMatchModeIgnoresWhatItNormalizesAway() {
+        final ResourceFilter filter = new ResourceFilter(
+                FilterMode.ALLOW, FilterMatchMode.IGNORE_DURABILITY, Set.of(new Fuzzy("pick", 0)));
+
+        assertThat(filter.allows(new Fuzzy("pick", 5))).isTrue();
+        assertThat(filter.allows(new Fuzzy("shovel", 0))).isFalse();
+    }
+
+    @Test
+    void exactMatchModeStillTellsNormalizedKeysApart() {
+        final ResourceFilter filter = new ResourceFilter(
+                FilterMode.ALLOW, FilterMatchMode.EXACT, Set.of(new Fuzzy("pick", 0)));
+
+        assertThat(filter.allows(new Fuzzy("pick", 5))).isFalse();
+    }
+
+    @Test
+    void looseMatchModeSinglesOutAWornResourceToo() {
+        final ResourceFilter filter = new ResourceFilter(
+                FilterMode.ALLOW, FilterMatchMode.IGNORE_DURABILITY, Set.of(new Fuzzy("pick", 0)));
+
+        assertThat(filter.singlesOut(new Fuzzy("pick", 5))).isTrue();
+    }
+
     private record Named(String name) implements ResourceKey {
 
         @Override
         public ResourceType type() {
             return TYPE;
+        }
+    }
+
+    /**
+     * A resource with wear a looser match mode ignores, such as an item's damage.
+     */
+    private record Fuzzy(String name, int wear) implements ResourceKey {
+
+        @Override
+        public ResourceType type() {
+            return TYPE;
+        }
+
+        @Override
+        public ResourceKey normalized(final FilterMatchMode mode) {
+            return mode == FilterMatchMode.EXACT ? this : new Fuzzy(name, 0);
         }
     }
 }

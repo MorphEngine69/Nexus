@@ -18,9 +18,9 @@ public final class SimpleEnergyBuffer implements EnergyBuffer {
     private long totalExtracted;
 
     /**
-     * @param capacity   RF the buffer holds, must be positive
-     * @param maxInsert  RF accepted per insert call, must not be negative
-     * @param maxExtract RF removed per extract call, must not be negative
+     * @param capacity   FE the buffer holds, must be positive
+     * @param maxInsert  FE accepted per insert call, must not be negative
+     * @param maxExtract FE removed per extract call, must not be negative
      */
     public SimpleEnergyBuffer(final long capacity, final long maxInsert, final long maxExtract) {
         if (capacity <= 0) {
@@ -98,7 +98,7 @@ public final class SimpleEnergyBuffer implements EnergyBuffer {
     }
 
     /**
-     * Complete state of a {@link SimpleEnergyBuffer}, all values in RF.
+     * Complete state of a {@link SimpleEnergyBuffer}, all values in FE.
      */
     public record Snapshot(long stored, long totalInserted, long totalExtracted) {
 

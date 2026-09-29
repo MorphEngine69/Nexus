@@ -4,7 +4,7 @@ import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 
 /**
- * Turns burning fuel into RF at a fixed rate. Burning pauses, and no fuel is
+ * Turns burning fuel into FE at a fixed rate. Burning pauses, and no fuel is
  * wasted, while the target buffer has no room for a full tick of output.
  * Server thread only.
  */
@@ -15,7 +15,7 @@ public final class FuelBurner {
     private int burnTicksTotal;
 
     /**
-     * @param energyPerTick RF produced per tick of burning, must be positive
+     * @param energyPerTick FE produced per tick of burning, must be positive
      */
     public FuelBurner(final long energyPerTick) {
         if (energyPerTick <= 0) {
@@ -68,7 +68,7 @@ public final class FuelBurner {
     /**
      * Burns for one tick and puts the output into {@code buffer}.
      *
-     * @return RF produced this tick; zero when not burning or when the buffer is full
+     * @return FE produced this tick; zero when not burning or when the buffer is full
      */
     public long tick(final EnergyBuffer buffer) {
         if (!isBurning() || !hasRoomIn(buffer)) {

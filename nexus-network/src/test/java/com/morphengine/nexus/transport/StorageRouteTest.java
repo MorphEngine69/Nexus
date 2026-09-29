@@ -20,6 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class StorageRouteTest {
 
     @Test
+    void heldIsWhatTheSourceHolds() {
+        final StorageRoute route = new StorageRoute(holding(STONE, 20), empty(), Actor.NOBODY);
+
+        assertThat(route.held(STONE)).isEqualTo(20);
+        assertThat(route.held(DIRT)).isZero();
+    }
+
+    @Test
     void movesTheRequestedAmount() {
         final CellStorage source = holding(STONE, 20);
         final CellStorage destination = empty();

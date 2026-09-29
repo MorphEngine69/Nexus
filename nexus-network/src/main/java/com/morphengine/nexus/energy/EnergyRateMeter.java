@@ -3,7 +3,7 @@ package com.morphengine.nexus.energy;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 
 /**
- * Average RF/t flowing into and out of an {@link EnergyBuffer}, measured from its
+ * Average FE/t flowing into and out of an {@link EnergyBuffer}, measured from its
  * lifetime counters between two samples.
  */
 public final class EnergyRateMeter {
