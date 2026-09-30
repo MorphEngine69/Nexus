@@ -11,7 +11,11 @@ public final class NetworkComponentTypes {
     public static final NetworkComponentType<StorageComponent> STORAGE =
             new NetworkComponentType<>("storage", StorageComponent::new);
 
-    static final List<NetworkComponentType<?>> ALL = List.of(STORAGE);
+    /** Blueprints and crafting tasks of the network. */
+    public static final NetworkComponentType<AutocraftingComponent> AUTOCRAFTING =
+            new NetworkComponentType<>("autocrafting", AutocraftingComponent::new);
+
+    static final List<NetworkComponentType<?>> ALL = List.of(STORAGE, AUTOCRAFTING);
 
     private NetworkComponentTypes() {
     }

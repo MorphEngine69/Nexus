@@ -35,6 +35,10 @@ public final class NexusCreativeTabs {
                         output.accept(NexusItems.CRAFTING_TERMINAL.get());
                         output.accept(NexusItems.PULLER.get());
                         output.accept(NexusItems.PUSHER.get());
+                        output.accept(NexusItems.BLUEPRINT_TERMINAL.get());
+                        output.accept(NexusItems.ASSEMBLER.get());
+                        output.accept(NexusItems.CRAFTING_MONITOR.get());
+                        output.accept(NexusItems.BLUEPRINT.get());
                         for (Map<CellTier, DeferredItem<VaultCellItem>> tiers : NexusItems.VAULT_CELLS.values()) {
                             for (DeferredItem<VaultCellItem> cell : tiers.values()) {
                                 output.accept(cell.get());

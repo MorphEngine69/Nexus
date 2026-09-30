@@ -8,14 +8,17 @@ import com.morphengine.nexus.api.transport.RedstoneMode;
 import com.morphengine.nexus.api.transport.SchedulingMode;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.resource.NexusResource;
+import com.morphengine.nexus.transport.StockEntry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -118,6 +121,21 @@ public record TransferSettings(
      */
     public TransferSettings withMatchMode(final FilterMatchMode newMatchMode) {
         return new TransferSettings(lists, redstone, scheduling, delivery, resource, newMatchMode);
+    }
+
+    /**
+     * @return what the filter lists in slot order, each with the amount kept in
+     *         stock when the settings keep stock, or without limit otherwise
+     */
+    public List<StockEntry> stock() {
+        final List<FilterSlots.Entry> listed = filter().inSlotOrder();
+        final List<StockEntry> entries = new ArrayList<>(listed.size());
+        for (FilterSlots.Entry entry : listed) {
+            entries.add(delivery == DeliveryMode.KEEP_STOCKED
+                    ? new StockEntry(entry.resource(), keepAmount(entry.slot(), entry.resource()))
+                    : StockEntry.unlimited(entry.resource()));
+        }
+        return entries;
     }
 
     private TransferSettings withList(final TransferList changed) {

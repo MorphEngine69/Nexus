@@ -192,6 +192,49 @@ class NetworkStorageTest {
         assertThat(heard).isEmpty();
     }
 
+    @Test
+    void anInterceptorClaimsPartOfAnInsertBeforeAnySource() {
+        final CellStorage source = cell();
+        network.addSource(source, 0);
+        network.addInterceptor((resource, amount, action) -> Math.min(amount, 3));
+
+        final long inserted = network.insert(STONE, 5, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(inserted).isEqualTo(5);
+        assertThat(source.amountOf(STONE)).isEqualTo(2);
+        assertThat(network.amountOf(STONE)).isEqualTo(2);
+    }
+
+    @Test
+    void anInterceptorIsToldWhatReachedTheSources() {
+        final List<Long> reached = new ArrayList<>();
+        network.addSource(cell(), 0);
+        network.addInterceptor(new InsertInterceptor() {
+            @Override
+            public long intercept(final ResourceKey resource, final long amount, final Action action) {
+                return 1;
+            }
+
+            @Override
+            public long inserted(final ResourceKey resource, final long amount) {
+                reached.add(amount);
+                return amount;
+            }
+        });
+
+        network.insert(STONE, 4, Action.EXECUTE, Actor.NOBODY);
+        network.insert(STONE, 4, Action.SIMULATE, Actor.NOBODY);
+
+        assertThat(reached).containsExactly(3L);
+    }
+
+    @Test
+    void whatAnInterceptorClaimsCountsAsInsertedWithoutAnySource() {
+        network.addInterceptor((resource, amount, action) -> amount);
+
+        assertThat(network.insert(STONE, 7, Action.SIMULATE, Actor.NOBODY)).isEqualTo(7);
+    }
+
     private static CellStorage cell() {
         return new CellStorage(ITEMS, SMALL, List.of());
     }

@@ -36,6 +36,7 @@ val coreModules = listOf(
     ":nexus-energy-api",
     ":nexus-transport-api",
     ":nexus-upgrade-api",
+    ":nexus-automation-api",
     ":nexus-network-api",
     ":nexus-network",
 )
@@ -106,11 +107,19 @@ project(":nexus-transport-api") {
     }
 }
 
+project(":nexus-automation-api") {
+    dependencies {
+        "api"(project(":nexus-core-api"))
+        "api"(project(":nexus-resource-api"))
+    }
+}
+
 project(":nexus-network") {
     dependencies {
         "api"(project(":nexus-energy-api"))
         "api"(project(":nexus-storage-api"))
         "api"(project(":nexus-transport-api"))
+        "api"(project(":nexus-automation-api"))
         "api"(project(":nexus-network-api"))
         "testImplementation"(project(":nexus-network-test"))
     }

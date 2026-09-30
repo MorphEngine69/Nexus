@@ -129,13 +129,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   block and stops there, a Puller leaves a set amount behind instead of
   emptying the block; scroll over a filter slot to set it. Capacity Upgrade:
   adds a full row of 9 filter slots, up to 3 stacked in one slot, for 36 in all.
-- Range, Fortune, Silk Touch and Autocrafting Upgrades are in the creative tab
-  already; their tooltip says they are still in development, and no device
-  takes them yet.
+- Range, Fortune and Silk Touch Upgrades are in the creative tab already;
+  their tooltip says they are still in development, and no device takes them
+  yet.
 - A Match button on Pullers and Pushers picks how closely the filter compares
   an item: exactly, ignoring wear, or ignoring every component. It applies
   wherever the filter decides yes or no, so a blacklisted item still gets
   blocked however worn or enchanted it is.
+- Autocrafting. Blueprints hold recipes: crafting recipes and processing in
+  any machine, vanilla or modded. Put encoded Blueprints into an Assembler and
+  the network can craft what they give, working out every step from the
+  ingredients it stores, including those it has to craft first.
+- Blueprint Terminal: a terminal with a Blueprint encoder under its list. Set
+  a crafting grid, or up to nine inputs and three outputs of processing with
+  their amounts, then encode it onto a blank Blueprint. An encoded Blueprint
+  put back into the encoder can be changed and encoded over. The "+" button of
+  JEI and REI lays any recipe out in the encoder, and their items and fluids
+  can be dragged onto its slots. Sneak and use an encoded Blueprint to wipe it.
+- Substitutes: a Blueprint can take more than the exact items it lists. A
+  crafting recipe then takes whatever the recipe accepts in each slot, such as
+  planks of any wood; a processing input takes anything in its tag, picked
+  with a middle-click or Ctrl-click on the input. Crafting recipes brought in
+  from JEI or REI take substitutes from the start.
+- Assembler: crafts crafting recipes itself and hands processing inputs to the
+  block its face touches, all of them at once, then takes the results back out
+  of that block when its side allows. A Puller on the machine brings results
+  back just as well. It can wait until the machine is empty before handing it
+  the next batch, has a priority for its Blueprints and takes Speed Upgrades.
+  Arrows on its sides point at its face, and looking at it outlines the
+  machine it works with.
+- Terminals list what the network can craft even when none is stored. Click it,
+  or Ctrl-click or middle-click anything craftable, to ask for an amount: the
+  plan shows what comes from storage, what gets crafted and what is missing,
+  and Start begins the task.
+- Crafting Monitor: lists every crafting task of the network with its progress,
+  what each resource is waiting for and what holds it up, and cancels a task,
+  giving back what it held. Tasks pause without energy and lose nothing.
+- The Autocrafting Upgrade works now: a Pusher with it orders a craft of what
+  its whitelist lists and the network has run out of.
 
 ### Changed
 

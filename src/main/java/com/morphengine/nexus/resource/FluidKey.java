@@ -9,6 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -45,5 +46,15 @@ public record FluidKey(FluidResource fluid) implements NexusResource {
     @Override
     public Identifier id() {
         return BuiltInRegistries.FLUID.getKey(fluid.getFluid());
+    }
+
+    @Override
+    public List<Identifier> tags() {
+        return ResourceTags.tagsOf(BuiltInRegistries.FLUID.wrapAsHolder(fluid.getFluid()));
+    }
+
+    @Override
+    public List<NexusResource> membersOf(final Identifier tag) {
+        return ResourceTags.membersOf(BuiltInRegistries.FLUID, tag, entry -> new FluidKey(FluidResource.of(entry)));
     }
 }

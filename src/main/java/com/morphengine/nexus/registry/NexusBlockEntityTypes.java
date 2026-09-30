@@ -1,7 +1,9 @@
 package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.block.entity.AssemblerBlockEntity;
 import com.morphengine.nexus.block.entity.CoalGeneratorBlockEntity;
+import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
@@ -35,15 +37,24 @@ public final class NexusBlockEntityTypes {
             BLOCK_ENTITY_TYPES.register("storage_vault", () -> new BlockEntityType<>(
                     StorageVaultBlockEntity::new, Set.of(NexusBlocks.STORAGE_VAULT.get())));
 
-    /** Both the Terminal and the Crafting Terminal; the block tells which. */
+    /** Every kind of terminal; the block tells which. */
     public static final Supplier<BlockEntityType<TerminalBlockEntity>> TERMINAL =
             BLOCK_ENTITY_TYPES.register("terminal", () -> new BlockEntityType<>(
-                    TerminalBlockEntity::new, Set.of(NexusBlocks.TERMINAL.get(), NexusBlocks.CRAFTING_TERMINAL.get())));
+                    TerminalBlockEntity::new, Set.of(NexusBlocks.TERMINAL.get(), NexusBlocks.CRAFTING_TERMINAL.get(),
+                    NexusBlocks.BLUEPRINT_TERMINAL.get())));
 
     /** Both the Puller and the Pusher; the block tells which. */
     public static final Supplier<BlockEntityType<TransferDeviceBlockEntity>> TRANSFER_DEVICE =
             BLOCK_ENTITY_TYPES.register("transfer_device", () -> new BlockEntityType<>(
                     TransferDeviceBlockEntity::new, Set.of(NexusBlocks.PULLER.get(), NexusBlocks.PUSHER.get())));
+
+    public static final Supplier<BlockEntityType<AssemblerBlockEntity>> ASSEMBLER =
+            BLOCK_ENTITY_TYPES.register("assembler", () -> new BlockEntityType<>(
+                    AssemblerBlockEntity::new, Set.of(NexusBlocks.ASSEMBLER.get())));
+
+    public static final Supplier<BlockEntityType<CraftingMonitorBlockEntity>> CRAFTING_MONITOR =
+            BLOCK_ENTITY_TYPES.register("crafting_monitor", () -> new BlockEntityType<>(
+                    CraftingMonitorBlockEntity::new, Set.of(NexusBlocks.CRAFTING_MONITOR.get())));
 
     private NexusBlockEntityTypes() {
     }

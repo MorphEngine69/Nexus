@@ -1,6 +1,7 @@
 package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.resource.NexusResource;
+import com.morphengine.nexus.terminal.TerminalContents;
 import com.morphengine.nexus.terminal.TerminalEntry;
 import com.morphengine.nexus.terminal.TerminalLayout;
 import net.minecraft.ChatFormatting;
@@ -89,8 +90,9 @@ final class ResourceGrid {
         ShownCell cell = prepared[index];
         if (cell == null) {
             final TerminalEntry entry = entries.get(index);
-            cell = new ShownCell(ResourceRenderers.icon(entry.resource()),
-                    entry.resource().type().unit().compact(entry.amount()));
+            final String amount = entry.amount() == 0 ? Component.translatable("gui.nexus.terminal.craft").getString()
+                    : entry.resource().type().unit().compact(entry.amount());
+            cell = new ShownCell(ResourceRenderers.icon(entry.resource()), amount);
             prepared[index] = cell;
         }
         return cell;
@@ -121,9 +123,10 @@ final class ResourceGrid {
     }
 
     /**
-     * @return the tooltip of the resource under the cursor: its own lines and the amount held
+     * @return the tooltip of the resource under the cursor: its own lines, the
+     *         amount held, and for what the network can craft how to ask for it
      */
-    List<Component> tooltip(final double x, final double y) {
+    List<Component> tooltip(final double x, final double y, final TerminalContents contents) {
         final NexusResource resource = resourceAt(x, y);
         if (resource == null) {
             return List.of();
@@ -131,6 +134,10 @@ final class ResourceGrid {
         final List<Component> lines = new ArrayList<>(ResourceRenderers.tooltip(resource));
         final long amount = amountOf(resource);
         lines.add(Math.min(1, lines.size()), resource.type().unit().exact(amount).withStyle(ChatFormatting.GRAY));
+        if (contents.isCraftable(resource)) {
+            lines.add(Component.translatable(amount == 0 ? "gui.nexus.terminal.craft_hint"
+                    : "gui.nexus.terminal.craft_more_hint").withStyle(ChatFormatting.DARK_GRAY));
+        }
         return lines;
     }
 

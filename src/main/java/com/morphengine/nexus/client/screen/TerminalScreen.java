@@ -1,11 +1,12 @@
 package com.morphengine.nexus.client.screen;
 
-import com.morphengine.nexus.menu.CraftingTerminalMenu;
+import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.TerminalPanel;
 import com.morphengine.nexus.networking.TerminalClickPayload;
 import com.morphengine.nexus.networking.TerminalSettingsPayload;
 import com.morphengine.nexus.resource.NexusResource;
 import com.morphengine.nexus.terminal.GridClick;
+import com.morphengine.nexus.terminal.TerminalContents;
 import com.morphengine.nexus.terminal.TerminalLayout;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import com.morphengine.nexus.terminal.TerminalStatus;
@@ -17,28 +18,26 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
 /**
- * Panel of a Terminal or Crafting Terminal, tinted with the network's color:
- * a search box, the grid of the network's resources with the sort and view
- * buttons beside the panel, a crafting grid for the crafting terminal, and the
- * inventory. Clicks on the grid go to the server, which answers with the
- * changed contents.
+ * Panel of a terminal, tinted with the network's color: a search box, the
+ * grid of the network's resources with the sort and view buttons beside the
+ * panel, a crafting grid or a Blueprint encoder for the terminals with one,
+ * and the inventory. Clicks on the grid go to the server, which answers with
+ * the changed contents. A resource the network can craft opens the crafting
+ * request when clicked with none stored, with Ctrl or with the middle button.
  *
  * @param <M> the terminal's menu
  */
-public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPanel> extends PanelScreen<M> {
-
-    private static final int CLEAR_SIZE = 10;
-    private static final int CLEAR_GAP = 2;
-    private static final int ARROW_LENGTH = 22;
-    private static final int ARROW_GAP = 6;
-    private static final int ARROW_HEAD = 4;
+public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPanel> extends PanelScreen<M>
+        implements FilterScreen {
 
     private final ResourceGridView view = new ResourceGridView();
     private TerminalLayout layout;
@@ -46,6 +45,7 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
     private @Nullable TerminalSearch search;
     private @Nullable ResourceGrid grid;
     private @Nullable TerminalSidebar sidebar;
+    private @Nullable TerminalWorkArea workArea;
 
     public TerminalScreen(final M menu, final Inventory inventory, final Component title) {
         this(menu, inventory, title, TerminalLayout.fit(
@@ -73,10 +73,20 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         super.init();
         grid = new ResourceGrid(leftPos, topPos, layout);
         sidebar = new TerminalSidebar(leftPos, topPos);
+        workArea = createWorkArea();
+        final int searchWidth = layout.scrollbarLeft() + TerminalLayout.SCROLLBAR_WIDTH - TerminalLayout.SEARCH_LEFT;
         search = new TerminalSearch(font, new PanelBounds(leftPos + TerminalLayout.SEARCH_LEFT,
-                topPos + TerminalLayout.SEARCH_TOP, searchWidth(), TerminalLayout.SEARCH_HEIGHT),
+                topPos + TerminalLayout.SEARCH_TOP, searchWidth, TerminalLayout.SEARCH_HEIGHT),
                 search != null ? search.text() : "");
         addRenderableWidget(search.widget());
+    }
+
+    private @Nullable TerminalWorkArea createWorkArea() {
+        if (getMenu() instanceof BlueprintTerminalMenu blueprintMenu) {
+            return new BlueprintEncoderArea(blueprintMenu, font, leftPos, topPos, layout);
+        }
+        return layout.kind().hasCraftingGrid() ? new CraftingGridArea(getMenu().containerId, leftPos, topPos, layout)
+                : null;
     }
 
     /**
@@ -116,16 +126,12 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         for (Slot slot : getMenu().slots) {
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
         }
-        if (layout.kind().hasCraftingGrid()) {
-            drawCraftingExtras(graphics, style, mouseX, mouseY);
+        if (workArea != null) {
+            workArea.draw(graphics, style, mouseX, mouseY);
         }
         if (sidebar != null) {
             sidebar.draw(graphics, style, settings, mouseX, mouseY);
         }
-    }
-
-    private int searchWidth() {
-        return layout.scrollbarLeft() + TerminalLayout.SCROLLBAR_WIDTH - TerminalLayout.SEARCH_LEFT;
     }
 
     private void drawStatus(final GuiGraphicsExtractor graphics) {
@@ -138,35 +144,6 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         final int centerX = leftPos + TerminalLayout.GRID_LEFT + layout.columns() * TerminalLayout.SLOT / 2;
         final int centerY = topPos + (TerminalLayout.GRID_TOP + layout.gridBottom() - font.lineHeight) / 2;
         graphics.centeredText(font, message, centerX, centerY, PanelStyle.TEXT_LIGHT);
-    }
-
-    private void drawCraftingExtras(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
-        drawArrow(graphics, style.border());
-        style.drawCrossButton(graphics, clearButton(), clearButton().contains(mouseX, mouseY));
-    }
-
-    /**
-     * A two pixel shaft and a head that narrows to the tip, pointing at the result.
-     */
-    private void drawArrow(final GuiGraphicsExtractor graphics, final int color) {
-        final int left = leftPos + layout.craftingRight() + ARROW_GAP;
-        final int y = topPos + layout.resultTop() + TerminalLayout.SLOT / 2 - 2;
-        final int headLeft = left + ARROW_LENGTH - ARROW_HEAD;
-        graphics.fill(left, y, headLeft, y + 2, color);
-        for (int step = 0; step < ARROW_HEAD; step++) {
-            final int half = ARROW_HEAD - 1 - step;
-            graphics.fill(headLeft + step, y - half, headLeft + step + 1, y + 2 + half, color);
-        }
-    }
-
-    /**
-     * A small square beside the top right corner of the crafting grid, as in
-     * other storage mods.
-     */
-    private PanelBounds clearButton() {
-        return new PanelBounds(leftPos + layout.craftingRight() + CLEAR_GAP, topPos + layout.craftingTop() - 1,
-                CLEAR_SIZE, CLEAR_SIZE);
     }
 
     /**
@@ -196,8 +173,9 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
     }
 
     private List<Component> tooltipAt(final int mouseX, final int mouseY) {
-        if (layout.kind().hasCraftingGrid() && clearButton().contains(mouseX, mouseY)) {
-            return List.of(Component.translatable("gui.nexus.terminal.clear_grid"));
+        final List<Component> area = workArea != null ? workArea.tooltip(mouseX, mouseY) : List.of();
+        if (!area.isEmpty()) {
+            return area;
         }
         if (search != null && search.isOverReset(mouseX, mouseY)) {
             return List.of(Component.translatable("gui.nexus.terminal.clear_search"));
@@ -205,12 +183,13 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         if (sidebar != null && sidebar.contains(mouseX, mouseY)) {
             return sidebar.tooltip(settings, mouseX, mouseY);
         }
-        return grid != null && getMenu().getCarried().isEmpty() ? grid.tooltip(mouseX, mouseY) : List.of();
+        return grid != null && getMenu().getCarried().isEmpty()
+                ? grid.tooltip(mouseX, mouseY, getMenu().terminal().contents()) : List.of();
     }
 
     @Override
     public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
-        if (search != null && search.click(event.x(), event.y(), isSecondary(event))) {
+        if (search != null && search.click(event.x(), event.y(), MouseButtons.isSecondary(event))) {
             return true;
         }
         if (search != null && getFocused() == search.widget() && !search.widget().isFocused()) {
@@ -219,12 +198,12 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         if (clickSidebar(event) || clickGrid(event)) {
             return true;
         }
-        return clickClearButton(event) || super.mouseClicked(event, doubleClick);
+        return workArea != null && workArea.click(event) || super.mouseClicked(event, doubleClick);
     }
 
     private boolean clickSidebar(final MouseButtonEvent event) {
         final TerminalSettings changed = sidebar != null
-                ? sidebar.click(settings, event.x(), event.y(), isSecondary(event)) : null;
+                ? sidebar.click(settings, event.x(), event.y(), MouseButtons.isSecondary(event)) : null;
         if (changed != null) {
             applySettings(changed);
         }
@@ -239,25 +218,25 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
             return false;
         }
         final NexusResource resource = grid.resourceAt(event.x(), event.y());
+        final TerminalContents contents = getMenu().terminal().contents();
+        final boolean asksToCraft = event.hasControlDown() || event.button() == GLFW.GLFW_MOUSE_BUTTON_MIDDLE
+                || resource != null && contents.amountOf(resource) == 0;
+        if (resource != null && contents.isCraftable(resource) && asksToCraft && getMenu().getCarried().isEmpty()) {
+            openCraftRequest(resource);
+            return true;
+        }
         final GridClick click = event.hasShiftDown() ? GridClick.QUICK_MOVE
-                : isSecondary(event) ? GridClick.SECONDARY : GridClick.PRIMARY;
+                : MouseButtons.isSecondary(event) ? GridClick.SECONDARY : GridClick.PRIMARY;
         if (click != GridClick.QUICK_MOVE || resource != null) {
             ClientPacketDistributor.sendToServer(new TerminalClickPayload(getMenu().containerId, resource, click));
         }
         return true;
     }
 
-    private boolean clickClearButton(final MouseButtonEvent event) {
-        if (!layout.kind().hasCraftingGrid() || !clearButton().contains(event.x(), event.y())
-                || minecraft == null || minecraft.gameMode == null) {
-            return false;
+    private void openCraftRequest(final NexusResource resource) {
+        if (minecraft != null) {
+            minecraft.gui.setScreen(new CraftRequestScreen<>(this, getMenu(), resource));
         }
-        minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId, CraftingTerminalMenu.BUTTON_CLEAR_GRID);
-        return true;
-    }
-
-    private static boolean isSecondary(final MouseButtonEvent event) {
-        return event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT;
     }
 
     /**
@@ -287,7 +266,10 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
 
     @Override
     public boolean mouseScrolled(final double x, final double y, final double scrollX, final double scrollY) {
-        return grid != null && grid.scroll(x, y, scrollY) || super.mouseScrolled(x, y, scrollX, scrollY);
+        if (grid != null && grid.scroll(x, y, scrollY)) {
+            return true;
+        }
+        return workArea != null && workArea.scroll(x, y, scrollY) || super.mouseScrolled(x, y, scrollX, scrollY);
     }
 
     @Override
@@ -299,6 +281,28 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
     protected boolean hasClickedOutside(final double mouseX, final double mouseY, final int left, final int top) {
         return super.hasClickedOutside(mouseX, mouseY, left, top)
                 && (sidebar == null || !sidebar.contains(mouseX, mouseY));
+    }
+
+    @Override
+    public List<Rect2i> filterSlotAreas() {
+        return workArea != null ? workArea.ghostAreas() : List.of();
+    }
+
+    @Override
+    public @Nullable NexusResource filterEntryOf(final ItemStack stack) {
+        return workArea != null ? workArea.ghostEntryOf(stack) : null;
+    }
+
+    @Override
+    public @Nullable NexusResource filterEntryOf(final FluidStack fluid) {
+        return workArea != null ? workArea.ghostEntryOf(fluid) : null;
+    }
+
+    @Override
+    public void setFilterSlot(final int slot, final NexusResource resource) {
+        if (workArea != null) {
+            workArea.setGhost(slot, resource);
+        }
     }
 
     /**

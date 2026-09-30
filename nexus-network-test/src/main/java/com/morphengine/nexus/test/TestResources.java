@@ -26,6 +26,9 @@ public final class TestResources {
     /** 64 bytes, 8 per type, at most 4 types, 8 units per byte. */
     public static final CellSpec SMALL = new CellSpec(64, 8, 4, 8);
 
+    /** A cell that never fills up in a test: a million bytes of 64 units, 64 types. */
+    public static final CellSpec ROOMY = new CellSpec(1 << 20, 8, 64, 64);
+
     /** 4 bytes of 100 units each: 400 units for a single resource. */
     public static final CellSpec ENERGY_CELL = new CellSpec(4, 1, 1, 100);
 

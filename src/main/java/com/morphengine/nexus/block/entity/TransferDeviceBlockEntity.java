@@ -1,20 +1,27 @@
 package com.morphengine.nexus.block.entity;
 
+import com.morphengine.nexus.api.resource.FilterMode;
+import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.transport.RedstoneMode;
 import com.morphengine.nexus.api.transport.TransferQuota;
 import com.morphengine.nexus.block.TransferDeviceBlock;
-import com.morphengine.nexus.filter.FilterSlots;
+import com.morphengine.nexus.level.AutocraftingComponent;
+import com.morphengine.nexus.level.NeighbourCapabilities;
+import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.SideStorage;
 import com.morphengine.nexus.menu.TransferDeviceMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.resource.NexusResources;
+import com.morphengine.nexus.storage.NetworkStorage;
 import com.morphengine.nexus.storage.SingleTypeStorage;
 import com.morphengine.nexus.transfer.DeliveryMode;
 import com.morphengine.nexus.transfer.TransferKind;
 import com.morphengine.nexus.transfer.TransferSettings;
 import com.morphengine.nexus.transport.RedstoneGate;
+import com.morphengine.nexus.transport.Shortfalls;
+import com.morphengine.nexus.transport.StockEntry;
 import com.morphengine.nexus.transport.TransferRate;
 import com.morphengine.nexus.transport.TransferTask;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
@@ -35,14 +42,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.SplittableRandom;
 import java.util.random.RandomGenerator;
@@ -71,7 +74,10 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
      * #FILTER_SLOTS_PER_CAPACITY_UPGRADE} = 36 filter slots at most.
      */
     public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(Map.of(
-            UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.REGULATOR, 1, UpgradeTypes.CAPACITY, 3));
+            UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.REGULATOR, 1, UpgradeTypes.CAPACITY, 3,
+            UpgradeTypes.AUTOCRAFTING, 1));
+    /** A Pusher with an Autocrafting Upgrade orders a craft at most once per so many operations. */
+    private static final int OPERATIONS_PER_ORDER = 10;
     private static final int POWER_CHECK_INTERVAL_TICKS = 20;
 
     private static final String TAG_SETTINGS = "settings";
@@ -81,17 +87,16 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
             new UpgradeContainer(UPGRADE_SLOTS, UPGRADE_LIMITS, this::upgradesChanged);
     private TransferRate rate = TransferRate.BASE;
     private boolean regulated;
+    private boolean autocrafts;
+    private int operationsUntilOrder;
     /** One step of the resource per operation, times what a Stack Upgrade adds. */
     private final TransferQuota quota =
             resource -> NexusResources.of(resource).type().unit().step() * rate.multiplier();
     private final RedstoneGate gate = new RedstoneGate(RedstoneMode.IGNORED);
     private final RandomGenerator random = new SplittableRandom();
+    private final NeighbourCapabilities neighbour = new NeighbourCapabilities();
     private TransferSettings settings = TransferSettings.DEFAULT;
     private @Nullable TransferTask task;
-    private @Nullable Direction watchedFace;
-    private @Nullable BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> items;
-    private @Nullable BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> fluids;
-    private @Nullable BlockCapabilityCache<EnergyHandler, Direction> energy;
     private boolean signalKnown;
     private int cooldown;
 
@@ -177,6 +182,7 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     private void readUpgrades() {
         rate = TransferRate.of(upgrades.count(UpgradeTypes.SPEED), upgrades.count(UpgradeTypes.STACK));
         regulated = upgrades.count(UpgradeTypes.REGULATOR) > 0;
+        autocrafts = upgrades.count(UpgradeTypes.AUTOCRAFTING) > 0;
         task = null;
     }
 
@@ -205,32 +211,46 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
                 new SingleTypeStorage(controller.resources(), settings.resource().resourceType());
         task().runOnce(kind.route(beside, network, Actor.NOBODY));
         gate.operated();
+        if (autocrafts && kind == TransferKind.PUSHER && --operationsUntilOrder <= 0) {
+            operationsUntilOrder = OPERATIONS_PER_ORDER;
+            orderCraft(controller, beside);
+        }
+    }
+
+    /**
+     * Orders a craft of the first resource the whitelist lists that the
+     * network lacks and can craft, unless one is being crafted already.
+     */
+    private void orderCraft(final NetworkController controller, final SideStorage beside) {
+        final TransferSettings effective = effectiveSettings();
+        final AutocraftingComponent autocrafting = controller.component(NetworkComponentTypes.AUTOCRAFTING);
+        if (effective.filter().mode() != FilterMode.ALLOW) {
+            return;
+        }
+        final List<StockEntry> orderable = new ArrayList<>();
+        for (StockEntry entry : effective.stock()) {
+            if (!autocrafting.isCrafting(entry.resource())
+                    && !autocrafting.blueprints().blueprintsFor(entry.resource()).isEmpty()) {
+                orderable.add(entry);
+            }
+        }
+        final NetworkStorage storage = controller.component(NetworkComponentTypes.STORAGE).storage();
+        final ResourceAmount lacking = Shortfalls.first(orderable, beside, storage, quota);
+        if (lacking != null) {
+            autocrafting.start(autocrafting.plan(lacking.resource(), lacking.amount(), storage),
+                    getDisplayName().getString());
+        }
     }
 
     /**
      * What the block the device's face touches offers on the face touched, of
-     * the resource the device moves. The lookups are cached until the device
-     * turns to another face.
+     * the resource the device moves.
      */
     private SideStorage besideStorage(final ServerLevel level, final BlockPos pos, final Direction face) {
-        BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> itemCache = items;
-        BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> fluidCache = fluids;
-        BlockCapabilityCache<EnergyHandler, Direction> energyCache = energy;
-        if (face != watchedFace || itemCache == null || fluidCache == null || energyCache == null) {
-            final BlockPos target = pos.relative(face);
-            final Direction side = face.getOpposite();
-            itemCache = BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, target, side);
-            fluidCache = BlockCapabilityCache.create(Capabilities.Fluid.BLOCK, level, target, side);
-            energyCache = BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, target, side);
-            items = itemCache;
-            fluids = fluidCache;
-            energy = energyCache;
-            watchedFace = face;
-        }
         return switch (settings.resource()) {
-            case ITEM -> new SideStorage(itemCache.getCapability(), null, null);
-            case FLUID -> new SideStorage(null, fluidCache.getCapability(), null);
-            case ENERGY -> new SideStorage(null, null, energyCache.getCapability());
+            case ITEM -> neighbour.items(level, pos, face);
+            case FLUID -> neighbour.fluids(level, pos, face);
+            case ENERGY -> neighbour.energy(level, pos, face);
         };
     }
 
@@ -243,13 +263,15 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     private TransferTask task() {
         TransferTask current = task;
         if (current == null) {
-            final FilterSlots activeFilter = settings.filter().limitedTo(filterSlotCount(upgrades));
-            final TransferSettings limited = settings.withFilter(activeFilter);
-            final TransferSettings effective = regulated ? limited : limited.withDelivery(DeliveryMode.UNLIMITED);
-            current = kind.taskFor(effective, quota, random);
+            current = kind.taskFor(effectiveSettings(), quota, random);
             task = current;
         }
         return current;
+    }
+
+    private TransferSettings effectiveSettings() {
+        final TransferSettings limited = settings.withFilter(settings.filter().limitedTo(filterSlotCount(upgrades)));
+        return regulated ? limited : limited.withDelivery(DeliveryMode.UNLIMITED);
     }
 
     @Override

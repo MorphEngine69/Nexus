@@ -1,7 +1,10 @@
 package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.menu.AssemblerMenu;
+import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.CoalGeneratorMenu;
+import com.morphengine.nexus.menu.CraftingMonitorMenu;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.menu.NexusMenu;
@@ -70,6 +73,24 @@ public final class NexusMenuTypes {
                     (containerId, inventory, buffer) -> new TransferDeviceMenu(containerId, inventory,
                             buffer.readBlockPos(), buffer.readEnum(TransferKind.class),
                             TransferSettings.STREAM_CODEC.decode(buffer))));
+
+    public static final Supplier<MenuType<AssemblerMenu>> ASSEMBLER = MENU_TYPES.register(
+            "assembler",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) -> new AssemblerMenu(containerId, inventory,
+                            buffer.readBlockPos())));
+
+    public static final Supplier<MenuType<CraftingMonitorMenu>> CRAFTING_MONITOR = MENU_TYPES.register(
+            "crafting_monitor",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) -> new CraftingMonitorMenu(containerId, inventory,
+                            buffer.readBlockPos())));
+
+    public static final Supplier<MenuType<BlueprintTerminalMenu>> BLUEPRINT_TERMINAL = MENU_TYPES.register(
+            "blueprint_terminal",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) -> new BlueprintTerminalMenu(containerId, inventory,
+                            buffer.readBlockPos(), TerminalSettings.STREAM_CODEC.decode(buffer))));
 
     private NexusMenuTypes() {
     }

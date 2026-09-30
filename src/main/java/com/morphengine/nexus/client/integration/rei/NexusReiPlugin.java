@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.integration.rei;
 
+import com.morphengine.nexus.client.screen.AssemblerScreen;
 import com.morphengine.nexus.client.screen.TerminalScreen;
 import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import me.shedaniel.math.Rectangle;
@@ -14,10 +15,11 @@ import java.util.List;
 
 /**
  * REI support: its "+" button lays out a crafting recipe on the grid of a
- * Crafting Terminal, it keeps its overlay off the side buttons of terminals,
- * Pullers and Pushers, its recipe and usage keys work on the resources a
- * terminal lists, and its items and fluids can be dragged onto the filter of
- * any panel with one.
+ * Crafting Terminal and any recipe as the draft of a Blueprint Terminal, it
+ * keeps its overlay off the side buttons of terminals, Pullers, Pushers and
+ * Assemblers, its recipe and usage keys work on the resources a terminal
+ * lists, and its items and fluids can be dragged onto the filter of any panel
+ * with one and onto the Blueprint encoder.
  */
 @REIPluginClient
 public final class NexusReiPlugin implements REIClientPlugin {
@@ -25,6 +27,7 @@ public final class NexusReiPlugin implements REIClientPlugin {
     @Override
     public void registerTransferHandlers(final TransferHandlerRegistry registry) {
         registry.register(new CraftingTerminalTransferHandler());
+        registry.register(new BlueprintTerminalTransferHandler());
     }
 
     @Override
@@ -32,6 +35,7 @@ public final class NexusReiPlugin implements REIClientPlugin {
         zones.register(TerminalScreen.class, (TerminalScreen<?> screen) -> List.of(rectangle(screen.sidebarArea())));
         zones.register(TransferDeviceScreen.class,
                 (TransferDeviceScreen screen) -> List.of(rectangle(screen.sidebarArea())));
+        zones.register(AssemblerScreen.class, (AssemblerScreen screen) -> List.of(rectangle(screen.sidebarArea())));
     }
 
     private static Rectangle rectangle(final Rect2i area) {

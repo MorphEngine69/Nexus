@@ -5,7 +5,9 @@ import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.api.storage.StorageListener;
 import com.morphengine.nexus.block.entity.TerminalBlockEntity;
+import com.morphengine.nexus.level.AutocraftingComponent;
 import com.morphengine.nexus.networking.TerminalContentsPayload;
+import com.morphengine.nexus.networking.TerminalCraftablesPayload;
 import com.morphengine.nexus.resource.EnergyKey;
 import com.morphengine.nexus.resource.NexusResource;
 import com.morphengine.nexus.resource.NexusResources;
@@ -25,7 +27,8 @@ import java.util.Map;
  * tick; when the terminal goes offline or the network is replaced, it sends a
  * full listing again. The energy pool changes without the storage hearing of
  * it, through Energy Cells and generators, so its total is compared every
- * {@value #ENERGY_REFRESH_TICKS} ticks instead. Server thread only.
+ * {@value #ENERGY_REFRESH_TICKS} ticks instead. What the network can craft is
+ * sent whenever its blueprints change. Server thread only.
  */
 public final class TerminalSession implements StorageListener {
 
@@ -40,6 +43,8 @@ public final class TerminalSession implements StorageListener {
     private @Nullable NetworkStorage watched;
     private @Nullable TerminalStatus sentStatus;
     private long sentEnergy;
+    private int sentBlueprints = -1;
+    private @Nullable AutocraftingComponent sentAutocrafting;
     private int ticks;
 
     public TerminalSession(final ServerPlayer viewer, final int containerId, final TerminalBlockEntity terminal) {
@@ -52,6 +57,7 @@ public final class TerminalSession implements StorageListener {
      * Sends what changed since the last tick. Called once per tick.
      */
     public void tick() {
+        refreshCraftables(terminal.onlineAutocrafting());
         final TerminalStatus status = terminal.status();
         final NetworkStorage storage = terminal.onlineStorage();
         if (status != sentStatus || storage != watched) {
@@ -89,6 +95,22 @@ public final class TerminalSession implements StorageListener {
         if (!resource.equals(EnergyKey.INSTANCE)) {
             pending.put(NexusResources.of(resource), amount);
         }
+    }
+
+    private void refreshCraftables(final @Nullable AutocraftingComponent autocrafting) {
+        final int revision = autocrafting != null ? autocrafting.revision() : -1;
+        if (autocrafting == sentAutocrafting && revision == sentBlueprints) {
+            return;
+        }
+        sentAutocrafting = autocrafting;
+        sentBlueprints = revision;
+        final List<NexusResource> craftables = new ArrayList<>();
+        if (autocrafting != null) {
+            for (ResourceKey craftable : autocrafting.blueprints().craftables()) {
+                craftables.add(NexusResources.of(craftable));
+            }
+        }
+        PacketDistributor.sendToPlayer(viewer, new TerminalCraftablesPayload(containerId, craftables));
     }
 
     private void refreshEnergy(final @Nullable Storage resources) {

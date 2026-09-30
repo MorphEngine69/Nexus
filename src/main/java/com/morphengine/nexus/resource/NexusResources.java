@@ -10,6 +10,9 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * How resources of any kind are saved and sent: each carries the id of its kind,
  * which picks the codec for the rest.
@@ -49,6 +52,18 @@ public final class NexusResources {
             return nexusResource;
         }
         throw new IllegalArgumentException("not a resource of the game: " + resource);
+    }
+
+    /**
+     * @return {@code resources} as resources of the game, in the same order
+     * @throws IllegalArgumentException if one is not
+     */
+    public static List<NexusResource> listOf(final List<? extends ResourceKey> resources) {
+        final List<NexusResource> list = new ArrayList<>(resources.size());
+        for (ResourceKey resource : resources) {
+            list.add(of(resource));
+        }
+        return List.copyOf(list);
     }
 
     private static NexusResourceType<?> typeOf(final Identifier id) {
