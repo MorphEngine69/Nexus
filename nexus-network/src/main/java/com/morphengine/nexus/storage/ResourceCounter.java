@@ -73,6 +73,14 @@ public final class ResourceCounter {
     }
 
     /**
+     * Forgets every resource.
+     */
+    public void clear() {
+        amounts.clear();
+        total = 0;
+    }
+
+    /**
      * @return every counted resource with its amount, in first-seen order; a snapshot
      */
     public List<ResourceAmount> contents() {

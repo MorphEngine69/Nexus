@@ -22,7 +22,9 @@ import java.util.Objects;
  *
  * <p>The sum over all sources is kept up to date, so reading an amount is cheap;
  * this relies on sources changing only through this storage while they are part
- * of it. Listeners hear about every change. Server thread only.
+ * of it. Listeners hear about every change. {@linkplain InsertInterceptor
+ * Interceptors} see every insert first and may claim part of it; what they
+ * claim counts as inserted but never reaches a source. Server thread only.
  */
 public final class NetworkStorage implements Storage {
 
@@ -30,6 +32,7 @@ public final class NetworkStorage implements Storage {
     private final List<Source> sources = new ArrayList<>();
     private final ResourceCounter totals = new ResourceCounter();
     private final List<StorageListener> listeners = new ArrayList<>();
+    private final List<InsertInterceptor> interceptors = new ArrayList<>();
 
     /**
      * Adds a source; its contents count towards the totals from now on.
@@ -92,6 +95,13 @@ public final class NetworkStorage implements Storage {
         listeners.remove(listener);
     }
 
+    /**
+     * Lets {@code interceptor} see every insert from now on, after those added before it.
+     */
+    public void addInterceptor(final InsertInterceptor interceptor) {
+        interceptors.add(Objects.requireNonNull(interceptor, "interceptor must not be null"));
+    }
+
     @Override
     public long amountOf(final ResourceKey resource) {
         return totals.amountOf(resource);
@@ -105,18 +115,32 @@ public final class NetworkStorage implements Storage {
     @Override
     public long insert(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
         StorageArguments.check(resource, amount, action, actor);
-        long remaining = amount;
+        final long claimed = intercept(resource, amount, action);
+        final long offered = amount - claimed;
+        long remaining = offered;
         int start = 0;
         while (start < sources.size() && remaining > 0) {
             final int end = groupEnd(start);
             remaining = insertIntoGroup(start, end, resource, remaining, action, actor);
             start = end;
         }
-        final long inserted = amount - remaining;
+        final long inserted = offered - remaining;
         if (inserted > 0 && action.isExecute()) {
             notifyListeners(resource, totals.add(resource, inserted));
+            long uncounted = inserted;
+            for (int i = 0; i < interceptors.size() && uncounted > 0; i++) {
+                uncounted -= interceptors.get(i).inserted(resource, uncounted);
+            }
         }
-        return inserted;
+        return claimed + inserted;
+    }
+
+    private long intercept(final ResourceKey resource, final long amount, final Action action) {
+        long claimed = 0;
+        for (int i = 0; i < interceptors.size() && claimed < amount; i++) {
+            claimed += interceptors.get(i).intercept(resource, amount - claimed, action);
+        }
+        return claimed;
     }
 
     @Override
