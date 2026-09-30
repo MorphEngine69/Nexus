@@ -1,6 +1,7 @@
 package com.morphengine.nexus.client.integration.jei;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.client.screen.AssemblerScreen;
 import com.morphengine.nexus.client.screen.TerminalScreen;
 import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import com.morphengine.nexus.client.screen.VaultCellScreen;
@@ -17,10 +18,11 @@ import java.util.List;
 
 /**
  * JEI support: its "+" button lays out a crafting recipe on the grid of a
- * Crafting Terminal, it keeps its overlay off the side buttons of terminals,
- * Pullers and Pushers, its recipe and usage keys work on the resources a
- * terminal lists, and its items and fluids can be dragged onto the filter of
- * any panel with one.
+ * Crafting Terminal and any recipe as the draft of a Blueprint Terminal, it
+ * keeps its overlay off the side buttons of terminals, Pullers, Pushers and
+ * Assemblers, its recipe and usage keys work on the resources a terminal
+ * lists, and its items and fluids can be dragged onto the filter of any panel
+ * with one and onto the Blueprint encoder.
  */
 @JeiPlugin
 public final class NexusJeiPlugin implements IModPlugin {
@@ -35,6 +37,7 @@ public final class NexusJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeTransferHandlers(final IRecipeTransferRegistration registration) {
         registration.addRecipeTransferHandler(new CraftingTerminalTransferHandler(), RecipeTypes.CRAFTING);
+        registration.addUniversalRecipeTransferHandler(new BlueprintTerminalTransferHandler());
     }
 
     @Override
@@ -48,5 +51,20 @@ public final class NexusJeiPlugin implements IModPlugin {
         });
         registration.addGhostIngredientHandler(VaultCellScreen.class, new FilterGhostHandler<>());
         registration.addGhostIngredientHandler(TransferDeviceScreen.class, new FilterGhostHandler<>());
+        registration.addGhostIngredientHandler(terminalScreens(), new FilterGhostHandler<>());
+        registration.addGuiContainerHandler(AssemblerScreen.class, new IGuiContainerHandler<>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(final AssemblerScreen screen) {
+                return List.of(screen.sidebarArea());
+            }
+        });
+    }
+
+    /**
+     * @return the class of every terminal screen, whatever its menu
+     */
+    @SuppressWarnings("unchecked")
+    private static Class<TerminalScreen<?>> terminalScreens() {
+        return (Class<TerminalScreen<?>>) (Class<?>) TerminalScreen.class;
     }
 }

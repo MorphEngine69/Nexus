@@ -5,7 +5,8 @@ package com.morphengine.nexus.terminal;
  * The screen picks the layout that fits the window and hands it to the menu,
  * which moves its slots there. From the top: header, search box, the grid of
  * resources with its scroll bar, the crafting grid of a crafting terminal, the
- * inventory. The crafting grid and the inventory are centred under the grid.
+ * inventory. The crafting grid or the encoder and the inventory are centred
+ * under the grid.
  *
  * @param columns columns of resources the grid shows, at least {@value #MIN_COLUMNS}
  * @param rows    rows of resources the grid shows, at least one
@@ -84,9 +85,17 @@ public record TerminalLayout(TerminalKind kind, int columns, int rows) {
     }
 
     public int inventoryTop() {
-        return kind.hasCraftingGrid()
+        return kind.hasWorkArea()
                 ? craftingTop() + CRAFTING_HEIGHT + GRID_GAP
                 : gridBottom() + INVENTORY_GAP;
+    }
+
+    /**
+     * @return left edge of the encoder's area, as wide as the inventory; meaningful
+     *         for a blueprint terminal only
+     */
+    public int encoderLeft() {
+        return inventoryLeft();
     }
 
     /**
@@ -97,7 +106,7 @@ public record TerminalLayout(TerminalKind kind, int columns, int rows) {
     }
 
     /**
-     * @return top of the crafting grid; meaningful for a crafting terminal only
+     * @return top of the crafting grid or the encoder's area
      */
     public int craftingTop() {
         return gridBottom() + GRID_GAP;

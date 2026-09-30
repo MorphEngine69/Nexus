@@ -74,6 +74,7 @@ public final class NetworkState {
     public NetworkState(final NetworkController controller) {
         this.controller = controller;
         final NetworkStorage storage = component(NetworkComponentTypes.STORAGE).storage();
+        storage.addInterceptor(component(NetworkComponentTypes.AUTOCRAFTING));
         this.storedEnergy = new StorageEnergyBuffer(storage, EnergyKey.INSTANCE, Actor.NOBODY);
         this.storedEnergyHandler = new StoredEnergyHandler(storedEnergy);
     }

@@ -28,13 +28,9 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
     public static final int INVENTORY_LEFT = 19;
     public static final int INVENTORY_TOP = 142;
 
-    /** Menu button ids; the change they make to the priority is {@link #PRIORITY_STEPS}. */
-    public static final int BUTTON_LOWER_TEN = 0;
-    public static final int BUTTON_LOWER = 1;
-    public static final int BUTTON_RAISE = 2;
-    public static final int BUTTON_RAISE_TEN = 3;
+    /** Menu button id of the first {@link PriorityButtons priority button}. */
+    public static final int BUTTON_PRIORITY = 0;
 
-    private static final int[] PRIORITY_STEPS = {-10, -1, 1, 10};
     private static final int SLOT_SPACING = 18;
 
     private final DataSlot priority = DataSlot.standalone();
@@ -71,10 +67,11 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
     @Override
     public boolean clickMenuButton(final Player player, final int buttonId) {
         final StorageVaultBlockEntity vault = blockEntity();
-        if (vault == null || buttonId < 0 || buttonId >= PRIORITY_STEPS.length) {
+        final int index = buttonId - BUTTON_PRIORITY;
+        if (vault == null || index < 0 || index >= PriorityButtons.count()) {
             return false;
         }
-        vault.setPriority(vault.storagePriority() + PRIORITY_STEPS[buttonId]);
+        vault.setPriority(vault.storagePriority() + PriorityButtons.stepOf(index));
         return true;
     }
 

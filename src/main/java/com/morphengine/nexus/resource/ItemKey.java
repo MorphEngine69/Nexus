@@ -12,6 +12,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -64,5 +65,15 @@ public record ItemKey(ItemResource item) implements NexusResource {
     @Override
     public Identifier id() {
         return BuiltInRegistries.ITEM.getKey(item.getItem());
+    }
+
+    @Override
+    public List<Identifier> tags() {
+        return ResourceTags.tagsOf(BuiltInRegistries.ITEM.wrapAsHolder(item.getItem()));
+    }
+
+    @Override
+    public List<NexusResource> membersOf(final Identifier tag) {
+        return ResourceTags.membersOf(BuiltInRegistries.ITEM, tag, entry -> new ItemKey(ItemResource.of(entry)));
     }
 }

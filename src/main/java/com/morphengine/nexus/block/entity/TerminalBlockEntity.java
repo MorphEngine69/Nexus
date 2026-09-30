@@ -2,8 +2,10 @@ package com.morphengine.nexus.block.entity;
 
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.TerminalBlock;
+import com.morphengine.nexus.level.AutocraftingComponent;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
+import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.TerminalMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -26,10 +28,10 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A Terminal or Crafting Terminal: a window onto its network's storage. It
- * keeps how the player likes the list sorted and sized, and a crafting terminal
- * keeps its crafting grid. Once a second it lights or darkens its screen with
- * the network's energy.
+ * A terminal: a window onto its network's storage. It keeps how the player
+ * likes the list sorted and sized; a crafting terminal keeps its crafting
+ * grid, a blueprint terminal its encoder. Once a second it lights or darkens
+ * its screen with the network's energy.
  */
 public final class TerminalBlockEntity extends NetworkDeviceBlockEntity {
 
@@ -38,12 +40,14 @@ public final class TerminalBlockEntity extends NetworkDeviceBlockEntity {
 
     private final TerminalKind kind;
     private final @Nullable TerminalCraftingGrid craftingGrid;
+    private final @Nullable BlueprintEncoder encoder;
     private TerminalSettings settings = TerminalSettings.DEFAULT;
 
     public TerminalBlockEntity(final BlockPos pos, final BlockState state) {
         super(NexusBlockEntityTypes.TERMINAL.get(), pos, state);
         this.kind = kindOf(state);
         this.craftingGrid = kind.hasCraftingGrid() ? new TerminalCraftingGrid(this::setChanged) : null;
+        this.encoder = kind.hasEncoder() ? new BlueprintEncoder(this::setChanged) : null;
     }
 
     public static void serverTick(
@@ -82,6 +86,25 @@ public final class TerminalBlockEntity extends NetworkDeviceBlockEntity {
      */
     public @Nullable TerminalCraftingGrid craftingGrid() {
         return craftingGrid;
+    }
+
+    /**
+     * @return the Blueprint encoder; {@code null} for a terminal without one
+     */
+    public @Nullable BlueprintEncoder encoder() {
+        return encoder;
+    }
+
+    /**
+     * @return the network's autocrafting while the terminal is {@link TerminalStatus#ONLINE};
+     *         {@code null} otherwise. Server side only.
+     */
+    public @Nullable AutocraftingComponent onlineAutocrafting() {
+        final NetworkController controller = controller();
+        if (controller == null || status() != TerminalStatus.ONLINE) {
+            return null;
+        }
+        return controller.component(NetworkComponentTypes.AUTOCRAFTING);
     }
 
     public TerminalStatus status() {
@@ -126,6 +149,7 @@ public final class TerminalBlockEntity extends NetworkDeviceBlockEntity {
         return switch (kind) {
             case TERMINAL -> new TerminalMenu(containerId, inventory, worldPosition, settings);
             case CRAFTING_TERMINAL -> new CraftingTerminalMenu(containerId, inventory, worldPosition, settings);
+            case BLUEPRINT_TERMINAL -> new BlueprintTerminalMenu(containerId, inventory, worldPosition, settings);
         };
     }
 
@@ -134,6 +158,9 @@ public final class TerminalBlockEntity extends NetworkDeviceBlockEntity {
         super.preRemoveSideEffects(pos, state);
         if (level != null && craftingGrid != null) {
             Containers.dropContents(level, pos, craftingGrid);
+        }
+        if (level != null && encoder != null) {
+            Containers.dropContents(level, pos, encoder.blueprints());
         }
     }
 
@@ -144,6 +171,9 @@ public final class TerminalBlockEntity extends NetworkDeviceBlockEntity {
         if (craftingGrid != null) {
             ContainerHelper.saveAllItems(output, craftingGrid.stacks());
         }
+        if (encoder != null) {
+            encoder.write(output);
+        }
     }
 
     @Override
@@ -152,6 +182,9 @@ public final class TerminalBlockEntity extends NetworkDeviceBlockEntity {
         settings = input.read(TAG_SETTINGS, TerminalSettings.CODEC).orElse(TerminalSettings.DEFAULT);
         if (craftingGrid != null) {
             ContainerHelper.loadAllItems(input, craftingGrid.stacks());
+        }
+        if (encoder != null) {
+            encoder.read(input);
         }
     }
 }

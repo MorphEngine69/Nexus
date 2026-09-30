@@ -6,17 +6,13 @@ import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.api.transport.TransferQuota;
-import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.transport.PullTask;
 import com.morphengine.nexus.transport.PushTask;
-import com.morphengine.nexus.transport.StockEntry;
 import com.morphengine.nexus.transport.StorageRoute;
 import com.morphengine.nexus.transport.SweepTask;
 import com.morphengine.nexus.transport.TransferTask;
 import net.minecraft.util.StringRepresentable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.random.RandomGenerator;
 
@@ -36,7 +32,7 @@ public enum TransferKind implements StringRepresentable {
         public TransferTask taskFor(
                 final TransferSettings settings, final TransferQuota quota, final RandomGenerator random) {
             if (settings.delivery() == DeliveryMode.KEEP_STOCKED && settings.filter().mode() == FilterMode.ALLOW) {
-                return new PullTask(stockOf(settings), quota);
+                return new PullTask(settings.stock(), quota);
             }
             return new SweepTask(settings.filter().toResourceFilter(settings.matchMode()), quota);
         }
@@ -63,7 +59,7 @@ public enum TransferKind implements StringRepresentable {
             if (settings.filter().mode() == FilterMode.DENY) {
                 return new SweepTask(settings.filter().toResourceFilter(settings.matchMode()), quota);
             }
-            return new PushTask(stockOf(settings), settings.scheduling(), quota, random);
+            return new PushTask(settings.stock(), settings.scheduling(), quota, random);
         }
 
         @Override
@@ -107,21 +103,6 @@ public enum TransferKind implements StringRepresentable {
      *         an order that can be chosen
      */
     public abstract boolean hasScheduling();
-
-    /**
-     * @return what the filter lists in slot order, each with the amount kept in
-     *         stock when the settings keep stock, or without limit otherwise
-     */
-    private static List<StockEntry> stockOf(final TransferSettings settings) {
-        final List<FilterSlots.Entry> listed = settings.filter().inSlotOrder();
-        final List<StockEntry> entries = new ArrayList<>(listed.size());
-        for (FilterSlots.Entry entry : listed) {
-            entries.add(settings.delivery() == DeliveryMode.KEEP_STOCKED
-                    ? new StockEntry(entry.resource(), settings.keepAmount(entry.slot(), entry.resource()))
-                    : StockEntry.unlimited(entry.resource()));
-        }
-        return entries;
-    }
 
     @Override
     public String getSerializedName() {

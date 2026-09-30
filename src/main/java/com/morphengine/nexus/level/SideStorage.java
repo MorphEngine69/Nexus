@@ -62,14 +62,35 @@ public final class SideStorage implements Storage {
     @Override
     public long insert(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
         checkArguments(resource, action, actor);
+        return inTransaction(action, transaction -> (int) insertInto(transaction, resource, amount));
+    }
+
+    /**
+     * Inserts every amount in full or nothing at all, in one transaction, so
+     * the inputs of a machine never arrive half.
+     *
+     * @return whether everything fits; under {@link Action#SIMULATE} whether it would
+     */
+    public boolean insertAll(final List<ResourceAmount> amounts, final Action action) {
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (ResourceAmount amount : amounts) {
+                if (insertInto(transaction, amount.resource(), amount.amount()) < amount.amount()) {
+                    return false;
+                }
+            }
+            if (action.isExecute()) {
+                transaction.commit();
+            }
+            return true;
+        }
+    }
+
+    private long insertInto(final Transaction transaction, final ResourceKey resource, final long amount) {
         final int offered = clamp(amount);
         return switch (resource) {
-            case ItemKey item when items != null ->
-                inTransaction(action, transaction -> items.insert(item.item(), offered, transaction));
-            case FluidKey fluid when fluids != null ->
-                inTransaction(action, transaction -> fluids.insert(fluid.fluid(), offered, transaction));
-            case EnergyKey _ when energy != null ->
-                inTransaction(action, transaction -> energy.insert(offered, transaction));
+            case ItemKey item when items != null -> items.insert(item.item(), offered, transaction);
+            case FluidKey fluid when fluids != null -> fluids.insert(fluid.fluid(), offered, transaction);
+            case EnergyKey _ when energy != null -> energy.insert(offered, transaction);
             default -> 0;
         };
     }

@@ -1,9 +1,14 @@
 package com.morphengine.nexus.menu;
 
+import com.morphengine.nexus.api.automation.CraftingPlan;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.entity.TerminalBlockEntity;
+import com.morphengine.nexus.level.AutocraftingComponent;
+import com.morphengine.nexus.networking.CraftPlanPayload;
 import com.morphengine.nexus.resource.NexusResource;
+import com.morphengine.nexus.terminal.CraftRequest;
 import com.morphengine.nexus.terminal.GridClick;
+import com.morphengine.nexus.terminal.PlanPreview;
 import com.morphengine.nexus.terminal.TerminalActions;
 import com.morphengine.nexus.terminal.TerminalContents;
 import com.morphengine.nexus.terminal.TerminalKind;
@@ -14,6 +19,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -109,6 +115,24 @@ public final class TerminalMenuState {
         if (storage != null) {
             new TerminalActions(player, menu, storage).click(resource, click);
         }
+    }
+
+    /**
+     * Plans crafting {@code amount} of {@code resource} and, when asked to and
+     * the plan can start, starts it; the player is sent the plan either way.
+     */
+    public void requestCraft(
+            final ServerPlayer player, final NexusResource resource, final long amount, final CraftRequest request) {
+        final TerminalBlockEntity terminal = binding.blockEntity();
+        final AutocraftingComponent autocrafting = terminal != null ? terminal.onlineAutocrafting() : null;
+        final Storage storage = onlineStorage();
+        if (autocrafting == null || storage == null || amount <= 0) {
+            return;
+        }
+        final CraftingPlan plan = autocrafting.plan(resource, amount, storage);
+        final boolean started = request == CraftRequest.START && autocrafting.start(plan, player.getName().getString());
+        PacketDistributor.sendToPlayer(player, new CraftPlanPayload(containerId, PlanPreview.of(plan),
+                started ? CraftRequest.START : CraftRequest.PREVIEW));
     }
 
     /**

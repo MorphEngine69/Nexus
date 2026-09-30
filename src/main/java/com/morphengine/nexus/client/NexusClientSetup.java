@@ -3,13 +3,16 @@ package com.morphengine.nexus.client;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.client.model.CableArmsModel;
 import com.morphengine.nexus.client.render.StorageVaultRenderer;
+import com.morphengine.nexus.client.screen.AssemblerScreen;
 import com.morphengine.nexus.client.screen.CoalGeneratorScreen;
+import com.morphengine.nexus.client.screen.CraftingMonitorScreen;
 import com.morphengine.nexus.client.screen.EnergyCellScreen;
 import com.morphengine.nexus.client.screen.NexusScreen;
 import com.morphengine.nexus.client.screen.StorageVaultScreen;
 import com.morphengine.nexus.client.screen.TerminalScreen;
 import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import com.morphengine.nexus.client.screen.VaultCellScreen;
+import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.TerminalMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -37,6 +40,9 @@ public final class NexusClientSetup {
         event.register(NexusMenuTypes.TERMINAL.get(), TerminalScreen<TerminalMenu>::new);
         event.register(NexusMenuTypes.CRAFTING_TERMINAL.get(), TerminalScreen<CraftingTerminalMenu>::new);
         event.register(NexusMenuTypes.TRANSFER_DEVICE.get(), TransferDeviceScreen::new);
+        event.register(NexusMenuTypes.ASSEMBLER.get(), AssemblerScreen::new);
+        event.register(NexusMenuTypes.CRAFTING_MONITOR.get(), CraftingMonitorScreen::new);
+        event.register(NexusMenuTypes.BLUEPRINT_TERMINAL.get(), TerminalScreen<BlueprintTerminalMenu>::new);
     }
 
     @SubscribeEvent

@@ -1,6 +1,7 @@
 package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.blueprint.EncodedBlueprint;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.item.CellContents;
 import net.minecraft.core.component.DataComponentType;
@@ -23,6 +24,12 @@ public final class NexusDataComponents {
     public static final Supplier<DataComponentType<FilterSlots>> CELL_FILTER = COMPONENTS.registerComponentType(
             "cell_filter",
             builder -> builder.persistent(FilterSlots.CODEC).networkSynchronized(FilterSlots.STREAM_CODEC));
+
+    /** The recipe encoded on a Blueprint; a blank Blueprint has none. */
+    public static final Supplier<DataComponentType<EncodedBlueprint>> ENCODED_BLUEPRINT =
+            COMPONENTS.registerComponentType("encoded_blueprint",
+                    builder -> builder.persistent(EncodedBlueprint.CODEC)
+                            .networkSynchronized(EncodedBlueprint.STREAM_CODEC));
 
     private NexusDataComponents() {
     }

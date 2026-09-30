@@ -2,6 +2,7 @@ package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.CableBlock;
+import com.morphengine.nexus.item.BlueprintItem;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.item.VaultCellItem;
@@ -43,6 +44,16 @@ public final class NexusItems {
     public static final DeferredItem<BlockItem> PULLER = ITEMS.registerSimpleBlockItem(NexusBlocks.PULLER);
 
     public static final DeferredItem<BlockItem> PUSHER = ITEMS.registerSimpleBlockItem(NexusBlocks.PUSHER);
+
+    public static final DeferredItem<BlockItem> ASSEMBLER = ITEMS.registerSimpleBlockItem(NexusBlocks.ASSEMBLER);
+
+    public static final DeferredItem<BlockItem> CRAFTING_MONITOR =
+            ITEMS.registerSimpleBlockItem(NexusBlocks.CRAFTING_MONITOR);
+
+    public static final DeferredItem<BlockItem> BLUEPRINT_TERMINAL =
+            ITEMS.registerSimpleBlockItem(NexusBlocks.BLUEPRINT_TERMINAL);
+
+    public static final DeferredItem<BlueprintItem> BLUEPRINT = ITEMS.registerItem("blueprint", BlueprintItem::new);
 
     public static final Map<DyeColor, DeferredItem<BlockItem>> CABLES = registerCables();
 

@@ -1,8 +1,10 @@
 package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.block.AssemblerBlock;
 import com.morphengine.nexus.block.CableBlock;
 import com.morphengine.nexus.block.CoalGeneratorBlock;
+import com.morphengine.nexus.block.CraftingMonitorBlock;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
 import com.morphengine.nexus.block.NexusBlock;
@@ -63,6 +65,21 @@ public final class NexusBlocks {
     public static final DeferredBlock<TransferDeviceBlock> PUSHER = BLOCKS.registerBlock(
             "pusher",
             properties -> new TransferDeviceBlock(TransferKind.PUSHER, properties),
+            NexusBlocks::device);
+
+    public static final DeferredBlock<AssemblerBlock> ASSEMBLER = BLOCKS.registerBlock(
+            "assembler",
+            AssemblerBlock::new,
+            NexusBlocks::device);
+
+    public static final DeferredBlock<CraftingMonitorBlock> CRAFTING_MONITOR = BLOCKS.registerBlock(
+            "crafting_monitor",
+            CraftingMonitorBlock::new,
+            NexusBlocks::device);
+
+    public static final DeferredBlock<TerminalBlock> BLUEPRINT_TERMINAL = BLOCKS.registerBlock(
+            "blueprint_terminal",
+            properties -> new TerminalBlock(TerminalKind.BLUEPRINT_TERMINAL, properties),
             NexusBlocks::device);
 
     public static final Map<DyeColor, DeferredBlock<CableBlock>> CABLES = registerCables();

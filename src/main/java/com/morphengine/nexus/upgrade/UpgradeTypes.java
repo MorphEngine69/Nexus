@@ -13,10 +13,10 @@ import net.neoforged.neoforge.registries.RegistryBuilder;
 
 /**
  * The registry of upgrade kinds and the kinds Nexus brings. Speed, Stack,
- * Regulator and Capacity work in Pullers and Pushers; the others wait for the
- * devices of later stages: Range for the wireless link, Fortune and Silk Touch
- * for the Remover, Autocrafting for autocrafting. Other mods register more
- * kinds into {@link #REGISTRY}.
+ * Regulator and Capacity work in Pullers and Pushers, Autocrafting in
+ * Pushers, Speed in Assemblers too; the others wait for the devices of later
+ * stages: Range for the wireless link, Fortune and Silk Touch for the
+ * Remover. Other mods register more kinds into {@link #REGISTRY}.
  */
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class UpgradeTypes {
@@ -43,7 +43,7 @@ public final class UpgradeTypes {
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> SILK_TOUCH =
             TYPES.register("silk_touch", NexusUpgradeType::inDevelopment);
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> AUTOCRAFTING =
-            TYPES.register("autocrafting", NexusUpgradeType::inDevelopment);
+            TYPES.register("autocrafting", NexusUpgradeType::working);
 
     private UpgradeTypes() {
     }
