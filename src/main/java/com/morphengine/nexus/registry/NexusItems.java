@@ -5,6 +5,8 @@ import com.morphengine.nexus.block.CableBlock;
 import com.morphengine.nexus.item.BlueprintItem;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
+import com.morphengine.nexus.item.NetworkCardItem;
+import com.morphengine.nexus.item.NexusTerminalItem;
 import com.morphengine.nexus.item.VaultCellItem;
 import com.morphengine.nexus.upgrade.NexusUpgradeType;
 import com.morphengine.nexus.upgrade.UpgradeItem;
@@ -45,6 +47,10 @@ public final class NexusItems {
 
     public static final DeferredItem<BlockItem> PUSHER = ITEMS.registerSimpleBlockItem(NexusBlocks.PUSHER);
 
+    public static final DeferredItem<BlockItem> PLACER = ITEMS.registerSimpleBlockItem(NexusBlocks.PLACER);
+
+    public static final DeferredItem<BlockItem> REMOVER = ITEMS.registerSimpleBlockItem(NexusBlocks.REMOVER);
+
     public static final DeferredItem<BlockItem> ASSEMBLER = ITEMS.registerSimpleBlockItem(NexusBlocks.ASSEMBLER);
 
     public static final DeferredItem<BlockItem> CRAFTING_MONITOR =
@@ -54,6 +60,20 @@ public final class NexusItems {
             ITEMS.registerSimpleBlockItem(NexusBlocks.BLUEPRINT_TERMINAL);
 
     public static final DeferredItem<BlueprintItem> BLUEPRINT = ITEMS.registerItem("blueprint", BlueprintItem::new);
+
+    public static final DeferredItem<BlockItem> NETWORK_TRANSMITTER =
+            ITEMS.registerSimpleBlockItem(NexusBlocks.NETWORK_TRANSMITTER);
+
+    public static final DeferredItem<BlockItem> NETWORK_RECEIVER =
+            ITEMS.registerSimpleBlockItem(NexusBlocks.NETWORK_RECEIVER);
+
+    public static final DeferredItem<BlockItem> NEXUS_LINK = ITEMS.registerSimpleBlockItem(NexusBlocks.NEXUS_LINK);
+
+    public static final DeferredItem<NetworkCardItem> NETWORK_CARD =
+            ITEMS.registerItem("network_card", properties -> new NetworkCardItem(properties.stacksTo(1)));
+
+    public static final DeferredItem<NexusTerminalItem> NEXUS_TERMINAL =
+            ITEMS.registerItem("nexus_terminal", properties -> new NexusTerminalItem(properties.stacksTo(1)));
 
     public static final Map<DyeColor, DeferredItem<BlockItem>> CABLES = registerCables();
 
@@ -68,11 +88,12 @@ public final class NexusItems {
     public static final DeferredItem<UpgradeItem> FORTUNE_UPGRADE = registerUpgrade(UpgradeTypes.FORTUNE);
     public static final DeferredItem<UpgradeItem> SILK_TOUCH_UPGRADE = registerUpgrade(UpgradeTypes.SILK_TOUCH);
     public static final DeferredItem<UpgradeItem> AUTOCRAFTING_UPGRADE = registerUpgrade(UpgradeTypes.AUTOCRAFTING);
+    public static final DeferredItem<UpgradeItem> CHUNK_LOADER_UPGRADE = registerUpgrade(UpgradeTypes.CHUNK_LOADER);
 
     /** Every upgrade, those that work first. */
     public static final List<DeferredItem<UpgradeItem>> UPGRADES = List.of(SPEED_UPGRADE, STACK_UPGRADE,
             REGULATOR_UPGRADE, CAPACITY_UPGRADE, RANGE_UPGRADE, FORTUNE_UPGRADE, SILK_TOUCH_UPGRADE,
-            AUTOCRAFTING_UPGRADE);
+            AUTOCRAFTING_UPGRADE, CHUNK_LOADER_UPGRADE);
 
     private NexusItems() {
     }

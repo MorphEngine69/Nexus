@@ -1,14 +1,12 @@
 package com.morphengine.nexus.menu;
 
-import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalLayout;
-import com.morphengine.nexus.terminal.TerminalSettings;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -22,10 +20,13 @@ public final class TerminalMenu extends AbstractContainerMenu implements Termina
 
     private final TerminalMenuState terminal;
 
+    /**
+     * @param type the menu type of a terminal block or of a Nexus Terminal
+     */
     public TerminalMenu(
-            final int containerId, final Inventory inventory, final BlockPos pos, final TerminalSettings settings) {
-        super(NexusMenuTypes.TERMINAL.get(), containerId);
-        this.terminal = new TerminalMenuState(inventory, pos, TerminalKind.TERMINAL, settings, containerId);
+            final MenuType<?> type, final int containerId, final Inventory inventory, final TerminalOpening opening) {
+        super(type, containerId);
+        this.terminal = new TerminalMenuState(opening, TerminalKind.TERMINAL, containerId);
         addStandardInventorySlots(inventory, 0, 0);
     }
 

@@ -1,12 +1,14 @@
 package com.morphengine.nexus.menu;
 
 import com.morphengine.nexus.terminal.TerminalLayout;
+import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A menu of a Terminal or Crafting Terminal.
+ * A menu of a terminal of any kind, on a block or in a hand. Its title cannot
+ * be renamed.
  */
-public interface TerminalPanel extends DevicePanel, NetworkBadgeView {
+public interface TerminalPanel extends PanelMenu, NetworkBadgeView {
 
     TerminalMenuState terminal();
 
@@ -17,8 +19,8 @@ public interface TerminalPanel extends DevicePanel, NetworkBadgeView {
     void layOut(TerminalLayout layout);
 
     @Override
-    default DeviceBinding<?> binding() {
-        return terminal().binding();
+    default Component defaultTitle() {
+        return terminal().binding().defaultTitle();
     }
 
     @Override

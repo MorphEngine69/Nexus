@@ -15,10 +15,13 @@ import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.item.VaultCellItem;
 import com.morphengine.nexus.level.NetworkComponentTypes;
+import com.morphengine.nexus.menu.BlockTerminalBinding;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
+import com.morphengine.nexus.menu.TerminalOpening;
 import com.morphengine.nexus.registry.NexusBlocks;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusItems;
+import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.storage.NetworkStorage;
 import com.morphengine.nexus.terminal.GridFill;
@@ -270,8 +273,10 @@ public final class StorageGameTests {
                 .setValue(TerminalBlock.FACING, Direction.UP));
         final ServerPlayer player = helper.makeMockServerPlayerInLevel();
         player.getInventory().add(new ItemStack(Items.OAK_PLANKS, 8));
-        final CraftingTerminalMenu menu = new CraftingTerminalMenu(
-                1, player.getInventory(), helper.absolutePos(terminalPos), TerminalSettings.DEFAULT);
+        final CraftingTerminalMenu menu = new CraftingTerminalMenu(NexusMenuTypes.CRAFTING_TERMINAL.get(), 1,
+                player.getInventory(), new TerminalOpening(
+                        new BlockTerminalBinding(player.getInventory(), helper.absolutePos(terminalPos)),
+                        TerminalSettings.DEFAULT));
         final List<ItemKey> planks = List.of(ItemKey.of(new ItemStack(Items.OAK_PLANKS)));
         menu.fillGrid(List.of(planks, planks, List.of(), planks, planks, List.of(), List.of(), List.of(), List.of()),
                 GridFill.MOST_CRAFTS);

@@ -20,7 +20,8 @@ public interface NetworkController {
     void invalidateNetwork();
 
     /**
-     * @return name and color of the network, shown by every device in it
+     * @return id, name and color of the network; the id stays the same when the
+     *         Nexus is broken and placed again elsewhere
      */
     Network network();
 

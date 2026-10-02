@@ -12,7 +12,7 @@ import java.util.Objects;
  * @param keep units of the resource kept, positive; {@link #UNLIMITED} for a
  *             Pusher that delivers as long as the storage takes more
  */
-public record StockEntry(ResourceKey resource, long keep) {
+public record StockEntry(ResourceKey resource, long keep) implements PushEntry {
 
     public static final long UNLIMITED = Long.MAX_VALUE;
 

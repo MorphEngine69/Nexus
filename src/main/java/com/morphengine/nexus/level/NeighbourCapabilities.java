@@ -13,11 +13,12 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * What the block a device's face touches offers on the side it is touched:
- * its items, fluids and energy. The lookups are cached until the device turns
- * to another face. Server thread only.
+ * its items, fluids and energy. The lookups are cached until they are asked
+ * for another position or face. Server thread only.
  */
 public final class NeighbourCapabilities {
 
+    private @Nullable BlockPos watchedPos;
     private @Nullable Direction watchedFace;
     private @Nullable Caches caches;
 
@@ -47,7 +48,7 @@ public final class NeighbourCapabilities {
 
     private Caches watch(final ServerLevel level, final BlockPos pos, final Direction face) {
         final Caches current = caches;
-        if (current != null && face == watchedFace) {
+        if (current != null && face == watchedFace && pos.equals(watchedPos)) {
             return current;
         }
         final BlockPos target = pos.relative(face);
@@ -57,6 +58,7 @@ public final class NeighbourCapabilities {
                 BlockCapabilityCache.create(Capabilities.Fluid.BLOCK, level, target, side),
                 BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, target, side));
         caches = created;
+        watchedPos = pos.immutable();
         watchedFace = face;
         return created;
     }

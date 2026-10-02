@@ -37,6 +37,15 @@ public interface NetworkBlock {
     }
 
     /**
+     * @return whether this block, in {@code state}, takes a network connection on
+     *         {@code side} from {@code neighbour} in particular; by default the
+     *         same for every neighbour, as {@link #acceptsConnection(BlockState, Direction)}
+     */
+    default boolean acceptsConnection(BlockState state, Direction side, BlockState neighbour) {
+        return acceptsConnection(state, side);
+    }
+
+    /**
      * Whether this block, in {@code state}, joins the {@code neighbour} beyond its
      * {@code side}. Symmetric: both blocks must take a connection on the face
      * they share, and their paints must match.
@@ -44,7 +53,7 @@ public interface NetworkBlock {
     default boolean joins(BlockState state, Direction side, BlockState neighbour) {
         return neighbour.getBlock() instanceof NetworkBlock other
                 && paint().connectsTo(other.paint())
-                && acceptsConnection(state, side)
-                && other.acceptsConnection(neighbour, side.getOpposite());
+                && acceptsConnection(state, side, neighbour)
+                && other.acceptsConnection(neighbour, side.getOpposite(), state);
     }
 }

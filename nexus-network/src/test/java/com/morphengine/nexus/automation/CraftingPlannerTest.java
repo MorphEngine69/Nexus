@@ -220,6 +220,66 @@ class CraftingPlannerTest {
         assertThat(plan.missing()).containsExactly(amount(PLANKS, 2));
     }
 
+    @Test
+    void planLargestKeepsAnAmountThatCanStart() {
+        offer(STICKS_FROM_PLANKS);
+
+        final CraftingPlan plan = planner(network(amount(PLANKS, 10))).planLargest(STICK, 8);
+
+        assertThat(plan.target()).isEqualTo(amount(STICK, 8));
+        assertThat(plan.isComplete()).isTrue();
+    }
+
+    @Test
+    void planLargestShrinksToWhatTheStorageAllows() {
+        offer(STICKS_FROM_PLANKS);
+
+        final CraftingPlan plan = planner(network(amount(PLANKS, 5))).planLargest(STICK, 100);
+
+        assertThat(plan.isComplete()).isTrue();
+        assertThat(plan.target()).isEqualTo(amount(STICK, 8));
+    }
+
+    @Test
+    void planLargestCountsIngredientsCraftedOnTheWay() {
+        offer(PLANKS_FROM_LOG, STICKS_FROM_PLANKS);
+
+        final CraftingPlan plan = planner(network(amount(LOG, 3))).planLargest(STICK, 1000);
+
+        assertThat(plan.isComplete()).isTrue();
+        assertThat(plan.target()).isEqualTo(amount(STICK, 24));
+    }
+
+    @Test
+    void planLargestReturnsTheAskedPlanWhenNotOneUnitCanBeCrafted() {
+        offer(STICKS_FROM_PLANKS);
+
+        final CraftingPlan plan = planner(network(amount(PLANKS, 1))).planLargest(STICK, 50);
+
+        assertThat(plan.isComplete()).isFalse();
+        assertThat(plan.target()).isEqualTo(amount(STICK, 50));
+    }
+
+    @Test
+    void planLargestHandlesAnAmountOfOne() {
+        offer(STICKS_FROM_PLANKS);
+
+        final CraftingPlan plan = planner(network(amount(PLANKS, 2))).planLargest(STICK, 1);
+
+        assertThat(plan.isComplete()).isTrue();
+        assertThat(plan.target()).isEqualTo(amount(STICK, 1));
+    }
+
+    @Test
+    void planLargestSurvivesAnAmountTooLargeForALong() {
+        offer(STICKS_FROM_PLANKS);
+
+        final CraftingPlan plan = planner(network(amount(PLANKS, 4))).planLargest(STICK, Long.MAX_VALUE);
+
+        assertThat(plan.isComplete()).isTrue();
+        assertThat(plan.target()).isEqualTo(amount(STICK, 8));
+    }
+
     private void offer(final Blueprint... blueprints) {
         registry.offer(assembler, List.of(blueprints), 0);
     }

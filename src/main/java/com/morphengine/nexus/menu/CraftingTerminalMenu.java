@@ -2,16 +2,12 @@ package com.morphengine.nexus.menu;
 
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.storage.Storage;
-import com.morphengine.nexus.block.entity.TerminalBlockEntity;
 import com.morphengine.nexus.block.entity.TerminalCraftingGrid;
 import com.morphengine.nexus.level.PlayerActor;
-import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.terminal.GridFill;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalLayout;
-import com.morphengine.nexus.terminal.TerminalSettings;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +15,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -53,12 +50,15 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
     private final TerminalCraftingGrid grid;
     private final ResultContainer result = new ResultContainer();
 
+    /**
+     * @param type the menu type of a terminal block or of a Nexus Terminal
+     */
     public CraftingTerminalMenu(
-            final int containerId, final Inventory inventory, final BlockPos pos, final TerminalSettings settings) {
-        super(NexusMenuTypes.CRAFTING_TERMINAL.get(), containerId);
+            final MenuType<?> type, final int containerId, final Inventory inventory, final TerminalOpening opening) {
+        super(type, containerId);
         this.player = inventory.player;
-        this.terminal = new TerminalMenuState(inventory, pos, TerminalKind.CRAFTING_TERMINAL, settings, containerId);
-        this.grid = sharedGridOr(terminal.binding().blockEntity());
+        this.terminal = new TerminalMenuState(opening, TerminalKind.CRAFTING_TERMINAL, containerId);
+        this.grid = sharedGridOr(terminal.binding().host());
         grid.addViewer(this);
         addSlot(new TerminalResultSlot(player, grid, result, 0, 0, this::refill));
         for (int slot = 0; slot < TerminalCraftingGrid.SIDE * TerminalCraftingGrid.SIDE; slot++) {
@@ -69,12 +69,11 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
     }
 
     /**
-     * On the server the terminal's own grid, shared by everyone at it; on the
-     * client a copy the server keeps in step through the slots.
+     * On the server the host's own grid, shared by everyone at a terminal
+     * block; on the client a copy the server keeps in step through the slots.
      */
-    private TerminalCraftingGrid sharedGridOr(final @Nullable TerminalBlockEntity terminalEntity) {
-        final TerminalCraftingGrid shared = player instanceof ServerPlayer && terminalEntity != null
-                ? terminalEntity.craftingGrid() : null;
+    private TerminalCraftingGrid sharedGridOr(final @Nullable TerminalHost host) {
+        final TerminalCraftingGrid shared = player instanceof ServerPlayer && host != null ? host.craftingGrid() : null;
         return shared != null ? shared : new TerminalCraftingGrid(() -> { });
     }
 

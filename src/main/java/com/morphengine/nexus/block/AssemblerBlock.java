@@ -71,6 +71,15 @@ public final class AssemblerBlock extends NetworkDeviceBlock {
         return side != state.getValue(FACING);
     }
 
+    /**
+     * The face takes no cable, but joins another Assembler it touches: Assemblers
+     * set against each other share the network whichever way they face.
+     */
+    @Override
+    public boolean acceptsConnection(final BlockState state, final Direction side, final BlockState neighbour) {
+        return acceptsConnection(state, side) || neighbour.getBlock() instanceof AssemblerBlock;
+    }
+
     @Override
     protected BlockState rotate(final BlockState state, final Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));

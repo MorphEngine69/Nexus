@@ -23,7 +23,13 @@ public record NetworkBadge(String name, NetworkColor color) {
      *         Nexus is connected
      */
     public static @Nullable NetworkBadge of(final NetworkLink link) {
-        final NetworkController controller = link.controller();
+        return of(link.controller());
+    }
+
+    /**
+     * @return the badge of the network {@code controller} leads; {@code null} when there is none
+     */
+    public static @Nullable NetworkBadge of(final @Nullable NetworkController controller) {
         if (controller == null) {
             return null;
         }

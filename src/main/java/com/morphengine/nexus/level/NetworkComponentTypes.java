@@ -15,7 +15,11 @@ public final class NetworkComponentTypes {
     public static final NetworkComponentType<AutocraftingComponent> AUTOCRAFTING =
             new NetworkComponentType<>("autocrafting", AutocraftingComponent::new);
 
-    static final List<NetworkComponentType<?>> ALL = List.of(STORAGE, AUTOCRAFTING);
+    /** The access points Nexus Terminals reach the network through. */
+    public static final NetworkComponentType<WirelessAccessComponent> WIRELESS_ACCESS =
+            new NetworkComponentType<>("wireless_access", WirelessAccessComponent::new);
+
+    static final List<NetworkComponentType<?>> ALL = List.of(STORAGE, AUTOCRAFTING, WIRELESS_ACCESS);
 
     private NetworkComponentTypes() {
     }

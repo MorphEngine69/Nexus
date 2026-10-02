@@ -164,10 +164,7 @@ public record BlueprintDraft(BlueprintKind kind, List<Slot> slots, Substitution 
         if (slot == null || kind == BlueprintKind.CRAFTING || index >= INPUTS) {
             return this;
         }
-        final List<@Nullable Identifier> choices = new ArrayList<>(slot.resource().tags());
-        choices.add(null);
-        final int current = choices.indexOf(slot.tag());
-        final Identifier next = choices.get(Math.floorMod(current + step, choices.size()));
+        final Identifier next = slot.resource().nextTag(slot.tag(), step);
         final List<Slot> updated = without(index);
         updated.add(new Slot(index, slot.resource(), slot.amount(), next));
         return new BlueprintDraft(kind, updated, substitution);

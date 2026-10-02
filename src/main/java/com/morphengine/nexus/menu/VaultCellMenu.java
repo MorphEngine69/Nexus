@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
  * container lists that resource without taking anything. The held cell's slot
  * is locked while the panel is open.
  */
-public final class VaultCellMenu extends AbstractContainerMenu implements PanelMenu, FilterMenu {
+public final class VaultCellMenu extends AbstractContainerMenu implements RenamablePanel, FilterMenu {
 
     public static final int FILTER_SLOTS = 9;
     public static final int FILTER_LEFT = 19;

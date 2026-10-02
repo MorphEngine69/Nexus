@@ -4,7 +4,6 @@ import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.blueprint.GridSlot;
 import com.morphengine.nexus.client.integration.BlueprintRecipeTransfer;
 import com.morphengine.nexus.menu.BlueprintTerminalMenu;
-import com.morphengine.nexus.registry.NexusMenuTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.neoforge.NeoForgeTypes;
@@ -20,6 +19,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Lays any recipe of JEI out as the draft of a Blueprint Terminal: a crafting
@@ -28,6 +28,15 @@ import java.util.Optional;
  */
 final class BlueprintTerminalTransferHandler implements IUniversalRecipeTransferHandler<BlueprintTerminalMenu> {
 
+    private final Supplier<MenuType<BlueprintTerminalMenu>> menuType;
+
+    /**
+     * @param menuType the menu type of the terminal block or of the Nexus Terminal
+     */
+    BlueprintTerminalTransferHandler(final Supplier<MenuType<BlueprintTerminalMenu>> menuType) {
+        this.menuType = menuType;
+    }
+
     @Override
     public Class<? extends BlueprintTerminalMenu> getContainerClass() {
         return BlueprintTerminalMenu.class;
@@ -35,7 +44,7 @@ final class BlueprintTerminalTransferHandler implements IUniversalRecipeTransfer
 
     @Override
     public Optional<MenuType<BlueprintTerminalMenu>> getMenuType() {
-        return Optional.of(NexusMenuTypes.BLUEPRINT_TERMINAL.get());
+        return Optional.of(menuType.get());
     }
 
     @Override

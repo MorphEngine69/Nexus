@@ -9,6 +9,7 @@ import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.terminal.EnumCycle;
 import com.morphengine.nexus.transfer.DeliveryMode;
 import com.morphengine.nexus.transfer.TransferKind;
+import com.morphengine.nexus.transfer.TransferResource;
 import com.morphengine.nexus.transfer.TransferSettings;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
@@ -24,12 +25,13 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Puller or Pusher panel: the filter, the upgrade slots right of it, the
- * player's inventory, and the buttons for the resource moved, the redstone
- * mode, on a Pusher the order of delivery, and with a Regulator Upgrade the
- * amounts to keep in stock. Mode buttons go
- * through the vanilla menu button packet; the settings reach the client when
- * the panel opens and again whenever they change.
+ * Panel of an attached device, a Puller, Pusher, Placer or Remover: the
+ * filter, the upgrade slots right of it, the player's inventory, and the
+ * buttons for the resource moved, the redstone mode, on a Pusher or Placer
+ * the order of delivery, on a Placer or Remover whether it works with blocks
+ * or loose items, and with a Regulator Upgrade the amounts to keep in stock.
+ * Mode buttons go through the vanilla menu button packet; the settings reach
+ * the client when the panel opens and again whenever they change.
  */
 public final class TransferDeviceMenu extends DeviceMenu<TransferDeviceBlockEntity>
         implements FilterMenu, NetworkBadgeView {
@@ -48,7 +50,8 @@ public final class TransferDeviceMenu extends DeviceMenu<TransferDeviceBlockEnti
     public static final int BUTTON_DELIVERY = 4;
     public static final int BUTTON_RESOURCE = 6;
     public static final int BUTTON_MATCH_MODE = 8;
-    private static final int BUTTON_IDS = 10;
+    public static final int BUTTON_WORLD_MODE = 10;
+    private static final int BUTTON_IDS = 12;
 
     private static final int SLOT_SPACING = 18;
 
@@ -68,7 +71,7 @@ public final class TransferDeviceMenu extends DeviceMenu<TransferDeviceBlockEnti
         this.settings = settings;
         final TransferDeviceBlockEntity device = blockEntity();
         this.upgrades = viewer() != null && device != null ? device.upgrades() : new UpgradeContainer(
-                TransferDeviceBlockEntity.UPGRADE_SLOTS, TransferDeviceBlockEntity.UPGRADE_LIMITS, () -> { });
+                TransferDeviceBlockEntity.UPGRADE_SLOTS, kind.upgradeLimits(), () -> { });
         for (int slot = 0; slot < TransferDeviceBlockEntity.UPGRADE_SLOTS; slot++) {
             addSlot(new UpgradeSlot(upgrades, slot, UPGRADES_LEFT, UPGRADES_TOP + slot * SLOT_SPACING));
         }
@@ -108,6 +111,14 @@ public final class TransferDeviceMenu extends DeviceMenu<TransferDeviceBlockEnti
     @Override
     public FilterKinds filterKinds() {
         return settings().resource().filterKinds();
+    }
+
+    /**
+     * @return whether the filter lists items or fluids, which have tags
+     */
+    @Override
+    public boolean listsTags() {
+        return filterKinds().listsAnything();
     }
 
     @Override
@@ -155,8 +166,10 @@ public final class TransferDeviceMenu extends DeviceMenu<TransferDeviceBlockEnti
             case BUTTON_SCHEDULING -> kind.hasScheduling()
                     ? current.withScheduling(EnumCycle.step(current.scheduling(), backwards)) : current;
             case BUTTON_DELIVERY -> current.withDelivery(EnumCycle.step(current.delivery(), backwards));
-            case BUTTON_RESOURCE -> current.withResource(EnumCycle.step(current.resource(), backwards));
+            case BUTTON_RESOURCE -> current.withResource(kind.stepResource(current.resource(), backwards));
             case BUTTON_MATCH_MODE -> current.withMatchMode(EnumCycle.step(current.matchMode(), backwards));
+            case BUTTON_WORLD_MODE -> kind.hasWorldMode()
+                    ? current.withWorldMode(EnumCycle.step(current.worldMode(), backwards)) : current;
             default -> current;
         };
         device.changeSettings(changed);
@@ -186,7 +199,7 @@ public final class TransferDeviceMenu extends DeviceMenu<TransferDeviceBlockEnti
         final ItemStack stack = slot.getItem();
         final ItemStack original = stack.copy();
         final int upgradeSlots = TransferDeviceBlockEntity.UPGRADE_SLOTS;
-        if (slotIndex >= upgradeSlots && !TransferDeviceBlockEntity.UPGRADE_LIMITS.takesKindOf(stack)) {
+        if (slotIndex >= upgradeSlots && !kind.upgradeLimits().takesKindOf(stack)) {
             if (!player.level().isClientSide()) {
                 addToFilter(stack);
             }
@@ -224,8 +237,16 @@ public final class TransferDeviceMenu extends DeviceMenu<TransferDeviceBlockEnti
     }
 
     /**
-     * @return whether the order of delivery applies: a Pusher whose whitelist
-     *         lists items or fluids to choose from
+     * @return whether the choice between blocks and loose items applies: a
+     *         Placer or Remover set to items
+     */
+    public boolean showsWorldMode() {
+        return kind.hasWorldMode() && settings().resource() == TransferResource.ITEM;
+    }
+
+    /**
+     * @return whether the order of delivery applies: a Pusher or Placer whose
+     *         whitelist lists items or fluids to choose from
      */
     public boolean showsScheduling() {
         return kind.hasScheduling() && settings().filter().mode() == FilterMode.ALLOW

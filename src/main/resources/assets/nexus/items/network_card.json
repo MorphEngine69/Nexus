@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "minecraft:has_component",
+    "component": "nexus:linked_receiver",
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "nexus:item/network_card_on"
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "nexus:item/network_card"
+    }
+  }
+}

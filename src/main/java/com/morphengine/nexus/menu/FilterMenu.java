@@ -47,6 +47,27 @@ public interface FilterMenu {
     }
 
     /**
+     * @return whether a slot may list a tag of its resource, standing for every
+     *         resource in that tag, instead of the resource itself; known on
+     *         both sides
+     */
+    default boolean listsTags() {
+        return false;
+    }
+
+    /**
+     * Moves filter slot {@code slot} on to the next tag of its resource, or the
+     * previous one for a negative {@code step}. A filter without tags, a slot
+     * out of range or an empty slot changes nothing. Server side only.
+     */
+    default void stepFilterTag(final int slot, final int step) {
+        if (!listsTags() || slot < 0 || slot >= filterSlotCount() || step == 0) {
+            return;
+        }
+        changeFilter(filter().withNextTag(slot, Integer.signum(step)));
+    }
+
+    /**
      * Switches the filter between whitelist and blacklist; a locked filter stays
      * as it is. Server side only.
      */

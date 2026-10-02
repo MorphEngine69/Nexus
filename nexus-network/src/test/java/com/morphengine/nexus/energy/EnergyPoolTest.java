@@ -83,6 +83,34 @@ class EnergyPoolTest {
     }
 
     @Test
+    void insertFillsTheHighestPriorityFirst() {
+        final SimpleEnergyBuffer low = new SimpleEnergyBuffer(100, 1000, 1000);
+        final SimpleEnergyBuffer high = new SimpleEnergyBuffer(100, 1000, 1000);
+        final EnergyPool pool = new EnergyPool(PriorityOrder.of(List.of(
+                new PriorityOrder.Ranked<>(low, 0), new PriorityOrder.Ranked<>(high, 10))));
+
+        pool.insert(120, Action.EXECUTE);
+
+        assertThat(high.stored()).isEqualTo(100);
+        assertThat(low.stored()).isEqualTo(20);
+    }
+
+    @Test
+    void extractDrainsTheLowestPriorityFirst() {
+        final SimpleEnergyBuffer low = new SimpleEnergyBuffer(100, 1000, 1000);
+        final SimpleEnergyBuffer high = new SimpleEnergyBuffer(100, 1000, 1000);
+        low.insert(50, Action.EXECUTE);
+        high.insert(50, Action.EXECUTE);
+        final EnergyPool pool = new EnergyPool(PriorityOrder.of(List.of(
+                new PriorityOrder.Ranked<>(high, 10), new PriorityOrder.Ranked<>(low, 0))));
+
+        pool.extract(70, Action.EXECUTE);
+
+        assertThat(low.stored()).isZero();
+        assertThat(high.stored()).isEqualTo(30);
+    }
+
+    @Test
     void countersAreSummed() {
         final SimpleEnergyBuffer first = new SimpleEnergyBuffer(100, 1000, 1000);
         final SimpleEnergyBuffer second = new SimpleEnergyBuffer(100, 1000, 1000);

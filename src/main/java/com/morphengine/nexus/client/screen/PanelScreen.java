@@ -2,6 +2,7 @@ package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.block.entity.Renamable;
 import com.morphengine.nexus.menu.PanelMenu;
+import com.morphengine.nexus.menu.RenamablePanel;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -62,10 +63,11 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
     protected abstract PanelStyle style();
 
     /**
-     * @return whether a click on the title renames what the panel shows
+     * @return whether a click on the title renames what the panel shows; by
+     *         default whenever the menu is a {@link RenamablePanel}
      */
     protected boolean isTitleEditable() {
-        return true;
+        return getMenu() instanceof RenamablePanel;
     }
 
     /**
@@ -158,7 +160,9 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
         if (name.equals(panelTitle().getString())) {
             return;
         }
-        ClientPacketDistributor.sendToServer(getMenu().renamePayload(name));
+        if (getMenu() instanceof RenamablePanel renamable) {
+            ClientPacketDistributor.sendToServer(renamable.renamePayload(name));
+        }
         shownTitle = name.isEmpty() ? getMenu().defaultTitle() : Component.literal(name);
     }
 

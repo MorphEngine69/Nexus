@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.function.Supplier;
 
 /**
- * The one kind of resource a Puller or Pusher moves, chosen in its panel. The
+ * The one kind of resource an attached device moves, chosen in its panel. The
  * device keeps a filter for each kind, so switching back finds it as it was.
  * Items and fluids are chosen in the filter; energy has nothing to choose, so
  * its filter is fixed to FE and locked.
@@ -26,6 +26,10 @@ public enum TransferResource implements StringRepresentable {
     ENERGY(ResourceTypes.ENERGY, FilterKinds.NONE);
 
     public static final Codec<TransferResource> CODEC = StringRepresentable.fromEnum(TransferResource::values);
+    /** Every kind, as a Puller or Pusher moves them. */
+    public static final List<TransferResource> ALL = List.of(values());
+    /** Items and fluids, what a Placer or Remover finds in the world. */
+    public static final List<TransferResource> MATERIAL = List.of(ITEM, FLUID);
 
     private final Supplier<? extends NexusResourceType<?>> resourceType;
     private final FilterKinds filterKinds;

@@ -11,5 +11,8 @@ public enum TerminalStatus {
     NO_ENERGY,
 
     /** No Nexus is connected. */
-    NO_NETWORK
+    NO_NETWORK,
+
+    /** A Nexus Terminal is bound to a network, but no Nexus Link of it reaches where the player is. */
+    OUT_OF_RANGE
 }

@@ -15,7 +15,9 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
  * worked out now.
  *
  * @param outcome {@link CraftRequest#START} when the task started, {@link
- *                CraftRequest#PREVIEW} when it was only planned or could not start
+ *                CraftRequest#CRAFT_LESS} when the plan is for the most that can
+ *                start, {@link CraftRequest#PREVIEW} when it was only planned or
+ *                could not start
  */
 public record CraftPlanPayload(int containerId, PlanPreview plan, CraftRequest outcome)
         implements CustomPacketPayload {

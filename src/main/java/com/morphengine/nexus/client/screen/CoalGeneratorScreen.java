@@ -10,8 +10,8 @@ import net.minecraft.world.inventory.Slot;
 
 /**
  * Coal Generator panel, tinted with the color of the network it feeds: the
- * network, the fuel slot with a flame that burns down, the charge bar and what
- * the generator is doing.
+ * network, the fuel slot with a flame that burns down, the charge bar, what
+ * the generator is doing, and the upgrade slots on the right.
  */
 public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
 
@@ -27,6 +27,7 @@ public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
     private static final int TEXT_GAP = 3;
     private static final int INVENTORY_LABEL_GAP = 11;
     private static final int TICKS_PER_SECOND = 20;
+    private static final int BAR_GAP = 6;
 
     public CoalGeneratorScreen(final CoalGeneratorMenu menu, final Inventory inventory, final Component title) {
         super(menu, inventory, title, IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -74,7 +75,7 @@ public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
             final GuiGraphicsExtractor graphics, final PanelStyle style, final CoalGeneratorView view) {
         final int x = leftPos + BAR_X;
         final int y = topPos + BAR_Y;
-        final int width = imageWidth - BAR_X - PanelStyle.PADDING;
+        final int width = CoalGeneratorMenu.UPGRADE_SLOT_X - 1 - BAR_GAP - BAR_X;
         graphics.fill(x, y, x + width, y + BAR_HEIGHT, style.track());
         final long filled = view.capacity() > 0 ? (width - 2) * view.stored() / view.capacity() : 0;
         if (filled > 0) {
@@ -92,8 +93,9 @@ public final class CoalGeneratorScreen extends PanelScreen<CoalGeneratorMenu> {
             case BUFFER_FULL -> Component.translatable("gui.nexus.generator.full");
             case NO_FUEL -> Component.translatable("gui.nexus.generator.no_fuel");
         };
-        graphics.text(font, status, leftPos + BAR_X, topPos + BAR_Y + BAR_HEIGHT + TEXT_GAP + LINE_HEIGHT,
-                PanelStyle.TEXT_DIM, false);
+        graphics.textWithWordWrap(font, status, leftPos + BAR_X,
+                topPos + BAR_Y + BAR_HEIGHT + TEXT_GAP + LINE_HEIGHT,
+                CoalGeneratorMenu.UPGRADE_SLOT_X - BAR_GAP - BAR_X, PanelStyle.TEXT_DIM);
     }
 
     @Override

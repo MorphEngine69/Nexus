@@ -6,33 +6,29 @@ import com.morphengine.nexus.api.automation.TaskState;
 import com.morphengine.nexus.api.automation.TaskStatus;
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.resource.ResourceAmount;
-import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.assembler.AssemblerSettings;
-import com.morphengine.nexus.assembler.LockMode;
 import com.morphengine.nexus.automation.CraftingTask;
 import com.morphengine.nexus.automation.TaskList;
 import com.morphengine.nexus.block.AssemblerBlock;
+import com.morphengine.nexus.block.AssemblerChain;
 import com.morphengine.nexus.blueprint.BlueprintCodecs;
 import com.morphengine.nexus.blueprint.CraftingBlueprint;
 import com.morphengine.nexus.blueprint.EncodedBlueprint;
 import com.morphengine.nexus.blueprint.ProcessingBlueprint;
 import com.morphengine.nexus.level.AutocraftingComponent;
 import com.morphengine.nexus.level.AutocraftingHost;
-import com.morphengine.nexus.level.NeighbourCapabilities;
+import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
-import com.morphengine.nexus.level.SideStorage;
 import com.morphengine.nexus.menu.AssemblerMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
-import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.resource.NexusResources;
 import com.morphengine.nexus.transport.TransferRate;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
@@ -45,8 +41,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,14 +55,18 @@ import java.util.Map;
  * time; see {@link TransferRate}. Without energy its tasks wait, losing
  * nothing. Once a second it shows on its block whether the network has energy
  * and whether it keeps tasks.
+ *
+ * <p>Its machine is the one at the end of its {@link AssemblerChain}. Whether
+ * the machine is waited for is up to the root of the chain, and counts the
+ * inputs of the Blueprints of every Assembler in it.
  */
 public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity implements AutocraftingHost, Renamable {
 
     public static final int UPGRADE_SLOTS = 4;
     /** Placeholder balance: up to four Speed Upgrades share one slot. */
-    public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(Map.of(UpgradeTypes.SPEED, 4));
+    public static final UpgradeLimits UPGRADE_LIMITS =
+            new UpgradeLimits(Map.of(UpgradeTypes.SPEED, 4, UpgradeTypes.CHUNK_LOADER, 1));
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AssemblerBlockEntity.class);
     private static final int STATE_CHECK_INTERVAL_TICKS = 20;
     private static final String TAG_SETTINGS = "settings";
     private static final String TAG_BLUEPRINTS = "blueprints";
@@ -78,10 +76,10 @@ public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity impleme
 
     private final BlueprintSlots blueprintSlots = new BlueprintSlots(this::contentsChanged);
     private final UpgradeContainer upgrades = new UpgradeContainer(UPGRADE_SLOTS, UPGRADE_LIMITS,
-            this::contentsChanged);
+            this::upgradesChanged);
     private final TaskList tasks = new TaskList();
     private final AssemblerWork work = new AssemblerWork();
-    private final NeighbourCapabilities neighbour = new NeighbourCapabilities();
+    private final ChainedMachine machine = new ChainedMachine();
     private AssemblerSettings settings = AssemblerSettings.DEFAULT;
     private TransferRate rate = TransferRate.BASE;
     private int cooldown;
@@ -99,7 +97,7 @@ public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity impleme
             return;
         }
         assembler.cooldown = assembler.rate.intervalTicks();
-        assembler.operate(serverLevel, pos, state.getValue(AssemblerBlock.FACING));
+        assembler.operate(serverLevel, pos);
     }
 
     private void showState(final Level level, final BlockPos pos, final BlockState state) {
@@ -110,7 +108,7 @@ public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity impleme
         }
     }
 
-    private void operate(final ServerLevel level, final BlockPos pos, final Direction face) {
+    private void operate(final ServerLevel level, final BlockPos pos) {
         final NetworkController controller = controller();
         if (controller == null || !isNetworkPowered()) {
             return;
@@ -118,8 +116,7 @@ public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity impleme
         final Storage network = controller.resources();
         final AutocraftingComponent autocrafting = controller.component(NetworkComponentTypes.AUTOCRAFTING);
         boolean changed = work.deliver(network);
-        changed |= work.collect(neighbour.itemsAndFluids(level, pos, face), blueprintSlots.processing(),
-                autocrafting, network);
+        changed |= work.collect(machine.of(level, pos), blueprintSlots.processing(), autocrafting, network);
         changed |= tasks.step(network, autocrafting.blueprints(), dispatchesPerOperation());
         if (changed) {
             setChanged();
@@ -154,12 +151,14 @@ public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity impleme
 
     private DispatchResult dispatchProcessing(final ServerLevel level, final List<ResourceAmount> inputs,
                                               final Action action) {
-        final SideStorage machine = neighbour.itemsAndFluids(level, worldPosition,
-                getBlockState().getValue(AssemblerBlock.FACING));
-        if (settings.lock() == LockMode.UNTIL_EMPTY && work.isBusy(machine, blueprintSlots.processing())) {
+        if (machine.isBusy(level, worldPosition, work)) {
             return DispatchResult.LOCKED;
         }
-        return work.process(machine, inputs, action);
+        return work.process(machine.of(level, worldPosition), inputs, action);
+    }
+
+    List<Blueprint> processingBlueprints() {
+        return blueprintSlots.processing();
     }
 
     public Container blueprintSlots() {
@@ -221,6 +220,11 @@ public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity impleme
         return paused;
     }
 
+    private void upgradesChanged() {
+        ChunkAnchors.follow(this, upgrades);
+        contentsChanged();
+    }
+
     private void contentsChanged() {
         rate = TransferRate.of(upgrades.count(UpgradeTypes.SPEED), 0);
         setChanged();
@@ -252,6 +256,7 @@ public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity impleme
     @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
+        ChunkAnchors.release(this);
         if (level == null) {
             return;
         }
@@ -259,32 +264,8 @@ public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity impleme
         Containers.dropContents(level, pos, upgrades);
         final List<ResourceAmount> left = new ArrayList<>(tasks.abandon());
         left.addAll(work.takeAll());
-        giveBack(level, pos, left);
-    }
-
-    private void giveBack(final Level world, final BlockPos pos, final List<ResourceAmount> left) {
         final NetworkController controller = controller();
-        final Storage network = controller != null ? controller.resources() : null;
-        for (ResourceAmount amount : left) {
-            final long inserted = network != null
-                    ? network.insert(amount.resource(), amount.amount(), Action.EXECUTE, Actor.NOBODY) : 0;
-            final long rest = amount.amount() - inserted;
-            if (rest > 0 && amount.resource() instanceof ItemKey item) {
-                dropItems(world, pos, item, rest);
-            } else if (rest > 0) {
-                LOGGER.warn("Assembler at {} was broken holding {} of {} the network did not take",
-                        pos, rest, NexusResources.of(amount.resource()).id());
-            }
-        }
-    }
-
-    private static void dropItems(final Level world, final BlockPos pos, final ItemKey item, final long amount) {
-        long left = amount;
-        while (left > 0) {
-            final int count = (int) Math.min(left, item.maxStackSize());
-            Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), item.toStack(count));
-            left -= count;
-        }
+        Leftovers.giveBack(level, pos, controller != null ? controller.resources() : null, left);
     }
 
     @Override

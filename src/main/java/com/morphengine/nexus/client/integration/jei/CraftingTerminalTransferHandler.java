@@ -2,7 +2,6 @@ package com.morphengine.nexus.client.integration.jei;
 
 import com.morphengine.nexus.client.integration.CraftingGridTransfer;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
-import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.terminal.GridFill;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
@@ -19,15 +18,26 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
- * Lays out a crafting recipe of JEI on the grid of a Crafting Terminal. The nine
- * input slots of JEI's crafting category are the grid in reading order. Slots
- * whose ingredient neither the player nor the network holds are marked, but the
- * rest of the recipe can still be laid out.
+ * Lays out a crafting recipe of JEI on the grid of a Crafting Terminal, or of a
+ * Nexus Terminal working as one. The nine input slots of JEI's crafting
+ * category are the grid in reading order. Slots whose ingredient neither the
+ * player nor the network holds are marked, but the rest of the recipe can
+ * still be laid out.
  */
 final class CraftingTerminalTransferHandler
         implements IRecipeTransferHandler<CraftingTerminalMenu, RecipeHolder<CraftingRecipe>> {
+
+    private final Supplier<MenuType<CraftingTerminalMenu>> menuType;
+
+    /**
+     * @param menuType the menu type of the terminal block or of the Nexus Terminal
+     */
+    CraftingTerminalTransferHandler(final Supplier<MenuType<CraftingTerminalMenu>> menuType) {
+        this.menuType = menuType;
+    }
 
     @Override
     public Class<? extends CraftingTerminalMenu> getContainerClass() {
@@ -36,7 +46,7 @@ final class CraftingTerminalTransferHandler
 
     @Override
     public Optional<MenuType<CraftingTerminalMenu>> getMenuType() {
-        return Optional.of(NexusMenuTypes.CRAFTING_TERMINAL.get());
+        return Optional.of(menuType.get());
     }
 
     @Override

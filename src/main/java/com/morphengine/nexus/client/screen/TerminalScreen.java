@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Panel of a terminal, tinted with the network's color: a search box, the
@@ -139,8 +140,8 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         if (status == TerminalStatus.ONLINE) {
             return;
         }
-        final Component message = Component.translatable(status == TerminalStatus.NO_ENERGY
-                ? "gui.nexus.terminal.no_energy" : "gui.nexus.terminal.no_network");
+        final Component message = Component.translatable(
+                "gui.nexus.terminal." + status.name().toLowerCase(Locale.ROOT));
         final int centerX = leftPos + TerminalLayout.GRID_LEFT + layout.columns() * TerminalLayout.SLOT / 2;
         final int centerY = topPos + (TerminalLayout.GRID_TOP + layout.gridBottom() - font.lineHeight) / 2;
         graphics.centeredText(font, message, centerX, centerY, PanelStyle.TEXT_LIGHT);

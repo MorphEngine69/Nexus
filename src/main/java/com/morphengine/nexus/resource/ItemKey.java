@@ -2,18 +2,22 @@ package com.morphengine.nexus.resource;
 
 import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.api.resource.FilterMatchMode;
+import com.morphengine.nexus.api.resource.ResourceGroup;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An item with its components, never empty.
@@ -75,5 +79,10 @@ public record ItemKey(ItemResource item) implements NexusResource {
     @Override
     public List<NexusResource> membersOf(final Identifier tag) {
         return ResourceTags.membersOf(BuiltInRegistries.ITEM, tag, entry -> new ItemKey(ItemResource.of(entry)));
+    }
+
+    @Override
+    public Optional<ResourceGroup> tagGroup(final Identifier tag) {
+        return Optional.of(new ItemTagGroup(TagKey.create(Registries.ITEM, tag)));
     }
 }

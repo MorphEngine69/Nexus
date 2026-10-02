@@ -4,10 +4,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.api.resource.FilterMatchMode;
+import com.morphengine.nexus.api.resource.ResourceGroup;
 import com.morphengine.nexus.api.transport.RedstoneMode;
 import com.morphengine.nexus.api.transport.SchedulingMode;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.resource.NexusResource;
+import com.morphengine.nexus.transport.GroupEntry;
+import com.morphengine.nexus.transport.PushEntry;
 import com.morphengine.nexus.transport.StockEntry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -25,21 +28,23 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * What a Puller or Pusher is set to in its panel, kept by the device. It keeps
+ * What an attached device is set to in its panel, kept by the device. It keeps
  * a filter with its amounts for every kind of resource and uses the one of the
  * kind it moves, so switching kinds loses nothing. Settings a kind of device
  * does not offer keep their defaults and do nothing.
  *
- * @param lists    the filter and amounts of each kind of resource; copied, and
- *                 every kind gets one, fitted to it
- * @param resource the one kind of resource the device moves
+ * @param lists     the filter and amounts of each kind of resource; copied, and
+ *                  every kind gets one, fitted to it
+ * @param resource  the one kind of resource the device moves
+ * @param worldMode what a Placer or Remover does with items
  */
 public record TransferSettings(
         Map<TransferResource, TransferList> lists, RedstoneMode redstone, SchedulingMode scheduling,
-        DeliveryMode delivery, TransferResource resource, FilterMatchMode matchMode) {
+        DeliveryMode delivery, TransferResource resource, FilterMatchMode matchMode, WorldMode worldMode) {
 
     public static final TransferSettings DEFAULT = new TransferSettings(Map.of(), RedstoneMode.IGNORED,
-            SchedulingMode.IN_ORDER, DeliveryMode.UNLIMITED, TransferResource.ITEM, FilterMatchMode.EXACT);
+            SchedulingMode.IN_ORDER, DeliveryMode.UNLIMITED, TransferResource.ITEM, FilterMatchMode.EXACT,
+            WorldMode.BLOCKS);
 
     public static final Codec<TransferSettings> CODEC = Saved.CODEC.xmap(Saved::toSettings, Saved::of);
 
@@ -54,6 +59,7 @@ public record TransferSettings(
                     NeoForgeStreamCodecs.enumCodec(DeliveryMode.class), TransferSettings::delivery,
                     NeoForgeStreamCodecs.enumCodec(TransferResource.class), TransferSettings::resource,
                     NeoForgeStreamCodecs.enumCodec(FilterMatchMode.class), TransferSettings::matchMode,
+                    NeoForgeStreamCodecs.enumCodec(WorldMode.class), TransferSettings::worldMode,
                     TransferSettings::new);
 
     public TransferSettings {
@@ -63,6 +69,7 @@ public record TransferSettings(
         Objects.requireNonNull(delivery, "delivery must not be null");
         Objects.requireNonNull(resource, "resource must not be null");
         Objects.requireNonNull(matchMode, "matchMode must not be null");
+        Objects.requireNonNull(worldMode, "worldMode must not be null");
         final Map<TransferResource, TransferList> fitted = new EnumMap<>(TransferResource.class);
         for (TransferResource kind : TransferResource.values()) {
             fitted.put(kind, lists.getOrDefault(kind, TransferList.EMPTY).fittedTo(kind));
@@ -100,19 +107,19 @@ public record TransferSettings(
      * Switches to another kind of resource; the filter of every kind stays as it is.
      */
     public TransferSettings withResource(final TransferResource newResource) {
-        return new TransferSettings(lists, redstone, scheduling, delivery, newResource, matchMode);
+        return new TransferSettings(lists, redstone, scheduling, delivery, newResource, matchMode, worldMode);
     }
 
     public TransferSettings withRedstone(final RedstoneMode newRedstone) {
-        return new TransferSettings(lists, newRedstone, scheduling, delivery, resource, matchMode);
+        return new TransferSettings(lists, newRedstone, scheduling, delivery, resource, matchMode, worldMode);
     }
 
     public TransferSettings withScheduling(final SchedulingMode newScheduling) {
-        return new TransferSettings(lists, redstone, newScheduling, delivery, resource, matchMode);
+        return new TransferSettings(lists, redstone, newScheduling, delivery, resource, matchMode, worldMode);
     }
 
     public TransferSettings withDelivery(final DeliveryMode newDelivery) {
-        return new TransferSettings(lists, redstone, scheduling, newDelivery, resource, matchMode);
+        return new TransferSettings(lists, redstone, scheduling, newDelivery, resource, matchMode, worldMode);
     }
 
     /**
@@ -120,28 +127,59 @@ public record TransferSettings(
      * lists; unlike the filter itself, this is one setting for every kind.
      */
     public TransferSettings withMatchMode(final FilterMatchMode newMatchMode) {
-        return new TransferSettings(lists, redstone, scheduling, delivery, resource, newMatchMode);
+        return new TransferSettings(lists, redstone, scheduling, delivery, resource, newMatchMode, worldMode);
+    }
+
+    public TransferSettings withWorldMode(final WorldMode newWorldMode) {
+        return new TransferSettings(lists, redstone, scheduling, delivery, resource, matchMode, newWorldMode);
     }
 
     /**
-     * @return what the filter lists in slot order, each with the amount kept in
-     *         stock when the settings keep stock, or without limit otherwise
+     * @return the resources the filter lists by themselves, in slot order, each
+     *         with the amount kept in stock when the settings keep stock, or
+     *         without limit otherwise; a slot listing a tag names no one
+     *         resource to count, so it is left out
      */
     public List<StockEntry> stock() {
         final List<FilterSlots.Entry> listed = filter().inSlotOrder();
         final List<StockEntry> entries = new ArrayList<>(listed.size());
         for (FilterSlots.Entry entry : listed) {
-            entries.add(delivery == DeliveryMode.KEEP_STOCKED
-                    ? new StockEntry(entry.resource(), keepAmount(entry.slot(), entry.resource()))
-                    : StockEntry.unlimited(entry.resource()));
+            if (entry.tag() == null) {
+                entries.add(stockOf(entry));
+            }
         }
         return entries;
+    }
+
+    /**
+     * @return what a whitelist delivers, in slot order: the resources as in
+     *         {@link #stock()} and, unless the settings keep stock, every tag
+     *         the filter lists
+     */
+    public List<PushEntry> deliveries() {
+        final List<FilterSlots.Entry> listed = filter().inSlotOrder();
+        final List<PushEntry> entries = new ArrayList<>(listed.size());
+        for (FilterSlots.Entry entry : listed) {
+            final Optional<ResourceGroup> group = entry.group();
+            if (group.isEmpty()) {
+                entries.add(stockOf(entry));
+            } else if (delivery != DeliveryMode.KEEP_STOCKED) {
+                entries.add(new GroupEntry(group.get()));
+            }
+        }
+        return entries;
+    }
+
+    private StockEntry stockOf(final FilterSlots.Entry entry) {
+        return delivery == DeliveryMode.KEEP_STOCKED
+                ? new StockEntry(entry.resource(), keepAmount(entry.slot(), entry.resource()))
+                : StockEntry.unlimited(entry.resource());
     }
 
     private TransferSettings withList(final TransferList changed) {
         final Map<TransferResource, TransferList> updated = new EnumMap<>(lists);
         updated.put(resource, changed);
-        return new TransferSettings(updated, redstone, scheduling, delivery, resource, matchMode);
+        return new TransferSettings(updated, redstone, scheduling, delivery, resource, matchMode, worldMode);
     }
 
     /**
@@ -167,18 +205,18 @@ public record TransferSettings(
      * and takes the kind its filter lists first.
      *
      * @param lists    empty for such an old device
+     * @param single   the one filter of such an old device; empty otherwise
      * @param resource {@code null} when not saved
      */
     private record Saved(
-            Map<TransferResource, TransferList> lists, FilterSlots filter, KeepAmounts keep,
+            Map<TransferResource, TransferList> lists, TransferList single,
             RedstoneMode redstone, SchedulingMode scheduling, DeliveryMode delivery,
-            @Nullable TransferResource resource, FilterMatchMode matchMode) {
+            @Nullable TransferResource resource, FilterMatchMode matchMode, WorldMode worldMode) {
 
         static final Codec<Saved> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                         Codec.unboundedMap(TransferResource.CODEC, TransferList.CODEC)
                                 .optionalFieldOf("lists", Map.of()).forGetter(Saved::lists),
-                        FilterSlots.CODEC.optionalFieldOf("filter", FilterSlots.EMPTY).forGetter(Saved::filter),
-                        KeepAmounts.CODEC.optionalFieldOf("keep", KeepAmounts.NONE).forGetter(Saved::keep),
+                        TransferList.MAP_CODEC.forGetter(Saved::single),
                         enumCodec(RedstoneMode.class).optionalFieldOf("redstone", DEFAULT.redstone())
                                 .forGetter(Saved::redstone),
                         enumCodec(SchedulingMode.class).optionalFieldOf("scheduling", DEFAULT.scheduling())
@@ -187,28 +225,29 @@ public record TransferSettings(
                         TransferResource.CODEC.optionalFieldOf("resource")
                                 .forGetter(saved -> Optional.ofNullable(saved.resource())),
                         enumCodec(FilterMatchMode.class).optionalFieldOf("match_mode", DEFAULT.matchMode())
-                                .forGetter(Saved::matchMode))
-                .apply(instance, (lists, filter, keep, redstone, scheduling, delivery, resource, matchMode) ->
-                        new Saved(lists, filter, keep, redstone, scheduling, delivery, resource.orElse(null),
-                                matchMode)));
+                                .forGetter(Saved::matchMode),
+                        WorldMode.CODEC.optionalFieldOf("world_mode", DEFAULT.worldMode()).forGetter(Saved::worldMode))
+                .apply(instance, (lists, single, redstone, scheduling, delivery, resource, matchMode, worldMode) ->
+                        new Saved(lists, single, redstone, scheduling, delivery, resource.orElse(null), matchMode,
+                                worldMode)));
 
         static Saved of(final TransferSettings settings) {
-            return new Saved(settings.lists(), FilterSlots.EMPTY, KeepAmounts.NONE, settings.redstone(),
-                    settings.scheduling(), settings.delivery(), settings.resource(), settings.matchMode());
+            return new Saved(settings.lists(), TransferList.EMPTY, settings.redstone(),
+                    settings.scheduling(), settings.delivery(), settings.resource(), settings.matchMode(),
+                    settings.worldMode());
         }
 
         TransferSettings toSettings() {
             if (!lists.isEmpty()) {
                 return new TransferSettings(lists, redstone, scheduling, delivery,
-                        resource != null ? resource : TransferResource.ITEM, matchMode);
+                        resource != null ? resource : TransferResource.ITEM, matchMode, worldMode);
             }
-            final TransferList single = new TransferList(filter, keep);
             final Map<TransferResource, TransferList> split = new EnumMap<>(TransferResource.class);
             for (TransferResource kind : TransferResource.values()) {
                 split.put(kind, single);
             }
             return new TransferSettings(split, redstone, scheduling, delivery,
-                    resource != null ? resource : TransferResource.inferredFrom(filter), matchMode);
+                    resource != null ? resource : TransferResource.inferredFrom(single.filter()), matchMode, worldMode);
         }
     }
 }

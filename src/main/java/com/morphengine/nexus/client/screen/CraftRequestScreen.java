@@ -1,7 +1,5 @@
 package com.morphengine.nexus.client.screen;
 
-import com.morphengine.nexus.api.resource.ResourceAmount;
-import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.menu.TerminalPanel;
 import com.morphengine.nexus.networking.CraftRequestPayload;
 import com.morphengine.nexus.resource.NexusResource;
@@ -20,10 +18,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Asks the network to craft a resource, over the terminal it was opened from:
@@ -31,24 +26,19 @@ import java.util.Map;
  * out by the server a moment after the amount last changed. Each resource of
  * the plan shows what is taken from storage, what is crafted and what is
  * missing. Start begins the task when nothing is missing and goes back to the
- * terminal; so do Escape and Cancel, without starting anything.
+ * terminal; so do Escape and Cancel, without starting anything. When something
+ * is missing, Craft Less brings the amount down to the most that can start.
  *
  * @param <M> the terminal's menu, which stays open underneath
  */
 final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> extends Screen {
 
-    private static final int WIDTH = 220;
+    private static final int WIDTH = 240;
     private static final int HEIGHT = 222;
     private static final int AMOUNT_TOP = 22;
-    private static final int STEPS_TOP = 42;
     private static final int PLAN_TOP = 62;
     private static final int ROW_HEIGHT = 18;
     private static final int ROWS = 7;
-    private static final int BUTTON_TOP = HEIGHT - 22;
-    private static final int BUTTON_WIDTH = 60;
-    private static final int BUTTON_HEIGHT = 14;
-    private static final int STEP_WIDTH = 30;
-    private static final int STEP_GAP = 2;
     private static final int[] STEPS = {1, 10, 64, -1, -10, -64};
     private static final int PREVIEW_DELAY_TICKS = 5;
     private static final int MISSING_RGB = 0xFFE05A4E;
@@ -58,11 +48,6 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
     private static final int AMOUNT_WIDTH = 80;
     private static final int TEXT_INSET = 4;
     private static final int TEXT_GAP = 6;
-    /** Columns of a row of the plan: taken from storage, crafted, missing. */
-    private static final int FROM_STORAGE = 0;
-    private static final int CRAFTED = 1;
-    private static final int MISSING = 2;
-    private static final int COLUMNS = 3;
 
     private final Screen parent;
     private final M menu;
@@ -94,10 +79,14 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
         return (height - HEIGHT) / 2;
     }
 
+    private CraftRequestButtons buttons() {
+        return new CraftRequestButtons(new PanelBounds(left(), top(), WIDTH, HEIGHT));
+    }
+
     @Override
     protected void init() {
         final EditBox box = new EditBox(font, left() + AMOUNT_LEFT, top() + AMOUNT_TOP, AMOUNT_WIDTH,
-                BUTTON_HEIGHT, Component.translatable("gui.nexus.craft.amount"));
+                CraftRequestButtons.HEIGHT, Component.translatable("gui.nexus.craft.amount"));
         box.setMaxLength(MAX_DIGITS);
         box.setValue(Long.toString(amount));
         box.setResponder(this::amountTyped);
@@ -130,7 +119,23 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
             seenPlanRevision = contents().planRevision();
             if (contents().planOutcome() == CraftRequest.START && minecraft != null) {
                 minecraft.gui.setScreen(parent);
+            } else if (contents().planOutcome() == CraftRequest.CRAFT_LESS) {
+                takeAmountOf(contents().plan());
             }
+        }
+    }
+
+    /**
+     * Shows the amount of the plan received for Craft Less as the amount asked,
+     * without planning it again.
+     */
+    private void takeAmountOf(final @Nullable PlanPreview plan) {
+        if (plan == null || !plan.target().resource().equals(resource)) {
+            return;
+        }
+        amount = plan.target().amount();
+        if (amountBox != null) {
+            amountBox.setValue(Long.toString(amount));
         }
     }
 
@@ -152,16 +157,20 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
     public void extractRenderState(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
                                    final float partialTick) {
         final PanelStyle style = PanelStyle.of(menu.badge());
-        final PanelBounds panel = new PanelBounds(left(), top(), WIDTH, HEIGHT);
-        style.drawFrame(graphics, font, panel, title);
+        final CraftRequestButtons buttons = buttons();
+        style.drawFrame(graphics, font, buttons.panel(), title);
         ResourceRenderers.icon(resource).draw(graphics, left() + PanelStyle.PADDING, top() + AMOUNT_TOP - 1);
         for (int i = 0; i < STEPS.length; i++) {
-            style.drawButton(graphics, font, stepButton(i), Component.literal((STEPS[i] > 0 ? "+" : "") + STEPS[i]));
+            style.drawButton(graphics, font, buttons.step(i, STEPS.length),
+                    Component.literal((STEPS[i] > 0 ? "+" : "") + STEPS[i]));
         }
         drawPlan(graphics, style);
-        style.drawButton(graphics, font, cancelButton(), Component.translatable("gui.nexus.craft.cancel"));
+        style.drawButton(graphics, font, buttons.cancel(), Component.translatable("gui.nexus.craft.cancel"));
         final PlanPreview plan = currentPlan();
-        style.drawButton(graphics, font, startButton(), Component.translatable(plan != null && plan.isComplete()
+        if (canCraftLess(plan)) {
+            style.drawButton(graphics, font, buttons.craftLess(), Component.translatable("gui.nexus.craft.craft_less"));
+        }
+        style.drawButton(graphics, font, buttons.start(), Component.translatable(plan != null && plan.isComplete()
                 ? "gui.nexus.craft.start" : "gui.nexus.craft.cannot_start"));
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
@@ -175,7 +184,7 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
             graphics.text(font, waiting, rowsLeft, top() + PLAN_TOP + TEXT_INSET, PanelStyle.TEXT_DIM, false);
             return;
         }
-        final List<Row> rows = rowsOf(plan);
+        final List<PlanRow> rows = PlanRow.rowsOf(plan);
         scroll = Math.clamp(scroll, 0, Math.max(0, rows.size() - ROWS));
         for (int i = 0; i < ROWS && scroll + i < rows.size(); i++) {
             final int y = top() + PLAN_TOP + i * ROW_HEIGHT;
@@ -184,7 +193,7 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
         }
     }
 
-    private void drawRow(final GuiGraphicsExtractor graphics, final Row row, final int x, final int y) {
+    private void drawRow(final GuiGraphicsExtractor graphics, final PlanRow row, final int x, final int y) {
         final NexusResource shown = NexusResources.of(row.resource());
         ResourceRenderers.icon(shown).draw(graphics, x + 1, y + 1);
         final int textLeft = x + PanelStyle.SLOT_SIZE + TEXT_INSET;
@@ -206,59 +215,42 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
         return x + font.width(text) + TEXT_GAP;
     }
 
-    private static List<Row> rowsOf(final PlanPreview plan) {
-        final Map<ResourceKey, long[]> amounts = new LinkedHashMap<>();
-        collect(amounts, plan.missing(), MISSING);
-        collect(amounts, plan.crafted(), CRAFTED);
-        collect(amounts, plan.fromStorage(), FROM_STORAGE);
-        final List<Row> rows = new ArrayList<>(amounts.size());
-        for (Map.Entry<ResourceKey, long[]> entry : amounts.entrySet()) {
-            final long[] values = entry.getValue();
-            rows.add(new Row(entry.getKey(), values[FROM_STORAGE], values[CRAFTED], values[MISSING]));
-        }
-        return rows;
-    }
-
-    private static void collect(final Map<ResourceKey, long[]> amounts, final List<ResourceAmount> list,
-                                final int column) {
-        for (ResourceAmount amount : list) {
-            amounts.computeIfAbsent(amount.resource(), key -> new long[COLUMNS])[column] += amount.amount();
-        }
-    }
-
-    private PanelBounds stepButton(final int index) {
-        final int rowWidth = STEPS.length * (STEP_WIDTH + STEP_GAP) - STEP_GAP;
-        return new PanelBounds(left() + (WIDTH - rowWidth) / 2 + index * (STEP_WIDTH + STEP_GAP), top() + STEPS_TOP,
-                STEP_WIDTH, BUTTON_HEIGHT);
-    }
-
-    private PanelBounds cancelButton() {
-        return new PanelBounds(left() + PanelStyle.PADDING, top() + BUTTON_TOP, BUTTON_WIDTH, BUTTON_HEIGHT);
-    }
-
-    private PanelBounds startButton() {
-        return new PanelBounds(left() + WIDTH - PanelStyle.PADDING - BUTTON_WIDTH, top() + BUTTON_TOP,
-                BUTTON_WIDTH, BUTTON_HEIGHT);
+    /**
+     * @return whether a smaller amount might start where {@code plan} cannot
+     */
+    private boolean canCraftLess(final @Nullable PlanPreview plan) {
+        return plan != null && !plan.missing().isEmpty() && amount > 1;
     }
 
     @Override
     public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+        final CraftRequestButtons buttons = buttons();
+        return clickStep(buttons, event.x(), event.y()) || clickAction(buttons, event.x(), event.y())
+                || super.mouseClicked(event, doubleClick);
+    }
+
+    private boolean clickStep(final CraftRequestButtons buttons, final double x, final double y) {
         for (int i = 0; i < STEPS.length; i++) {
-            if (stepButton(i).contains(event.x(), event.y())) {
+            if (buttons.step(i, STEPS.length).contains(x, y)) {
                 setAmount(amount + STEPS[i]);
                 return true;
             }
         }
-        if (cancelButton().contains(event.x(), event.y())) {
+        return false;
+    }
+
+    private boolean clickAction(final CraftRequestButtons buttons, final double x, final double y) {
+        if (buttons.cancel().contains(x, y)) {
             onClose();
             return true;
         }
         final PlanPreview plan = currentPlan();
-        if (startButton().contains(event.x(), event.y()) && plan != null && plan.isComplete()) {
-            send(CraftRequest.START);
-            return true;
+        final boolean starts = buttons.start().contains(x, y) && plan != null && plan.isComplete();
+        final boolean shrinks = buttons.craftLess().contains(x, y) && canCraftLess(plan);
+        if (starts || shrinks) {
+            send(starts ? CraftRequest.START : CraftRequest.CRAFT_LESS);
         }
-        return super.mouseClicked(event, doubleClick);
+        return starts || shrinks;
     }
 
     private void setAmount(final long changed) {
@@ -296,11 +288,5 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
     @Override
     public boolean isPauseScreen() {
         return false;
-    }
-
-    /**
-     * One resource of the plan: units taken from storage, crafted and missing.
-     */
-    private record Row(ResourceKey resource, long fromStorage, long crafted, long missing) {
     }
 }

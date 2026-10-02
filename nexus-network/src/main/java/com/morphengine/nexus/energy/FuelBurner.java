@@ -4,13 +4,16 @@ import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 
 /**
- * Turns burning fuel into FE at a fixed rate. Burning pauses, and no fuel is
+ * Turns burning fuel into FE at a fixed rate per tick of burning. At a higher
+ * {@linkplain #setSpeed speed} it burns several ticks of fuel each game tick,
+ * so the same fuel gives the same FE sooner. Burning pauses, and no fuel is
  * wasted, while the target buffer has no room for a full tick of output.
  * Server thread only.
  */
 public final class FuelBurner {
 
     private final long energyPerTick;
+    private int speed = 1;
     private int burnTicksLeft;
     private int burnTicksTotal;
 
@@ -26,6 +29,23 @@ public final class FuelBurner {
 
     public long energyPerTick() {
         return energyPerTick;
+    }
+
+    /**
+     * @param ticksPerTick ticks of fuel burnt each game tick, must be positive
+     */
+    public void setSpeed(final int ticksPerTick) {
+        if (ticksPerTick <= 0) {
+            throw new IllegalArgumentException("speed must be positive: " + ticksPerTick);
+        }
+        this.speed = ticksPerTick;
+    }
+
+    /**
+     * @return FE produced in a game tick of burning at the current speed
+     */
+    public long outputPerTick() {
+        return energyPerTick * speed;
     }
 
     public boolean isBurning() {
@@ -45,7 +65,8 @@ public final class FuelBurner {
      *         new piece of fuel is worth lighting
      */
     public boolean hasRoomIn(final EnergyBuffer buffer) {
-        return buffer.insert(energyPerTick, Action.SIMULATE) == energyPerTick;
+        final long output = outputPerTick();
+        return buffer.insert(output, Action.SIMULATE) == output;
     }
 
     /**
@@ -66,7 +87,8 @@ public final class FuelBurner {
     }
 
     /**
-     * Burns for one tick and puts the output into {@code buffer}.
+     * Burns for one game tick, as many ticks of fuel as the speed says or what
+     * is left of the piece, and puts the output into {@code buffer}.
      *
      * @return FE produced this tick; zero when not burning or when the buffer is full
      */
@@ -74,8 +96,9 @@ public final class FuelBurner {
         if (!isBurning() || !hasRoomIn(buffer)) {
             return 0;
         }
-        burnTicksLeft--;
-        return buffer.insert(energyPerTick, Action.EXECUTE);
+        final int burnt = Math.min(speed, burnTicksLeft);
+        burnTicksLeft -= burnt;
+        return buffer.insert(energyPerTick * burnt, Action.EXECUTE);
     }
 
     /**

@@ -1,9 +1,9 @@
 package com.morphengine.nexus.networking;
 
 import com.morphengine.nexus.Nexus;
-import com.morphengine.nexus.block.entity.TerminalBlockEntity;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.NetworkBadgeView;
+import com.morphengine.nexus.menu.TerminalHost;
 import com.morphengine.nexus.menu.TerminalPanel;
 import com.morphengine.nexus.menu.VaultCellMenu;
 import com.morphengine.nexus.resource.ResourceTypes;
@@ -79,7 +79,7 @@ public final class StoragePayloadHandlers {
             final TerminalSettings settings = payload.settings();
             final AbstractContainerMenu menu = openMenu(context.player(), payload.containerId());
             if (!(menu instanceof TerminalPanel panel)
-                    || !(panel.terminal().binding().blockEntity() instanceof TerminalBlockEntity terminal)
+                    || !(panel.terminal().binding().host() instanceof TerminalHost terminal)
                     || settings.shownType() != null && !ResourceTypes.REGISTRY.containsKey(settings.shownType())) {
                 return;
             }

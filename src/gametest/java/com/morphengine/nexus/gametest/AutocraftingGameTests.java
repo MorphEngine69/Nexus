@@ -96,7 +96,11 @@ public final class AutocraftingGameTests {
             Map.entry("processing_takes_members_of_input_tag",
                     AutocraftingGameTests::processingTakesTagMembers),
             Map.entry("broken_assembler_gives_back_what_its_tasks_held",
-                    AutocraftingGameTests::brokenAssemblerGivesBack));
+                    AutocraftingGameTests::brokenAssemblerGivesBack),
+            Map.entry("chained_assembler_works_with_machine_at_chain_end",
+                    AutocraftingGameTests::chainedAssemblerUsesRootMachine),
+            Map.entry("assemblers_facing_each_other_still_craft",
+                    AutocraftingGameTests::assemblersFacingEachOtherStillCraft));
 
     private AutocraftingGameTests() {
     }
@@ -237,6 +241,58 @@ public final class AutocraftingGameTests {
                 .thenSucceed();
     }
 
+    private static void chainedAssemblerUsesRootMachine(final GameTestHelper helper) {
+        buildNetwork(helper, Direction.EAST, stored(Items.COBBLESTONE, 2));
+        final BlockPos chest = MACHINE.east();
+        place(helper, MACHINE, NexusBlocks.ASSEMBLER.get().defaultBlockState()
+                .setValue(AssemblerBlock.FACING, Direction.EAST));
+        place(helper, chest, Blocks.CHEST.defaultBlockState());
+        assembler(helper).blueprintSlots().setItem(0, blueprintOf(ProcessingBlueprint.exact(
+                List.of(new ResourceAmount(key(Items.COBBLESTONE), 1)),
+                List.of(new ResourceAmount(key(Items.STONE), 1)))));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        autocrafting(helper).blueprints().craftables().contains(key(Items.STONE)),
+                        Component.literal("the network does not know how to make stone")))
+                .thenExecute(() -> start(helper, Items.STONE, 2))
+                .thenWaitUntil(() -> assertAmount(helper, count(container(helper, chest), Items.COBBLESTONE), 2,
+                        "cobblestone handed to the machine at the end of the chain"))
+                .thenExecute(() -> {
+                    container(helper, chest).clearContent();
+                    container(helper, chest).setItem(0, new ItemStack(Items.STONE, 2));
+                })
+                .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STONE)), 2,
+                        "stone taken back through the chain"))
+                .thenSucceed();
+    }
+
+    /**
+     * Crafting needs no machine, so it does not matter where an Assembler faces:
+     * two placed face to face, which makes a chain without a machine, both
+     * craft their own recipes.
+     */
+    private static void assemblersFacingEachOtherStillCraft(final GameTestHelper helper) {
+        buildNetwork(helper, Direction.EAST, stored(Items.OAK_PLANKS, 6));
+        place(helper, MACHINE, NexusBlocks.ASSEMBLER.get().defaultBlockState()
+                .setValue(AssemblerBlock.FACING, Direction.WEST));
+        assembler(helper).blueprintSlots().setItem(0, blueprintOf(sticks()));
+        helper.getBlockEntity(MACHINE, AssemblerBlockEntity.class).blueprintSlots()
+                .setItem(0, blueprintOf(craftingTable()));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        autocrafting(helper).blueprints().craftables().contains(key(Items.CRAFTING_TABLE)),
+                        Component.literal("the network does not know how to craft a crafting table")))
+                .thenExecute(() -> start(helper, Items.STICK, 4))
+                .thenExecute(() -> start(helper, Items.CRAFTING_TABLE, 1))
+                .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STICK)), 4,
+                        "sticks crafted by the first Assembler"))
+                .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.CRAFTING_TABLE)), 1,
+                        "crafting table crafted by the second Assembler"))
+                .thenSucceed();
+    }
+
     private static void brokenAssemblerGivesBack(final GameTestHelper helper) {
         buildNetwork(helper, Direction.EAST, stored(Items.COBBLESTONE, 3));
         place(helper, MACHINE, Blocks.CHEST.defaultBlockState());
@@ -300,6 +356,13 @@ public final class AutocraftingGameTests {
         return new CraftingBlueprint(
                 List.of(new GridSlot(0, key(Items.OAK_PLANKS)), new GridSlot(3, key(Items.OAK_PLANKS))),
                 List.of(new ResourceAmount(key(Items.STICK), 4)));
+    }
+
+    private static CraftingBlueprint craftingTable() {
+        return new CraftingBlueprint(
+                List.of(new GridSlot(0, key(Items.OAK_PLANKS)), new GridSlot(1, key(Items.OAK_PLANKS)),
+                        new GridSlot(3, key(Items.OAK_PLANKS)), new GridSlot(4, key(Items.OAK_PLANKS))),
+                List.of(new ResourceAmount(key(Items.CRAFTING_TABLE), 1)));
     }
 
     private static ItemStack blueprintOf(final EncodedBlueprint blueprint) {
