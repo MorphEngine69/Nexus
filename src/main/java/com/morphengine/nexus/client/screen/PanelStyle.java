@@ -25,6 +25,7 @@ final class PanelStyle {
     static final int SLOT_SIZE = 18;
     static final int CROSS_SIZE = 6;
 
+    private static final int TAG_MARK = 3;
     private static final int PANEL_BASE_RGB = 0x16171E;
     private static final int PANEL_BORDER_RGB = 0x2C2D32;
     private static final int BUTTON_FILL_RGB = 0x20222A;
@@ -162,6 +163,14 @@ final class PanelStyle {
             graphics.fill(x, top, x + 1, bottom, border);
             graphics.fill(x + SLOT_SIZE - 1, top, x + SLOT_SIZE, bottom, border);
         }
+    }
+
+    /**
+     * Marks the slot at {@code x}, {@code y} as standing for a tag of what it
+     * shows: a small square of the accent in its top left corner.
+     */
+    void drawTagMark(final GuiGraphicsExtractor graphics, final int x, final int y) {
+        graphics.fill(x + 1, y + 1, x + 1 + TAG_MARK, y + 1 + TAG_MARK, accent());
     }
 
     /**

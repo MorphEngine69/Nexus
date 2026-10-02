@@ -29,6 +29,9 @@ public final class FilterPayloadHandlers {
                         menu -> menu.setFilterSlot(payload.slot(), payload.resource())));
         registrar.playToServer(FilterModePayload.TYPE, FilterModePayload.STREAM_CODEC,
                 (payload, context) -> onFilterMenu(context, payload.containerId(), FilterMenu::toggleFilterMode));
+        registrar.playToServer(FilterTagPayload.TYPE, FilterTagPayload.STREAM_CODEC,
+                (payload, context) -> onFilterMenu(context, payload.containerId(),
+                        menu -> menu.stepFilterTag(payload.slot(), payload.step())));
     }
 
     private static void onFilterMenu(

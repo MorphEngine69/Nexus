@@ -7,7 +7,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 /**
  * A menu bound to one device, whose panel title is the device's name.
  */
-public interface DevicePanel extends PanelMenu {
+public interface DevicePanel extends RenamablePanel {
 
     DeviceBinding<?> binding();
 

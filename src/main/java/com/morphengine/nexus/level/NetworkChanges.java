@@ -7,6 +7,7 @@ import com.morphengine.nexus.block.NetworkColoring;
 import com.morphengine.nexus.network.NetworkGraphs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -59,25 +60,39 @@ public final class NetworkChanges {
      * stopped at an unloaded chunk where its controller may be.
      */
     private static void invalidateReachable(final Level level, final Set<BlockPos> starts) {
+        final MinecraftServer server = level.getServer();
+        if (server == null) {
+            return;
+        }
         final Set<NetworkNode> visited = new HashSet<>();
         for (BlockPos start : starts) {
             final BlockNode startNode = BlockNode.of(level, start);
             if (visited.contains(startNode)) {
                 continue;
             }
-            final AdjacencyConnections connections = new AdjacencyConnections(level);
+            final ServerConnections connections = new ServerConnections(server);
             final Set<NetworkNode> reachable = NetworkGraphs.reachableFrom(startNode, connections);
             visited.addAll(reachable);
-            if (!invalidateControllers(level, reachable) && !connections.reachedUnloaded()) {
-                paintUnconnected(level, reachable);
+            if (!invalidateControllers(connections, reachable) && !connections.reachedUnloaded()) {
+                paintUnconnected(connections, reachable);
             }
         }
     }
 
-    private static boolean invalidateControllers(final Level level, final Set<NetworkNode> part) {
+    /**
+     * Tells the network blocks reachable from {@code pos} that a link of theirs
+     * appeared or went away, as when a Network Transmitter gets or loses its card.
+     */
+    public static void linkChanged(final Level level, final BlockPos pos) {
+        if (!level.isClientSide()) {
+            invalidateReachable(level, Set.of(pos));
+        }
+    }
+
+    private static boolean invalidateControllers(final ServerConnections connections, final Set<NetworkNode> part) {
         boolean found = false;
         for (NetworkNode node : part) {
-            if (node instanceof BlockNode blockNode
+            if (node instanceof BlockNode blockNode && connections.levelOf(blockNode) instanceof Level level
                     && level.getBlockEntity(blockNode.position().pos()) instanceof NetworkController controller) {
                 controller.invalidateNetwork();
                 found = true;
@@ -86,9 +101,9 @@ public final class NetworkChanges {
         return found;
     }
 
-    private static void paintUnconnected(final Level level, final Set<NetworkNode> part) {
+    private static void paintUnconnected(final ServerConnections connections, final Set<NetworkNode> part) {
         for (NetworkNode node : part) {
-            if (node instanceof BlockNode blockNode) {
+            if (node instanceof BlockNode blockNode && connections.levelOf(blockNode) instanceof Level level) {
                 final BlockPos pos = blockNode.position().pos();
                 NetworkColoring.paint(level, pos, NetworkColoring.UNCONNECTED);
                 CableBlock.showPower(level, pos, false);

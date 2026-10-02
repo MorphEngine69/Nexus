@@ -9,5 +9,11 @@ public enum CraftRequest {
     PREVIEW,
 
     /** Start the task, when the plan worked out now can start. */
-    START
+    START,
+
+    /**
+     * Plan the most that can be crafted with nothing missing, up to the amount
+     * asked, and show that plan; nothing starts.
+     */
+    CRAFT_LESS
 }

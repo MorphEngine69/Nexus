@@ -17,7 +17,9 @@
               "function": "minecraft:copy_components",
               "source": "block_entity",
               "include": [
-                "minecraft:custom_name"
+                "minecraft:custom_name",
+                "nexus:network_id",
+                "nexus:network_color"
               ]
             }
           ]

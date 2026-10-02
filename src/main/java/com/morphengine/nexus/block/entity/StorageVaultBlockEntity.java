@@ -41,8 +41,6 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
         implements StorageHost, Renamable, VaultCellSlots.Owner {
 
     public static final int SLOTS = VaultCellSlots.SIZE;
-    public static final int MIN_PRIORITY = -9999;
-    public static final int MAX_PRIORITY = 9999;
 
     private static final String TAG_PRIORITY = "priority";
     private static final String TAG_LAMPS = "lamps";
@@ -87,10 +85,10 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
     }
 
     /**
-     * @param newPriority clamped to [{@value #MIN_PRIORITY}, {@value #MAX_PRIORITY}]
+     * @param newPriority clamped to the {@linkplain DevicePriority range of a priority}
      */
     public void setPriority(final int newPriority) {
-        final int clamped = Math.clamp(newPriority, MIN_PRIORITY, MAX_PRIORITY);
+        final int clamped = DevicePriority.clamp(newPriority);
         if (clamped != priority) {
             priority = clamped;
             setChanged();
@@ -193,7 +191,7 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
         homeless.clear();
         homeless.addAll(cells.load(input));
         input.listOrEmpty(TAG_HOMELESS, ItemStack.CODEC).forEach(homeless::add);
-        priority = Math.clamp(input.getIntOr(TAG_PRIORITY, priority), MIN_PRIORITY, MAX_PRIORITY);
+        priority = DevicePriority.clamp(input.getIntOr(TAG_PRIORITY, priority));
         lamps = input.getLongOr(TAG_LAMPS, lamps);
     }
 

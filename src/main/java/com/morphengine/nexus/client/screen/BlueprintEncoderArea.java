@@ -27,7 +27,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +55,6 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
     private static final int HOVER_RGB = 0x80FFFFFF;
     private static final int SHIFT_STEP = 10;
     private static final int ARROW_INSET = 4;
-    private static final int TAG_MARK = 3;
 
     private final BlueprintTerminalMenu menu;
     private final Font font;
@@ -127,8 +125,7 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
                         bounds.left() + 1, bounds.top() + 1);
             }
             if (filled.tag() != null && allowsSubstitutes()) {
-                graphics.fill(bounds.left() + 1, bounds.top() + 1, bounds.left() + 1 + TAG_MARK,
-                        bounds.top() + 1 + TAG_MARK, style.accent());
+                style.drawTagMark(graphics, bounds.left(), bounds.top());
             }
         }
         if (bounds.contains(mouseX, mouseY)) {
@@ -242,7 +239,7 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
             if (resource != null) {
                 send(index, resource);
             }
-        } else if (hasTag(index) && asksForNextTag(event)) {
+        } else if (hasTag(index) && FilterGrid.asksForNextTag(event)) {
             buttons.press(event.hasShiftDown() ? BlueprintTerminalMenu.BUTTON_PREVIOUS_TAG + index
                     : BlueprintTerminalMenu.BUTTON_NEXT_TAG + index);
         } else {
@@ -255,10 +252,6 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
      */
     private boolean hasTag(final int index) {
         return !isCrafting() && index < BlueprintDraft.INPUTS && menu.draft().at(index) != null;
-    }
-
-    private static boolean asksForNextTag(final MouseButtonEvent event) {
-        return event.button() == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || event.hasControlDown();
     }
 
     /**

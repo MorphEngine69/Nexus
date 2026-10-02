@@ -2,6 +2,7 @@ package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.AssemblerBlock;
+import com.morphengine.nexus.block.AssemblerChain;
 import com.morphengine.nexus.menu.AssemblerMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -104,10 +105,10 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> {
             return Component.empty();
         }
         final BlockState assembler = minecraft.level.getBlockState(getMenu().pos());
-        if (!assembler.hasProperty(AssemblerBlock.FACING)) {
+        if (!(assembler.getBlock() instanceof AssemblerBlock)) {
             return Component.empty();
         }
-        final BlockPos machine = getMenu().pos().relative(assembler.getValue(AssemblerBlock.FACING));
+        final BlockPos machine = AssemblerChain.linkOf(minecraft.level, getMenu().pos()).machine();
         final BlockState state = minecraft.level.getBlockState(machine);
         return state.isAir() ? Component.translatable("gui.nexus.assembler.no_machine")
                 : state.getBlock().getName();

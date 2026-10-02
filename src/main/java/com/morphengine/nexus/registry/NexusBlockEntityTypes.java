@@ -5,7 +5,10 @@ import com.morphengine.nexus.block.entity.AssemblerBlockEntity;
 import com.morphengine.nexus.block.entity.CoalGeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
+import com.morphengine.nexus.block.entity.NetworkReceiverBlockEntity;
+import com.morphengine.nexus.block.entity.NetworkTransmitterBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
+import com.morphengine.nexus.block.entity.NexusLinkBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TerminalBlockEntity;
 import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
@@ -43,10 +46,11 @@ public final class NexusBlockEntityTypes {
                     TerminalBlockEntity::new, Set.of(NexusBlocks.TERMINAL.get(), NexusBlocks.CRAFTING_TERMINAL.get(),
                     NexusBlocks.BLUEPRINT_TERMINAL.get())));
 
-    /** Both the Puller and the Pusher; the block tells which. */
+    /** Every attached device, Puller, Pusher, Placer and Remover; the block tells which. */
     public static final Supplier<BlockEntityType<TransferDeviceBlockEntity>> TRANSFER_DEVICE =
             BLOCK_ENTITY_TYPES.register("transfer_device", () -> new BlockEntityType<>(
-                    TransferDeviceBlockEntity::new, Set.of(NexusBlocks.PULLER.get(), NexusBlocks.PUSHER.get())));
+                    TransferDeviceBlockEntity::new, Set.of(NexusBlocks.PULLER.get(), NexusBlocks.PUSHER.get(),
+                            NexusBlocks.PLACER.get(), NexusBlocks.REMOVER.get())));
 
     public static final Supplier<BlockEntityType<AssemblerBlockEntity>> ASSEMBLER =
             BLOCK_ENTITY_TYPES.register("assembler", () -> new BlockEntityType<>(
@@ -55,6 +59,18 @@ public final class NexusBlockEntityTypes {
     public static final Supplier<BlockEntityType<CraftingMonitorBlockEntity>> CRAFTING_MONITOR =
             BLOCK_ENTITY_TYPES.register("crafting_monitor", () -> new BlockEntityType<>(
                     CraftingMonitorBlockEntity::new, Set.of(NexusBlocks.CRAFTING_MONITOR.get())));
+
+    public static final Supplier<BlockEntityType<NetworkTransmitterBlockEntity>> NETWORK_TRANSMITTER =
+            BLOCK_ENTITY_TYPES.register("network_transmitter", () -> new BlockEntityType<>(
+                    NetworkTransmitterBlockEntity::new, Set.of(NexusBlocks.NETWORK_TRANSMITTER.get())));
+
+    public static final Supplier<BlockEntityType<NetworkReceiverBlockEntity>> NETWORK_RECEIVER =
+            BLOCK_ENTITY_TYPES.register("network_receiver", () -> new BlockEntityType<>(
+                    NetworkReceiverBlockEntity::new, Set.of(NexusBlocks.NETWORK_RECEIVER.get())));
+
+    public static final Supplier<BlockEntityType<NexusLinkBlockEntity>> NEXUS_LINK =
+            BLOCK_ENTITY_TYPES.register("nexus_link", () -> new BlockEntityType<>(
+                    NexusLinkBlockEntity::new, Set.of(NexusBlocks.NEXUS_LINK.get())));
 
     private NexusBlockEntityTypes() {
     }

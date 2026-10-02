@@ -1,6 +1,7 @@
 package com.morphengine.nexus.transfer;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.resource.NexusResource;
@@ -17,10 +18,13 @@ public record TransferList(FilterSlots filter, KeepAmounts keep) {
 
     public static final TransferList EMPTY = new TransferList(FilterSlots.EMPTY, KeepAmounts.NONE);
 
-    public static final Codec<TransferList> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+    /** The filter and amounts as fields of whatever holds them. */
+    public static final MapCodec<TransferList> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                     FilterSlots.CODEC.optionalFieldOf("filter", FilterSlots.EMPTY).forGetter(TransferList::filter),
                     KeepAmounts.CODEC.optionalFieldOf("keep", KeepAmounts.NONE).forGetter(TransferList::keep))
             .apply(instance, TransferList::new));
+
+    public static final Codec<TransferList> CODEC = MAP_CODEC.codec();
 
     public static final StreamCodec<RegistryFriendlyByteBuf, TransferList> STREAM_CODEC = StreamCodec.composite(
             FilterSlots.STREAM_CODEC, TransferList::filter,

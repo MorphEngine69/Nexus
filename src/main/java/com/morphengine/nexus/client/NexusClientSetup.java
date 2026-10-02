@@ -7,6 +7,9 @@ import com.morphengine.nexus.client.screen.AssemblerScreen;
 import com.morphengine.nexus.client.screen.CoalGeneratorScreen;
 import com.morphengine.nexus.client.screen.CraftingMonitorScreen;
 import com.morphengine.nexus.client.screen.EnergyCellScreen;
+import com.morphengine.nexus.client.screen.NetworkReceiverScreen;
+import com.morphengine.nexus.client.screen.NetworkTransmitterScreen;
+import com.morphengine.nexus.client.screen.NexusLinkScreen;
 import com.morphengine.nexus.client.screen.NexusScreen;
 import com.morphengine.nexus.client.screen.StorageVaultScreen;
 import com.morphengine.nexus.client.screen.TerminalScreen;
@@ -43,6 +46,12 @@ public final class NexusClientSetup {
         event.register(NexusMenuTypes.ASSEMBLER.get(), AssemblerScreen::new);
         event.register(NexusMenuTypes.CRAFTING_MONITOR.get(), CraftingMonitorScreen::new);
         event.register(NexusMenuTypes.BLUEPRINT_TERMINAL.get(), TerminalScreen<BlueprintTerminalMenu>::new);
+        event.register(NexusMenuTypes.NETWORK_TRANSMITTER.get(), NetworkTransmitterScreen::new);
+        event.register(NexusMenuTypes.NETWORK_RECEIVER.get(), NetworkReceiverScreen::new);
+        event.register(NexusMenuTypes.NEXUS_LINK.get(), NexusLinkScreen::new);
+        event.register(NexusMenuTypes.PORTABLE_TERMINAL.get(), TerminalScreen<TerminalMenu>::new);
+        event.register(NexusMenuTypes.PORTABLE_CRAFTING_TERMINAL.get(), TerminalScreen<CraftingTerminalMenu>::new);
+        event.register(NexusMenuTypes.PORTABLE_BLUEPRINT_TERMINAL.get(), TerminalScreen<BlueprintTerminalMenu>::new);
     }
 
     @SubscribeEvent

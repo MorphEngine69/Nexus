@@ -89,6 +89,15 @@ public final class AutocraftingComponent implements NetworkComponent, InsertInte
     }
 
     /**
+     * @param storage the network's storage, read as it stands
+     * @return the plan for the most of {@code resource}, up to {@code amount},
+     *         that can start; see {@link CraftingPlanner#planLargest}
+     */
+    public CraftingPlan planLargest(final ResourceKey resource, final long amount, final StorageView storage) {
+        return new CraftingPlanner(registry, storage).planLargest(resource, amount);
+    }
+
+    /**
      * Starts {@code plan} as a task kept by the host whose blueprint gives
      * the resource asked for.
      *

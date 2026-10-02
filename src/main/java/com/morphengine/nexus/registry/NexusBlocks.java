@@ -11,6 +11,8 @@ import com.morphengine.nexus.block.NexusBlock;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TerminalBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
+import com.morphengine.nexus.block.WirelessBlock;
+import com.morphengine.nexus.block.WirelessKind;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.transfer.TransferKind;
 import net.minecraft.world.item.DyeColor;
@@ -67,6 +69,16 @@ public final class NexusBlocks {
             properties -> new TransferDeviceBlock(TransferKind.PUSHER, properties),
             NexusBlocks::device);
 
+    public static final DeferredBlock<TransferDeviceBlock> PLACER = BLOCKS.registerBlock(
+            "placer",
+            properties -> new TransferDeviceBlock(TransferKind.PLACER, properties),
+            NexusBlocks::device);
+
+    public static final DeferredBlock<TransferDeviceBlock> REMOVER = BLOCKS.registerBlock(
+            "remover",
+            properties -> new TransferDeviceBlock(TransferKind.REMOVER, properties),
+            NexusBlocks::device);
+
     public static final DeferredBlock<AssemblerBlock> ASSEMBLER = BLOCKS.registerBlock(
             "assembler",
             AssemblerBlock::new,
@@ -80,6 +92,21 @@ public final class NexusBlocks {
     public static final DeferredBlock<TerminalBlock> BLUEPRINT_TERMINAL = BLOCKS.registerBlock(
             "blueprint_terminal",
             properties -> new TerminalBlock(TerminalKind.BLUEPRINT_TERMINAL, properties),
+            NexusBlocks::device);
+
+    public static final DeferredBlock<WirelessBlock> NETWORK_TRANSMITTER = BLOCKS.registerBlock(
+            "network_transmitter",
+            properties -> new WirelessBlock(WirelessKind.TRANSMITTER, properties),
+            NexusBlocks::device);
+
+    public static final DeferredBlock<WirelessBlock> NETWORK_RECEIVER = BLOCKS.registerBlock(
+            "network_receiver",
+            properties -> new WirelessBlock(WirelessKind.RECEIVER, properties),
+            NexusBlocks::device);
+
+    public static final DeferredBlock<WirelessBlock> NEXUS_LINK = BLOCKS.registerBlock(
+            "nexus_link",
+            properties -> new WirelessBlock(WirelessKind.LINK, properties),
             NexusBlocks::device);
 
     public static final Map<DyeColor, DeferredBlock<CableBlock>> CABLES = registerCables();

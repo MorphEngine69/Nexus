@@ -27,10 +27,19 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * An Energy Cell: an FE buffer that joins the energy pool of its network at
+ * its own priority, by default {@value #DEFAULT_PRIORITY}, above the Storage
+ * Vaults at theirs, so it fills before the energy cells of the storage and is
+ * drained after them.
+ */
 public final class EnergyCellBlockEntity extends BlockEntity
         implements EnergyContributor, NetworkMember, MenuHost, Renamable {
 
+    public static final int DEFAULT_PRIORITY = 10;
+
     private static final String TAG_ENERGY = "energy";
+    private static final String TAG_PRIORITY = "priority";
     private static final int CHARGE_CHECK_INTERVAL_TICKS = 20;
 
     private final SimpleEnergyBuffer buffer;
@@ -40,6 +49,7 @@ public final class EnergyCellBlockEntity extends BlockEntity
     private final DeviceName name = new DeviceName();
     private long insertedAtLastCheck;
     private long extractedAtLastCheck;
+    private int priority = DEFAULT_PRIORITY;
 
     public EnergyCellBlockEntity(final BlockPos pos, final BlockState state) {
         super(NexusBlockEntityTypes.ENERGY_CELL.get(), pos, state);
@@ -82,6 +92,29 @@ public final class EnergyCellBlockEntity extends BlockEntity
     @Override
     public EnergyBuffer energyBuffer() {
         return buffer;
+    }
+
+    @Override
+    public int energyPriority() {
+        return priority;
+    }
+
+    /**
+     * Moves the cell to another place in the pool of its network.
+     *
+     * @param newPriority clamped to the {@linkplain DevicePriority range of a priority}
+     */
+    public void setEnergyPriority(final int newPriority) {
+        final int clamped = DevicePriority.clamp(newPriority);
+        if (clamped == priority) {
+            return;
+        }
+        priority = clamped;
+        setChanged();
+        final NetworkController controller = network.controller();
+        if (controller != null) {
+            controller.invalidateNetwork();
+        }
     }
 
     /**
@@ -144,6 +177,7 @@ public final class EnergyCellBlockEntity extends BlockEntity
     protected void saveAdditional(final ValueOutput output) {
         super.saveAdditional(output);
         output.putLong(TAG_ENERGY, buffer.stored());
+        output.putInt(TAG_PRIORITY, priority);
         name.save(output);
     }
 
@@ -152,6 +186,7 @@ public final class EnergyCellBlockEntity extends BlockEntity
         super.loadAdditional(input);
         final long stored = Math.max(0, input.getLongOr(TAG_ENERGY, 0));
         buffer.restore(SimpleEnergyBuffer.Snapshot.storing(stored));
+        priority = DevicePriority.clamp(input.getIntOr(TAG_PRIORITY, DEFAULT_PRIORITY));
         name.load(input);
     }
 

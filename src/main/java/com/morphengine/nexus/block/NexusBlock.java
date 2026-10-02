@@ -2,10 +2,17 @@ package com.morphengine.nexus.block;
 
 import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
+import com.morphengine.nexus.block.entity.NexusNetworks;
+import com.morphengine.nexus.level.NetworkDirectory;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -59,6 +66,37 @@ public final class NexusBlock extends NetworkDeviceBlock {
         return level.isClientSide()
                 ? null
                 : createTickerHelper(type, NexusBlockEntityTypes.NEXUS.get(), NexusBlockEntity::serverTick);
+    }
+
+    /**
+     * Creative mode breaks a block without drops. A Nexus whose network has a
+     * name or a color of its own drops anyway, as a shulker box with contents
+     * does, so that the network survives the move.
+     */
+    @Override
+    public BlockState playerWillDestroy(
+            final Level level, final BlockPos pos, final BlockState state, final Player player) {
+        if (!level.isClientSide() && player.preventsBlockDrops()
+                && level.getBlockEntity(pos) instanceof NexusBlockEntity nexus
+                && NexusNetworks.isCustomized(nexus.network())) {
+            final ItemStack stack = new ItemStack(this);
+            stack.applyComponents(nexus.collectComponents());
+            final ItemEntity drop = new ItemEntity(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack);
+            drop.setDefaultPickUpDelay();
+            level.addFreshEntity(drop);
+        }
+        return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    /**
+     * A broken Nexus leaves the directory of networks; one whose chunk only
+     * unloads stays in it, so its network can still be found.
+     */
+    @Override
+    protected void affectNeighborsAfterRemoval(
+            final BlockState state, final ServerLevel level, final BlockPos pos, final boolean movedByPiston) {
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+        NetworkDirectory.of(level.getServer()).forgetAt(GlobalPos.of(level.dimension(), pos));
     }
 
     @Override

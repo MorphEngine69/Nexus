@@ -5,6 +5,7 @@ import com.morphengine.nexus.client.screen.AssemblerScreen;
 import com.morphengine.nexus.client.screen.TerminalScreen;
 import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import com.morphengine.nexus.client.screen.VaultCellScreen;
+import com.morphengine.nexus.registry.NexusMenuTypes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -36,8 +37,14 @@ public final class NexusJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeTransferHandlers(final IRecipeTransferRegistration registration) {
-        registration.addRecipeTransferHandler(new CraftingTerminalTransferHandler(), RecipeTypes.CRAFTING);
-        registration.addUniversalRecipeTransferHandler(new BlueprintTerminalTransferHandler());
+        registration.addRecipeTransferHandler(new CraftingTerminalTransferHandler(NexusMenuTypes.CRAFTING_TERMINAL),
+                RecipeTypes.CRAFTING);
+        registration.addRecipeTransferHandler(
+                new CraftingTerminalTransferHandler(NexusMenuTypes.PORTABLE_CRAFTING_TERMINAL), RecipeTypes.CRAFTING);
+        registration.addUniversalRecipeTransferHandler(
+                new BlueprintTerminalTransferHandler(NexusMenuTypes.BLUEPRINT_TERMINAL));
+        registration.addUniversalRecipeTransferHandler(
+                new BlueprintTerminalTransferHandler(NexusMenuTypes.PORTABLE_BLUEPRINT_TERMINAL));
     }
 
     @Override

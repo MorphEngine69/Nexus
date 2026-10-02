@@ -8,6 +8,7 @@ import com.morphengine.nexus.api.storage.CellSpec;
 import com.morphengine.nexus.block.EnergyCellTier;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
+import com.morphengine.nexus.block.entity.CoalGeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
@@ -33,6 +34,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -68,6 +70,8 @@ public final class EnergyGameTests {
     private static final BlockPos CABLE = VAULT.east();
     private static final BlockPos DEVICE = CABLE.above();
     private static final BlockPos TARGET = DEVICE.east();
+    /** What a Coal Generator makes a tick without upgrades. */
+    private static final long GENERATOR_RATE = 40;
     private static final TransferSettings ENERGY = TransferSettings.DEFAULT.withResource(TransferResource.ENERGY);
 
     private static final Map<String, Consumer<GameTestHelper>> TESTS = Map.ofEntries(
@@ -78,7 +82,10 @@ public final class EnergyGameTests {
             Map.entry("nexus_fills_energy_vault_cell_after_energy_cells", EnergyGameTests::nexusFillsVaultCell),
             Map.entry("aborted_nexus_insert_changes_nothing", EnergyGameTests::abortedNexusInsert),
             Map.entry("puller_set_to_items_leaves_energy", EnergyGameTests::pullerSetToItemsLeavesEnergy),
-            Map.entry("device_saved_without_resource_takes_its_filters", EnergyGameTests::savedSettingsInferResource));
+            Map.entry("device_saved_without_resource_takes_its_filters", EnergyGameTests::savedSettingsInferResource),
+            Map.entry("network_drains_storage_before_energy_cells", EnergyGameTests::drainsStorageFirst),
+            Map.entry("energy_cell_below_vault_fills_after_it", EnergyGameTests::lowPriorityCellFillsLast),
+            Map.entry("speed_upgrades_make_generator_burn_faster", EnergyGameTests::fasterGenerator));
 
     private EnergyGameTests() {
     }
@@ -181,6 +188,46 @@ public final class EnergyGameTests {
                         "FE in the Energy Vault Cell"))
                 .thenExecute(() -> assertAmount(helper, resourcesEnergy(helper), 6L * CHARGE,
                         "FE the network lists"))
+                .thenSucceed();
+    }
+
+    private static void drainsStorageFirst(final GameTestHelper helper) {
+        buildNetwork(helper);
+        vault(helper).cells().setItem(0, energyVaultCell());
+
+        helper.startSequence()
+                .thenWaitUntil(() -> assertVaultCellInPool(helper))
+                .thenExecute(() -> nexus(helper, NEXUS).energy().insert(5 * CHARGE, Action.EXECUTE))
+                .thenExecute(() -> nexus(helper, NEXUS).energy().extract(3 * CHARGE, Action.EXECUTE))
+                .thenExecute(() -> assertAmount(helper, stored(helper, CELL), 2L * CHARGE, "FE in the Energy Cell"))
+                .thenExecute(() -> assertAmount(helper, storageEnergy(helper), CHARGE,
+                        "FE in the Energy Vault Cell"))
+                .thenSucceed();
+    }
+
+    private static void lowPriorityCellFillsLast(final GameTestHelper helper) {
+        buildNetwork(helper);
+        vault(helper).cells().setItem(0, energyVaultCell());
+        helper.getBlockEntity(CELL, EnergyCellBlockEntity.class).setEnergyPriority(-1);
+
+        helper.startSequence()
+                .thenWaitUntil(() -> assertVaultCellInPool(helper))
+                .thenExecute(() -> nexus(helper, NEXUS).energy().insert(5 * CHARGE, Action.EXECUTE))
+                .thenExecute(() -> assertAmount(helper, stored(helper, CELL), CHARGE, "FE in the Energy Cell"))
+                .thenExecute(() -> assertAmount(helper, storageEnergy(helper), 5L * CHARGE,
+                        "FE in the Energy Vault Cell"))
+                .thenSucceed();
+    }
+
+    private static void fasterGenerator(final GameTestHelper helper) {
+        place(helper, NEXUS, NexusBlocks.COAL_GENERATOR.get().defaultBlockState());
+        final CoalGeneratorBlockEntity generator = helper.getBlockEntity(NEXUS, CoalGeneratorBlockEntity.class);
+        generator.fuel().setItem(0, new ItemStack(Items.COAL));
+        generator.upgrades().setItem(0, new ItemStack(NexusItems.SPEED_UPGRADE.get(), 2));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> assertAmount(helper, generator.view().production(), 3 * GENERATOR_RATE,
+                        "FE the generator makes a tick"))
                 .thenSucceed();
     }
 

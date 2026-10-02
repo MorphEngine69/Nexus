@@ -2,11 +2,11 @@ package com.morphengine.nexus.block.entity;
 
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.resource.ResourceAmount;
-import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.transport.RedstoneMode;
 import com.morphengine.nexus.api.transport.TransferQuota;
 import com.morphengine.nexus.block.TransferDeviceBlock;
 import com.morphengine.nexus.level.AutocraftingComponent;
+import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NeighbourCapabilities;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
@@ -17,16 +17,19 @@ import com.morphengine.nexus.resource.NexusResources;
 import com.morphengine.nexus.storage.NetworkStorage;
 import com.morphengine.nexus.storage.SingleTypeStorage;
 import com.morphengine.nexus.transfer.DeliveryMode;
+import com.morphengine.nexus.transfer.DeviceOperation;
 import com.morphengine.nexus.transfer.TransferKind;
 import com.morphengine.nexus.transfer.TransferSettings;
+import com.morphengine.nexus.transfer.Workplace;
 import com.morphengine.nexus.transport.RedstoneGate;
 import com.morphengine.nexus.transport.Shortfalls;
 import com.morphengine.nexus.transport.StockEntry;
 import com.morphengine.nexus.transport.TransferRate;
-import com.morphengine.nexus.transport.TransferTask;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
+import com.morphengine.nexus.world.FrontSpace;
+import com.morphengine.nexus.world.HarvestTool;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -46,19 +49,20 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.SplittableRandom;
 import java.util.random.RandomGenerator;
 
 /**
- * A Puller or Pusher. Once every few ticks, while its network has energy and
- * its redstone mode lets it, it moves one resource between the network and the
- * block its face touches, as that block offers it on that face. It moves only
- * the kind of resource it is set to: items, fluids, or FE between the block and
- * the network's energy pool. Speed Upgrades make it work more often, a Stack
- * Upgrade move more at once, a Regulator Upgrade lets it keep stock, and
- * Capacity Upgrades widen its filter; see {@link TransferRate}. Once a second
- * it lights or darkens its cable arms with the network's energy. It keeps its
+ * A Puller, Pusher, Placer or Remover. Once every few ticks, while its network
+ * has energy and its redstone mode lets it, it runs one operation of its
+ * {@link TransferKind}: moves one resource between the network and the block
+ * its face touches, as that block offers it on that face, or places, drops,
+ * breaks or picks up in the space its face touches. It moves only the kind of
+ * resource it is set to. Speed Upgrades make it work more often, a Stack
+ * Upgrade move more at once, a Regulator Upgrade lets it keep stock, Capacity
+ * Upgrades widen its filter, and Fortune and Silk Touch Upgrades go on the
+ * tool a Remover breaks with; see {@link TransferRate}. Once a second it
+ * lights or darkens its cable arms with the network's energy. It keeps its
  * settings and its upgrades.
  */
 public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
@@ -66,16 +70,8 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     public static final int FILTER_SLOTS = 9;
     /** A Capacity Upgrade adds this many filter slots; placeholder balance. */
     public static final int FILTER_SLOTS_PER_CAPACITY_UPGRADE = 9;
+    /** Upgrade slots; which upgrades go in them is up to the {@linkplain TransferKind#upgradeLimits kind}. */
     public static final int UPGRADE_SLOTS = 4;
-    /**
-     * Placeholder balance: up to four Speed Upgrades share one slot, Stack and
-     * Regulator take one slot each, and up to three Capacity Upgrades share the
-     * last slot, for {@value #FILTER_SLOTS} + 3 &times; {@value
-     * #FILTER_SLOTS_PER_CAPACITY_UPGRADE} = 36 filter slots at most.
-     */
-    public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(Map.of(
-            UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.REGULATOR, 1, UpgradeTypes.CAPACITY, 3,
-            UpgradeTypes.AUTOCRAFTING, 1));
     /** A Pusher with an Autocrafting Upgrade orders a craft at most once per so many operations. */
     private static final int OPERATIONS_PER_ORDER = 10;
     private static final int POWER_CHECK_INTERVAL_TICKS = 20;
@@ -83,9 +79,9 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     private static final String TAG_SETTINGS = "settings";
     private static final String TAG_SIGNAL = "redstone_signal";
     private final TransferKind kind;
-    private final UpgradeContainer upgrades =
-            new UpgradeContainer(UPGRADE_SLOTS, UPGRADE_LIMITS, this::upgradesChanged);
+    private final UpgradeContainer upgrades;
     private TransferRate rate = TransferRate.BASE;
+    private HarvestTool tool = HarvestTool.PLAIN;
     private boolean regulated;
     private boolean autocrafts;
     private int operationsUntilOrder;
@@ -96,13 +92,14 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     private final RandomGenerator random = new SplittableRandom();
     private final NeighbourCapabilities neighbour = new NeighbourCapabilities();
     private TransferSettings settings = TransferSettings.DEFAULT;
-    private @Nullable TransferTask task;
+    private @Nullable DeviceOperation operation;
     private boolean signalKnown;
     private int cooldown;
 
     public TransferDeviceBlockEntity(final BlockPos pos, final BlockState state) {
         super(NexusBlockEntityTypes.TRANSFER_DEVICE.get(), pos, state);
         this.kind = kindOf(state);
+        this.upgrades = new UpgradeContainer(UPGRADE_SLOTS, kind.upgradeLimits(), this::upgradesChanged);
     }
 
     public static void serverTick(
@@ -150,7 +147,7 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
 
     private void applySettings(final TransferSettings newSettings) {
         settings = newSettings;
-        task = null;
+        operation = null;
         if (gate.mode() != newSettings.redstone()) {
             gate.changeMode(newSettings.redstone());
         }
@@ -172,18 +169,20 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
 
     private void upgradesChanged() {
         readUpgrades();
+        ChunkAnchors.follow(this, upgrades);
         setChanged();
     }
 
     /**
      * Takes in the upgrades held now: how often and how much the device works,
-     * and whether it may keep stock.
+     * whether it may keep stock and order crafts, and the tool it breaks with.
      */
     private void readUpgrades() {
         rate = TransferRate.of(upgrades.count(UpgradeTypes.SPEED), upgrades.count(UpgradeTypes.STACK));
         regulated = upgrades.count(UpgradeTypes.REGULATOR) > 0;
         autocrafts = upgrades.count(UpgradeTypes.AUTOCRAFTING) > 0;
-        task = null;
+        tool = new HarvestTool(upgrades.count(UpgradeTypes.FORTUNE), upgrades.count(UpgradeTypes.SILK_TOUCH) > 0);
+        operation = null;
     }
 
     /**
@@ -204,14 +203,11 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
             return;
         }
         final SideStorage beside = besideStorage(level, pos, face);
-        if (!beside.isPresent()) {
-            return;
-        }
         final SingleTypeStorage network =
                 new SingleTypeStorage(controller.resources(), settings.resource().resourceType());
-        task().runOnce(kind.route(beside, network, Actor.NOBODY));
+        operation().run(new Workplace(network, beside, new FrontSpace(level, pos, face, tool)));
         gate.operated();
-        if (autocrafts && kind == TransferKind.PUSHER && --operationsUntilOrder <= 0) {
+        if (autocrafts && kind.ordersCrafts() && --operationsUntilOrder <= 0) {
             operationsUntilOrder = OPERATIONS_PER_ORDER;
             orderCraft(controller, beside);
         }
@@ -220,6 +216,8 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     /**
      * Orders a craft of the first resource the whitelist lists that the
      * network lacks and can craft, unless one is being crafted already.
+     *
+     * @param beside where the device delivers to, for the amounts it keeps there
      */
     private void orderCraft(final NetworkController controller, final SideStorage beside) {
         final TransferSettings effective = effectiveSettings();
@@ -260,11 +258,11 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
      * Upgrades unlock now: entries left over from a removed one stay saved but
      * take no part until it is added back.
      */
-    private TransferTask task() {
-        TransferTask current = task;
+    private DeviceOperation operation() {
+        DeviceOperation current = operation;
         if (current == null) {
-            current = kind.taskFor(effectiveSettings(), quota, random);
-            task = current;
+            current = kind.operationFor(effectiveSettings(), quota, random);
+            operation = current;
         }
         return current;
     }
@@ -288,6 +286,7 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
+        ChunkAnchors.release(this);
         if (level != null) {
             Containers.dropContents(level, pos, upgrades);
         }

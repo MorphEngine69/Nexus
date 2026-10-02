@@ -1,7 +1,9 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.menu.FilterMenu;
 import com.morphengine.nexus.networking.FilterSlotPayload;
+import com.morphengine.nexus.networking.FilterTagPayload;
 import com.morphengine.nexus.resource.NexusResource;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -11,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +22,11 @@ import java.util.List;
  * The ghost slots of a filter in a panel, in rows. A slot clicked with an item,
  * with either button, lists what the item stands for in this filter: the fluid
  * in a filled container where fluids are listed, or with Shift the item
- * itself. A click with an empty cursor clears the slot. Nothing is taken or
- * given. A filter that lists nothing is fixed: its empty slots show locked and
- * no click or drag changes it.
+ * itself. A click with an empty cursor clears the slot; where the filter
+ * lists tags, a middle or Control click moves a filled slot on to the next tag
+ * of its resource, with Shift to the previous one. Nothing is taken or given.
+ * A filter that lists nothing is fixed: its empty slots show locked and no
+ * click or drag changes it.
  *
  * @param <M> the panel's menu
  */
@@ -54,14 +59,17 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
         final boolean locked = isLocked();
         for (int index = 0; index < menu.filterSlotCount(); index++) {
             final PanelBounds bounds = slot(index);
-            final NexusResource resource = menu.filter().resourceAt(index);
-            if (resource == null && locked) {
+            final FilterSlots.Entry entry = menu.filter().entryAt(index);
+            if (entry == null && locked) {
                 style.drawLockedSlot(graphics, bounds.left(), bounds.top());
                 continue;
             }
             style.drawSlot(graphics, bounds.left(), bounds.top());
-            if (resource != null) {
-                ResourceRenderers.icon(resource).draw(graphics, bounds.left() + 1, bounds.top() + 1);
+            if (entry != null) {
+                ResourceRenderers.icon(entry.resource()).draw(graphics, bounds.left() + 1, bounds.top() + 1);
+                if (entry.tag() != null) {
+                    style.drawTagMark(graphics, bounds.left(), bounds.top());
+                }
             }
             if (!locked && bounds.contains(mouseX, mouseY)) {
                 graphics.fill(bounds.left() + 1, bounds.top() + 1, bounds.left() + 1 + ICON_SIZE,
@@ -103,7 +111,7 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
         }
         final ItemStack carried = menu.getCarried();
         if (carried.isEmpty()) {
-            send(index, null);
+            clickEmpty(event, index);
             return true;
         }
         final NexusResource resource = event.hasShiftDown()
@@ -112,6 +120,15 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
             send(index, resource);
         }
         return true;
+    }
+
+    private void clickEmpty(final MouseButtonEvent event, final int index) {
+        if (!asksForNextTag(event) || !menu.listsTags()) {
+            send(index, null);
+        } else if (menu.filter().resourceAt(index) != null) {
+            ClientPacketDistributor.sendToServer(
+                    new FilterTagPayload(menu.containerId, index, event.hasShiftDown() ? -1 : 1));
+        }
     }
 
     /**
@@ -134,6 +151,14 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
 
     @Nullable NexusResource entryOf(final FluidStack fluid) {
         return menu.filterKinds().fluidOf(fluid);
+    }
+
+    /**
+     * @return whether a click with an empty cursor asks for another tag of the
+     *         slot's resource rather than to clear it
+     */
+    static boolean asksForNextTag(final MouseButtonEvent event) {
+        return event.button() == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || event.hasControlDown();
     }
 
     private boolean isLocked() {

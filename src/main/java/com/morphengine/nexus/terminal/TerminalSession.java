@@ -4,8 +4,8 @@ import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.api.storage.StorageListener;
-import com.morphengine.nexus.block.entity.TerminalBlockEntity;
 import com.morphengine.nexus.level.AutocraftingComponent;
+import com.morphengine.nexus.menu.TerminalHost;
 import com.morphengine.nexus.networking.TerminalContentsPayload;
 import com.morphengine.nexus.networking.TerminalCraftablesPayload;
 import com.morphengine.nexus.resource.EnergyKey;
@@ -38,7 +38,7 @@ public final class TerminalSession implements StorageListener {
 
     private final ServerPlayer viewer;
     private final int containerId;
-    private final TerminalBlockEntity terminal;
+    private final TerminalHost terminal;
     private final Map<NexusResource, Long> pending = new LinkedHashMap<>();
     private @Nullable NetworkStorage watched;
     private @Nullable TerminalStatus sentStatus;
@@ -47,7 +47,7 @@ public final class TerminalSession implements StorageListener {
     private @Nullable AutocraftingComponent sentAutocrafting;
     private int ticks;
 
-    public TerminalSession(final ServerPlayer viewer, final int containerId, final TerminalBlockEntity terminal) {
+    public TerminalSession(final ServerPlayer viewer, final int containerId, final TerminalHost terminal) {
         this.viewer = viewer;
         this.containerId = containerId;
         this.terminal = terminal;

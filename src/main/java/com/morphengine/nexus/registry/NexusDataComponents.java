@@ -1,13 +1,22 @@
 package com.morphengine.nexus.registry;
 
+import com.mojang.serialization.Codec;
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.blueprint.EncodedBlueprint;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.item.CellContents;
+import com.morphengine.nexus.terminal.TerminalKind;
+import com.morphengine.nexus.terminal.TerminalSettings;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public final class NexusDataComponents {
@@ -30,6 +39,48 @@ public final class NexusDataComponents {
             COMPONENTS.registerComponentType("encoded_blueprint",
                     builder -> builder.persistent(EncodedBlueprint.CODEC)
                             .networkSynchronized(EncodedBlueprint.STREAM_CODEC));
+
+    /** The Network Receiver a Network Card is linked to. */
+    public static final Supplier<DataComponentType<GlobalPos>> LINKED_RECEIVER = COMPONENTS.registerComponentType(
+            "linked_receiver",
+            builder -> builder.persistent(GlobalPos.CODEC).networkSynchronized(GlobalPos.STREAM_CODEC));
+
+    /**
+     * Where the Nexus a Nexus Terminal reaches the network of stood when last
+     * seen; a terminal bound before networks had ids knows nothing more.
+     */
+    public static final Supplier<DataComponentType<GlobalPos>> BOUND_NEXUS = COMPONENTS.registerComponentType(
+            "bound_nexus",
+            builder -> builder.persistent(GlobalPos.CODEC).networkSynchronized(GlobalPos.STREAM_CODEC));
+
+    /** The id of the network a Nexus Terminal reaches, wherever its Nexus stands. */
+    public static final Supplier<DataComponentType<UUID>> BOUND_NETWORK = COMPONENTS.registerComponentType(
+            "bound_network",
+            builder -> builder.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC));
+
+    /** The id of the network of a broken Nexus, which it keeps when placed again. */
+    public static final Supplier<DataComponentType<UUID>> NETWORK_ID = COMPONENTS.registerComponentType(
+            "network_id",
+            builder -> builder.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC));
+
+    /** The color of the network of a broken Nexus, which it keeps when placed again. */
+    public static final Supplier<DataComponentType<NetworkColor>> NETWORK_COLOR = COMPONENTS.registerComponentType(
+            "network_color",
+            builder -> builder.persistent(Codec.intRange(0, NetworkColor.MAX_RGB)
+                            .xmap(NetworkColor::new, NetworkColor::rgb))
+                    .networkSynchronized(ByteBufCodecs.INT.map(NetworkColor::new, NetworkColor::rgb)));
+
+    /** What a Nexus Terminal works as: a terminal, a crafting terminal or a blueprint terminal. */
+    public static final Supplier<DataComponentType<TerminalKind>> TERMINAL_MODE = COMPONENTS.registerComponentType(
+            "terminal_mode",
+            builder -> builder.persistent(TerminalKind.CODEC)
+                    .networkSynchronized(NeoForgeStreamCodecs.enumCodec(TerminalKind.class)));
+
+    /** How the player of a Nexus Terminal likes its list sorted and sized. */
+    public static final Supplier<DataComponentType<TerminalSettings>> TERMINAL_SETTINGS =
+            COMPONENTS.registerComponentType("terminal_settings",
+                    builder -> builder.persistent(TerminalSettings.CODEC)
+                            .networkSynchronized(TerminalSettings.STREAM_CODEC));
 
     private NexusDataComponents() {
     }

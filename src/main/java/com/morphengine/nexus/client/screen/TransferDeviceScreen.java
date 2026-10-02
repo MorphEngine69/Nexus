@@ -29,14 +29,15 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Puller or Pusher panel, tinted with its network's color: the network, the
- * filter, the upgrade slots right of it and the inventory, with the mode
+ * Panel of an attached device, tinted with its network's color: the network,
+ * the filter, the upgrade slots right of it and the inventory, with the mode
  * buttons in a column left of the panel. The first button picks what the
  * device moves; for energy the filter is locked and its mode button hidden.
- * The order of delivery shows only on a Pusher with a whitelist, and not for
- * energy, a single resource. The amount shows with a Regulator Upgrade and a
- * whitelist; when the device keeps stock, each filter slot shows its amount,
- * changed with the mouse wheel.
+ * A Placer or Remover set to items chooses between blocks and loose items.
+ * The order of delivery shows only on a Pusher or Placer with a whitelist,
+ * and not for energy, a single resource. The amount shows with a Regulator
+ * Upgrade and a whitelist; when the device keeps stock, each filter slot
+ * shows its amount, changed with the mouse wheel.
  */
 public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> implements FilterScreen {
 
@@ -114,6 +115,9 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
     private void drawKeepAmounts(final GuiGraphicsExtractor graphics) {
         final TransferSettings settings = getMenu().settings();
         for (FilterSlots.Entry entry : settings.filter().entries()) {
+            if (entry.tag() != null) {
+                continue;
+            }
             final PanelBounds slot = filterGrid.slot(entry.slot());
             final long amount = settings.keepAmount(entry.slot(), entry.resource());
             SlotAmounts.draw(graphics, font, entry.resource().type().unit().compact(amount),
@@ -126,9 +130,8 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
         final List<Control> controls = controls();
         final SideButtons buttons = sideButtons();
         final int hovered = buttons.buttonAt(mouseX, mouseY);
-        final TransferSettings settings = getMenu().settings();
         for (int index = 0; index < controls.size(); index++) {
-            buttons.draw(graphics, style, index, controls.get(index).icon(settings), index == hovered);
+            buttons.draw(graphics, style, index, controls.get(index).icon(getMenu()), index == hovered);
         }
     }
 
@@ -147,15 +150,25 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
             return controls().get(button).tooltip(getMenu());
         }
         final int slot = filterGrid.slotAt(mouseX, mouseY);
-        final NexusResource resource = filterGrid.resourceAt(mouseX, mouseY);
-        if (resource == null || !getMenu().getCarried().isEmpty()) {
+        final FilterSlots.Entry entry = slot < 0 ? null : getMenu().filter().entryAt(slot);
+        if (entry == null || !getMenu().getCarried().isEmpty()) {
             return List.of();
         }
+        final NexusResource resource = entry.resource();
         final List<Component> lines = new ArrayList<>(ResourceRenderers.tooltip(resource));
-        if (getMenu().showsKeepAmounts()) {
+        if (entry.tag() != null) {
+            lines.add(Component.translatable("gui.nexus.filter.tag", "#" + entry.tag())
+                    .withStyle(ChatFormatting.AQUA));
+            if (getMenu().showsKeepAmounts()) {
+                lines.add(Component.translatable("gui.nexus.filter.tag_ignored").withStyle(ChatFormatting.RED));
+            }
+        } else if (getMenu().showsKeepAmounts()) {
             final AmountUnit unit = resource.type().unit();
             lines.add(Component.translatable("gui.nexus.transfer.keep_amount." + getMenu().kind().getSerializedName(),
                     unit.quantity(getMenu().settings().keepAmount(slot, resource))).withStyle(ChatFormatting.GRAY));
+        }
+        if (getMenu().listsTags() && !resource.tags().isEmpty()) {
+            lines.add(Component.translatable("gui.nexus.filter.tag_hint").withStyle(ChatFormatting.DARK_GRAY));
         }
         return lines;
     }
@@ -186,10 +199,11 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
     @Override
     public boolean mouseScrolled(final double x, final double y, final double scrollX, final double scrollY) {
         final int slot = filterGrid.slotAt(x, y);
-        final NexusResource resource = slot < 0 ? null : getMenu().filter().resourceAt(slot);
-        if (resource == null || !getMenu().showsKeepAmounts() || scrollY == 0) {
+        final FilterSlots.Entry entry = slot < 0 ? null : getMenu().filter().entryAt(slot);
+        if (entry == null || entry.tag() != null || !getMenu().showsKeepAmounts() || scrollY == 0) {
             return super.mouseScrolled(x, y, scrollX, scrollY);
         }
+        final NexusResource resource = entry.resource();
         final long steps = minecraft != null && minecraft.hasShiftDown() ? SHIFT_STEP : 1;
         final long step = steps * resource.type().unit().step() * (long) Math.signum(scrollY);
         final long current = getMenu().settings().keepAmount(slot, resource);
@@ -222,6 +236,7 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
      */
     private enum Control {
         RESOURCE(TransferDeviceMenu.BUTTON_RESOURCE),
+        WORLD_MODE(TransferDeviceMenu.BUTTON_WORLD_MODE),
         FILTER_MODE(-1),
         MATCH_MODE(TransferDeviceMenu.BUTTON_MATCH_MODE),
         REDSTONE(TransferDeviceMenu.BUTTON_REDSTONE),
@@ -243,6 +258,9 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
         static List<Control> shownBy(final TransferDeviceMenu menu) {
             final List<Control> shown = new ArrayList<>(values().length);
             shown.add(RESOURCE);
+            if (menu.showsWorldMode()) {
+                shown.add(WORLD_MODE);
+            }
             if (menu.filterKinds().listsAnything()) {
                 shown.add(FILTER_MODE);
                 shown.add(MATCH_MODE);
@@ -265,7 +283,8 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
          */
         List<Component> tooltip(final TransferDeviceMenu menu) {
             final String prefix = this == FILTER_MODE ? "gui.nexus.filter" : "gui.nexus.transfer." + key;
-            final String choice = (this == DELIVERY ? prefix + "." + menu.kind().getSerializedName() : prefix)
+            final boolean perKind = this == DELIVERY || this == WORLD_MODE;
+            final String choice = (perKind ? prefix + "." + menu.kind().getSerializedName() : prefix)
                     + "." + choiceName(menu.settings());
             final List<Component> lines = new ArrayList<>(3);
             lines.add(Component.translatable(prefix));
@@ -280,14 +299,19 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
          * @return the button's icon; the resource shares the icons of the
          *         terminal's button that picks the type shown
          */
-        Identifier icon(final TransferSettings settings) {
-            final String path = this == RESOURCE ? "terminal/type_" : "transfer/" + key + "_";
-            return Identifier.fromNamespaceAndPath(Nexus.MOD_ID, path + choiceName(settings));
+        Identifier icon(final TransferDeviceMenu menu) {
+            final String path = switch (this) {
+                case RESOURCE -> "terminal/type_";
+                case WORLD_MODE -> "transfer/" + key + "_" + menu.kind().getSerializedName() + "_";
+                default -> "transfer/" + key + "_";
+            };
+            return Identifier.fromNamespaceAndPath(Nexus.MOD_ID, path + choiceName(menu.settings()));
         }
 
         private String choiceName(final TransferSettings settings) {
             return switch (this) {
                 case RESOURCE -> settings.resource().getSerializedName();
+                case WORLD_MODE -> settings.worldMode().getSerializedName();
                 case FILTER_MODE -> settings.filter().mode() == FilterMode.ALLOW ? "whitelist" : "blacklist";
                 case MATCH_MODE -> settings.matchMode().name().toLowerCase(Locale.ROOT);
                 case REDSTONE -> settings.redstone().name().toLowerCase(Locale.ROOT);

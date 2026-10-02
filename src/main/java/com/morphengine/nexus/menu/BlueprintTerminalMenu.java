@@ -3,22 +3,19 @@ package com.morphengine.nexus.menu;
 import com.morphengine.nexus.api.automation.BlueprintKind;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.block.entity.BlueprintEncoder;
-import com.morphengine.nexus.block.entity.TerminalBlockEntity;
 import com.morphengine.nexus.blueprint.BlueprintDraft;
 import com.morphengine.nexus.item.BlueprintItem;
 import com.morphengine.nexus.networking.BlueprintDraftPayload;
-import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.resource.NexusResource;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalLayout;
-import com.morphengine.nexus.terminal.TerminalSettings;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -58,13 +55,15 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
     private List<ResourceAmount> craftingOutputs = List.of();
     private @Nullable BlueprintDraft sentDraft;
 
+    /**
+     * @param type the menu type of a terminal block or of a Nexus Terminal
+     */
     public BlueprintTerminalMenu(
-            final int containerId, final Inventory inventory, final BlockPos pos, final TerminalSettings settings) {
-        super(NexusMenuTypes.BLUEPRINT_TERMINAL.get(), containerId);
-        this.terminal = new TerminalMenuState(inventory, pos, TerminalKind.BLUEPRINT_TERMINAL, settings, containerId);
-        final TerminalBlockEntity terminalEntity = terminal.binding().blockEntity();
-        this.encoder = inventory.player instanceof ServerPlayer && terminalEntity != null
-                ? terminalEntity.encoder() : null;
+            final MenuType<?> type, final int containerId, final Inventory inventory, final TerminalOpening opening) {
+        super(type, containerId);
+        this.terminal = new TerminalMenuState(opening, TerminalKind.BLUEPRINT_TERMINAL, containerId);
+        final TerminalHost host = terminal.binding().host();
+        this.encoder = inventory.player instanceof ServerPlayer && host != null ? host.encoder() : null;
         final Container blueprints = encoder != null ? encoder.blueprints() : new SimpleContainer(ENCODER_SLOTS);
         addSlot(new EncoderSlot(blueprints, BlueprintEncoder.BLANK_SLOT, encoder));
         addSlot(new EncoderSlot(blueprints, BlueprintEncoder.OUTPUT_SLOT, encoder));

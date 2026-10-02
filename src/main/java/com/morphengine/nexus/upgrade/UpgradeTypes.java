@@ -12,11 +12,12 @@ import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 
 /**
- * The registry of upgrade kinds and the kinds Nexus brings. Speed, Stack,
- * Regulator and Capacity work in Pullers and Pushers, Autocrafting in
- * Pushers, Speed in Assemblers too; the others wait for the devices of later
- * stages: Range for the wireless link, Fortune and Silk Touch for the
- * Remover. Other mods register more kinds into {@link #REGISTRY}.
+ * The registry of upgrade kinds and the kinds Nexus brings. Speed, Stack and
+ * Capacity work in Pullers, Pushers, Placers and Removers, Regulator in
+ * Pullers and Pushers, Autocrafting in Pushers and Placers, Fortune and Silk
+ * Touch in Removers, Range in Nexus Links, Speed in Assemblers and the Coal
+ * Generator too, and Chunk Loader, one at most, in every device that takes
+ * upgrades. Other mods register more kinds into {@link #REGISTRY}.
  */
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class UpgradeTypes {
@@ -37,13 +38,15 @@ public final class UpgradeTypes {
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> CAPACITY =
             TYPES.register("capacity", NexusUpgradeType::working);
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> RANGE =
-            TYPES.register("range", NexusUpgradeType::inDevelopment);
+            TYPES.register("range", NexusUpgradeType::working);
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> FORTUNE =
-            TYPES.register("fortune", NexusUpgradeType::inDevelopment);
+            TYPES.register("fortune", NexusUpgradeType::working);
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> SILK_TOUCH =
-            TYPES.register("silk_touch", NexusUpgradeType::inDevelopment);
+            TYPES.register("silk_touch", NexusUpgradeType::working);
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> AUTOCRAFTING =
             TYPES.register("autocrafting", NexusUpgradeType::working);
+    public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> CHUNK_LOADER =
+            TYPES.register("chunk_loader", NexusUpgradeType::working);
 
     private UpgradeTypes() {
     }

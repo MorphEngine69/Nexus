@@ -9,11 +9,15 @@ import com.morphengine.nexus.block.NexusStatus;
 import com.morphengine.nexus.level.NetworkComponent;
 import com.morphengine.nexus.level.NetworkComponentType;
 import com.morphengine.nexus.level.NetworkController;
+import com.morphengine.nexus.level.NetworkDirectory;
 import com.morphengine.nexus.level.NetworkState;
 import com.morphengine.nexus.menu.NexusMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
+import com.morphengine.nexus.registry.NexusDataComponents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
@@ -22,6 +26,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -33,19 +38,29 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
+import java.util.UUID;
+
+/**
+ * The Nexus: leads the network it is in. Its network keeps an id for good, so a
+ * Nexus Terminal still finds the network after it is renamed, and after the
+ * Nexus is broken and placed elsewhere: the dropped Nexus carries the id, name
+ * and color of its network.
+ */
 public final class NexusBlockEntity extends BlockEntity implements NetworkController, MenuHost, Renamable {
 
+    private static final String TAG_NETWORK_ID = "network_id";
     private static final String TAG_NETWORK_NAME = "network_name";
     private static final String TAG_NETWORK_COLOR = "network_color";
     private static final String TAG_ESTABLISHED_AT = "established_at";
-    private static final String DEFAULT_NETWORK_NAME = "Noticed Nexus";
     /** Not established yet: treated as the newest, so it never outranks a running Nexus. */
     private static final long NOT_ESTABLISHED = Long.MAX_VALUE;
 
     private final NetworkState networkState = new NetworkState(this);
     private final ClickGuard clickGuard = new ClickGuard();
-    private Network network = new Network(DEFAULT_NETWORK_NAME, NetworkColor.DEFAULT);
+    private Network network = NexusNetworks.createDefault();
     private long establishedAt = NOT_ESTABLISHED;
+    /** Whether the directory knows where this Nexus stands; not saved, as the directory itself is. */
+    private boolean recorded;
 
     public NexusBlockEntity(final BlockPos pos, final BlockState state) {
         super(NexusBlockEntityTypes.NEXUS.get(), pos, state);
@@ -61,6 +76,15 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
         if (nexus.establishedAt == NOT_ESTABLISHED) {
             nexus.establishedAt = level.getGameTime();
             nexus.setChanged();
+        }
+        if (!nexus.recorded && level instanceof ServerLevel serverLevel) {
+            final UUID claimed = NetworkDirectory.of(serverLevel.getServer())
+                    .claim(nexus.network.id(), GlobalPos.of(level.dimension(), pos), serverLevel.getServer());
+            if (!claimed.equals(nexus.network.id())) {
+                nexus.network = new Network(claimed, nexus.network.name(), nexus.network.color());
+                nexus.setChanged();
+            }
+            nexus.recorded = true;
         }
         nexus.networkState.tick(level, pos);
     }
@@ -140,7 +164,7 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
 
     @Override
     public void rename(final String newName) {
-        network.rename(newName.isBlank() ? DEFAULT_NETWORK_NAME : newName);
+        network.rename(newName.isBlank() ? NexusNetworks.DEFAULT_NAME : newName);
         syncToClients();
     }
 
@@ -172,6 +196,7 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
     @Override
     public void saveAdditional(final ValueOutput output) {
         super.saveAdditional(output);
+        output.store(TAG_NETWORK_ID, UUIDUtil.CODEC, network.id());
         output.putString(TAG_NETWORK_NAME, network.name());
         output.putInt(TAG_NETWORK_COLOR, network.color().rgb());
         output.putLong(TAG_ESTABLISHED_AT, establishedAt);
@@ -182,31 +207,37 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
         super.loadAdditional(input);
         final String name = input.getStringOr(TAG_NETWORK_NAME, network.name());
         final int color = input.getIntOr(TAG_NETWORK_COLOR, network.color().rgb());
-        network = new Network(name, new NetworkColor(color));
+        final UUID id = input.read(TAG_NETWORK_ID, UUIDUtil.CODEC).orElse(network.id());
+        network = new Network(id, name, new NetworkColor(color));
         establishedAt = input.getLongOr(TAG_ESTABLISHED_AT, NOT_ESTABLISHED);
     }
 
     /**
      * A Nexus placed from an item named on an anvil or after a rename starts its
-     * network under that name.
+     * network under that name; one placed again after it was broken goes on with
+     * the id and color of its network too.
      */
     @Override
     protected void applyImplicitComponents(final DataComponentGetter components) {
         super.applyImplicitComponents(components);
         final Component custom = components.get(DataComponents.CUSTOM_NAME);
+        String name = network.name();
         if (custom != null && !custom.getString().isBlank()) {
             final String named = custom.getString().strip();
-            network = new Network(named.substring(0, Math.min(named.length(), Network.MAX_NAME_LENGTH)),
-                    network.color());
+            name = named.substring(0, Math.min(named.length(), Network.MAX_NAME_LENGTH));
         }
+        network = new Network(components.getOrDefault(NexusDataComponents.NETWORK_ID.get(), network.id()), name,
+                components.getOrDefault(NexusDataComponents.NETWORK_COLOR.get(), network.color()));
     }
 
     @Override
     protected void collectImplicitComponents(final DataComponentMap.Builder components) {
         super.collectImplicitComponents(components);
-        if (!network.name().equals(DEFAULT_NETWORK_NAME)) {
+        if (!network.name().equals(NexusNetworks.DEFAULT_NAME)) {
             components.set(DataComponents.CUSTOM_NAME, Component.literal(network.name()));
         }
+        components.set(NexusDataComponents.NETWORK_ID.get(), network.id());
+        components.set(NexusDataComponents.NETWORK_COLOR.get(), network.color());
     }
 
     @Override
@@ -218,4 +249,5 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
+
 }

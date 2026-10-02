@@ -1,10 +1,14 @@
 package com.morphengine.nexus.resource;
 
+import com.morphengine.nexus.api.resource.ResourceGroup;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A resource of the game: what the network stores, saves, sends to clients and
@@ -40,5 +44,28 @@ public interface NexusResource extends ResourceKey {
      */
     default List<NexusResource> membersOf(final Identifier tag) {
         return List.of();
+    }
+
+    /**
+     * @return every resource of the same kind in {@code tag}, as one entry a
+     *         filter can list; empty for a resource without tags
+     */
+    default Optional<ResourceGroup> tagGroup(final Identifier tag) {
+        return Optional.empty();
+    }
+
+    /**
+     * Steps through the tags of this resource and then to none, and from none
+     * back to the first tag.
+     *
+     * @param current the tag chosen now; {@code null} for none
+     * @param step    one to go forwards, minus one to go backwards
+     * @return the tag after {@code current}; {@code null} for none
+     */
+    default @Nullable Identifier nextTag(final @Nullable Identifier current, final int step) {
+        final List<@Nullable Identifier> choices = new ArrayList<>(tags());
+        choices.add(null);
+        final int index = choices.indexOf(current);
+        return choices.get(Math.floorMod(index + step, choices.size()));
     }
 }

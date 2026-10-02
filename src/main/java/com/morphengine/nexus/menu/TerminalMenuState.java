@@ -2,7 +2,6 @@ package com.morphengine.nexus.menu;
 
 import com.morphengine.nexus.api.automation.CraftingPlan;
 import com.morphengine.nexus.api.storage.Storage;
-import com.morphengine.nexus.block.entity.TerminalBlockEntity;
 import com.morphengine.nexus.level.AutocraftingComponent;
 import com.morphengine.nexus.networking.CraftPlanPayload;
 import com.morphengine.nexus.resource.NexusResource;
@@ -14,22 +13,20 @@ import com.morphengine.nexus.terminal.TerminalContents;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalSession;
 import com.morphengine.nexus.terminal.TerminalSettings;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 /**
- * What both terminal menus share: the terminal they are bound to, its kind
- * and settings as opened, on the server the session that feeds the client, on
- * the client what it was fed.
+ * What every terminal menu shares: what it is bound to, its kind and settings
+ * as opened, on the server the session that feeds the client, on the client
+ * what it was fed.
  */
 public final class TerminalMenuState {
 
-    private final DeviceBinding<TerminalBlockEntity> binding;
+    private final TerminalBinding binding;
     private final TerminalSettings settings;
     private final TerminalKind kind;
     private final TerminalContents contents = new TerminalContents();
@@ -38,19 +35,17 @@ public final class TerminalMenuState {
     private final @Nullable TerminalSession session;
     private @Nullable NetworkBadge badge;
 
-    public TerminalMenuState(
-            final Inventory inventory, final BlockPos pos, final TerminalKind kind, final TerminalSettings settings,
-            final int containerId) {
-        this.binding = new DeviceBinding<>(inventory, pos, TerminalBlockEntity.class);
-        this.settings = settings;
+    public TerminalMenuState(final TerminalOpening opening, final TerminalKind kind, final int containerId) {
+        this.binding = opening.binding();
+        this.settings = opening.settings();
         this.kind = kind;
         this.containerId = containerId;
         final ServerPlayer viewer = binding.viewer();
-        final TerminalBlockEntity terminal = binding.blockEntity();
-        this.session = viewer != null && terminal != null ? new TerminalSession(viewer, containerId, terminal) : null;
+        final TerminalHost host = binding.host();
+        this.session = viewer != null && host != null ? new TerminalSession(viewer, containerId, host) : null;
     }
 
-    public DeviceBinding<TerminalBlockEntity> binding() {
+    public TerminalBinding binding() {
         return binding;
     }
 
@@ -85,12 +80,12 @@ public final class TerminalMenuState {
      */
     public void tick() {
         final ServerPlayer viewer = binding.viewer();
-        final TerminalBlockEntity terminal = binding.blockEntity();
-        if (session == null || viewer == null || terminal == null) {
+        final TerminalHost host = binding.host();
+        if (session == null || viewer == null || host == null) {
             return;
         }
         session.tick();
-        badgeSync.tick(viewer, containerId, terminal.networkBadge());
+        badgeSync.tick(viewer, containerId, host.networkBadge());
     }
 
     public void close() {
@@ -104,8 +99,8 @@ public final class TerminalMenuState {
      * @return the network's storage while the terminal is online; {@code null} otherwise
      */
     public @Nullable Storage onlineStorage() {
-        final TerminalBlockEntity terminal = binding.blockEntity();
-        return terminal != null ? terminal.onlineStorage() : null;
+        final TerminalHost host = binding.host();
+        return host != null ? host.onlineStorage() : null;
     }
 
     public void click(
@@ -118,21 +113,32 @@ public final class TerminalMenuState {
     }
 
     /**
-     * Plans crafting {@code amount} of {@code resource} and, when asked to and
-     * the plan can start, starts it; the player is sent the plan either way.
+     * Plans crafting {@code amount} of {@code resource}, or for {@link
+     * CraftRequest#CRAFT_LESS} the most of it that can start, and, when asked
+     * to and the plan can start, starts it; the player is sent the plan either way.
      */
     public void requestCraft(
             final ServerPlayer player, final NexusResource resource, final long amount, final CraftRequest request) {
-        final TerminalBlockEntity terminal = binding.blockEntity();
-        final AutocraftingComponent autocrafting = terminal != null ? terminal.onlineAutocrafting() : null;
+        final TerminalHost host = binding.host();
+        final AutocraftingComponent autocrafting = host != null ? host.onlineAutocrafting() : null;
         final Storage storage = onlineStorage();
         if (autocrafting == null || storage == null || amount <= 0) {
             return;
         }
-        final CraftingPlan plan = autocrafting.plan(resource, amount, storage);
+        final CraftingPlan plan = request == CraftRequest.CRAFT_LESS
+                ? autocrafting.planLargest(resource, amount, storage)
+                : autocrafting.plan(resource, amount, storage);
         final boolean started = request == CraftRequest.START && autocrafting.start(plan, player.getName().getString());
         PacketDistributor.sendToPlayer(player, new CraftPlanPayload(containerId, PlanPreview.of(plan),
-                started ? CraftRequest.START : CraftRequest.PREVIEW));
+                outcomeOf(request, started)));
+    }
+
+    private static CraftRequest outcomeOf(final CraftRequest request, final boolean started) {
+        return switch (request) {
+            case START -> started ? CraftRequest.START : CraftRequest.PREVIEW;
+            case CRAFT_LESS -> CraftRequest.CRAFT_LESS;
+            case PREVIEW -> CraftRequest.PREVIEW;
+        };
     }
 
     /**

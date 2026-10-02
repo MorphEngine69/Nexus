@@ -4,6 +4,7 @@ import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.block.CoalGeneratorBlock;
 import com.morphengine.nexus.energy.FuelBurner;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
+import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.NetworkLink;
 import com.morphengine.nexus.level.NetworkMember;
@@ -12,8 +13,10 @@ import com.morphengine.nexus.menu.CoalGeneratorView;
 import com.morphengine.nexus.menu.NetworkBadge;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.registry.NexusTags;
+import com.morphengine.nexus.upgrade.UpgradeContainer;
+import com.morphengine.nexus.upgrade.UpgradeLimits;
+import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
@@ -32,20 +35,24 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 /**
  * Burns fuel into its own buffer and passes the energy on: first into the energy
  * pool of its network, then into neighbouring blocks that accept FE. It never
- * draws energy from the network.
+ * draws energy from the network. Each Speed Upgrade burns the fuel one time
+ * faster, so the same fuel gives its energy sooner.
  */
 public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuHost, NetworkMember, Renamable {
+
+    /** Placeholder balance, like the other numbers of the generator. */
+    public static final int MAX_SPEED_UPGRADES = 4;
+    /** Speed Upgrades share a slot; a Chunk Loader Upgrade takes another. */
+    public static final int UPGRADE_SLOTS = 2;
+    public static final UpgradeLimits UPGRADE_LIMITS =
+            new UpgradeLimits(Map.of(UpgradeTypes.SPEED, MAX_SPEED_UPGRADES, UpgradeTypes.CHUNK_LOADER, 1));
 
     /** Placeholder balance until the numbers are settled. */
     private static final long ENERGY_PER_TICK = 40;
@@ -55,18 +62,20 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
     private static final String TAG_ENERGY = "energy";
     private static final String TAG_BURN_LEFT = "burn_left";
     private static final String TAG_BURN_TOTAL = "burn_total";
-    private static final Direction[] SIDES = Direction.values();
+    private static final String TAG_UPGRADES = "upgrades";
 
-    private final SimpleEnergyBuffer buffer = new SimpleEnergyBuffer(CAPACITY, ENERGY_PER_TICK, MAX_OUTPUT_PER_SIDE);
+    private final SimpleEnergyBuffer buffer = new SimpleEnergyBuffer(CAPACITY,
+            ENERGY_PER_TICK * (1 + MAX_SPEED_UPGRADES), MAX_OUTPUT_PER_SIDE);
     private final FuelBurner burner = new FuelBurner(ENERGY_PER_TICK);
     private final SimpleContainer fuel = new FuelContainer();
+    private final UpgradeContainer upgrades = new UpgradeContainer(UPGRADE_SLOTS, UPGRADE_LIMITS,
+            this::upgradesChanged);
     private final EnergyHandler handler =
             new BufferEnergyHandler(buffer, BufferEnergyHandler.Access.GIVE_ONLY, this::setChanged);
     private final ClickGuard clickGuard = new ClickGuard();
     private final NetworkLink network = new NetworkLink();
     private final DeviceName name = new DeviceName();
-    /** Energy handlers of the six neighbours, looked up once and kept current by NeoForge. */
-    private List<BlockCapabilityCache<EnergyHandler, Direction>> outputs = List.of();
+    private final NeighbourEnergyOutputs outputs = new NeighbourEnergyOutputs(MAX_OUTPUT_PER_SIDE);
     private long producedLastTick;
 
     public CoalGeneratorBlockEntity(final BlockPos pos, final BlockState state) {
@@ -86,6 +95,16 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
 
     public Container fuel() {
         return fuel;
+    }
+
+    public Container upgrades() {
+        return upgrades;
+    }
+
+    private void upgradesChanged() {
+        burner.setSpeed(1 + upgrades.count(UpgradeTypes.SPEED));
+        ChunkAnchors.follow(this, upgrades);
+        setChanged();
     }
 
     public EnergyHandler energyHandler() {
@@ -113,7 +132,9 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
         }
         producedLastTick = burner.tick(buffer);
         feedNetwork();
-        pushToNeighbours(level, pos);
+        if (outputs.push(level, pos, buffer)) {
+            setChanged();
+        }
         final boolean lit = producedLastTick > 0;
         if (state.getValue(CoalGeneratorBlock.LIT) != lit) {
             level.setBlock(pos, state.setValue(CoalGeneratorBlock.LIT, lit), Block.UPDATE_ALL);
@@ -147,46 +168,6 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
             buffer.extract(accepted, Action.EXECUTE);
             setChanged();
         }
-    }
-
-    private void pushToNeighbours(final ServerLevel level, final BlockPos pos) {
-        if (buffer.stored() == 0) {
-            return;
-        }
-        final List<BlockCapabilityCache<EnergyHandler, Direction>> neighbours = outputs(level, pos);
-        for (int i = 0; i < neighbours.size(); i++) {
-            final EnergyHandler target = neighbours.get(i).getCapability();
-            if (target != null) {
-                pushTo(target);
-            }
-        }
-    }
-
-    private void pushTo(final EnergyHandler target) {
-        final int offered = (int) buffer.extract(MAX_OUTPUT_PER_SIDE, Action.SIMULATE);
-        if (offered == 0) {
-            return;
-        }
-        try (Transaction transaction = Transaction.openRoot()) {
-            final int accepted = target.insert(offered, transaction);
-            if (accepted > 0) {
-                transaction.commit();
-                buffer.extract(accepted, Action.EXECUTE);
-                setChanged();
-            }
-        }
-    }
-
-    private List<BlockCapabilityCache<EnergyHandler, Direction>> outputs(final ServerLevel level, final BlockPos pos) {
-        if (outputs.isEmpty()) {
-            final List<BlockCapabilityCache<EnergyHandler, Direction>> created = new ArrayList<>(SIDES.length);
-            for (Direction side : SIDES) {
-                created.add(BlockCapabilityCache.create(
-                        Capabilities.Energy.BLOCK, level, pos.relative(side), side.getOpposite()));
-            }
-            outputs = List.copyOf(created);
-        }
-        return outputs;
     }
 
     @Override
@@ -223,8 +204,10 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
     @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
+        ChunkAnchors.release(this);
         if (level != null) {
             Containers.dropContents(level, pos, fuel);
+            Containers.dropContents(level, pos, upgrades);
         }
     }
 
@@ -235,6 +218,7 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
         output.putInt(TAG_BURN_LEFT, burner.burnTicksLeft());
         output.putInt(TAG_BURN_TOTAL, burner.burnTicksTotal());
         ContainerHelper.saveAllItems(output, fuel.getItems());
+        ContainerHelper.saveAllItems(output.child(TAG_UPGRADES), upgrades.getItems());
         name.save(output);
     }
 
@@ -244,6 +228,8 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
         buffer.restore(SimpleEnergyBuffer.Snapshot.storing(Math.max(0, input.getLongOr(TAG_ENERGY, 0))));
         burner.restore(input.getIntOr(TAG_BURN_LEFT, 0), input.getIntOr(TAG_BURN_TOTAL, 0));
         ContainerHelper.loadAllItems(input, fuel.getItems());
+        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
+        burner.setSpeed(1 + upgrades.count(UpgradeTypes.SPEED));
         name.load(input);
     }
 
