@@ -7,14 +7,15 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Base for the menu of a network device: a panel without slots, bound to the
- * block entity at one position. Designed for extension; subclasses add what the
- * panel shows and how it reaches the client.
+ * Base for the menu of a network device: a panel bound to the block entity at
+ * one position, with no slots of its own. Designed for extension; subclasses
+ * add the slots, what the panel shows and how it reaches the client.
  *
  * @param <B> the device's block entity
  */
@@ -61,6 +62,37 @@ public abstract class DeviceMenu<B extends BlockEntity & MenuHost> extends Abstr
     @Override
     public ItemStack quickMoveStack(final Player player, final int slotIndex) {
         return ItemStack.EMPTY;
+    }
+
+    /**
+     * Shift-click for a panel whose own slots come first, followed by the
+     * player's inventory: a stack from the panel goes to the inventory, a stack
+     * from the inventory to the panel slots in the given range, if any.
+     *
+     * @param panelSlots how many slots the panel has, before the inventory
+     * @param targetStart first panel slot the clicked stack may go to
+     * @param targetEnd   end, exclusive, of those slots; equal to {@code targetStart} if none
+     */
+    protected final ItemStack shiftClick(
+            final int slotIndex, final int panelSlots, final int targetStart, final int targetEnd) {
+        final Slot slot = slots.get(slotIndex);
+        if (!slot.hasItem()) {
+            return ItemStack.EMPTY;
+        }
+        final ItemStack stack = slot.getItem();
+        final ItemStack original = stack.copy();
+        final boolean moved = slotIndex < panelSlots
+                ? moveItemStackTo(stack, panelSlots, slots.size(), true)
+                : targetStart < targetEnd && moveItemStackTo(stack, targetStart, targetEnd, false);
+        if (!moved) {
+            return ItemStack.EMPTY;
+        }
+        if (stack.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        return original;
     }
 
     @Override

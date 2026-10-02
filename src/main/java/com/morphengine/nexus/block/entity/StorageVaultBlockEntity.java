@@ -49,6 +49,7 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
 
     private final VaultCellSlots cells = new VaultCellSlots(this);
     private final List<ItemStack> homeless = new ArrayList<>();
+    private final DeviceUpgrades upgrades = new DeviceUpgrades(this);
     private int priority;
     /** Lamps of all slots as packed by {@link VaultLamp}; on the client, as last sent. */
     private long lamps;
@@ -78,6 +79,10 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
 
     public Container cells() {
         return cells;
+    }
+
+    public Container upgrades() {
+        return upgrades.container();
     }
 
     public VaultLamp lampAt(final int slot) {
@@ -165,6 +170,7 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
             Containers.dropContents(level, pos, cells);
             homeless.forEach(cell -> Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), cell));
             homeless.clear();
+            upgrades.dropAndRelease(level, pos);
         }
     }
 
@@ -178,6 +184,7 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
     protected void saveAdditional(final ValueOutput output) {
         super.saveAdditional(output);
         cells.save(output);
+        upgrades.save(output);
         if (!homeless.isEmpty()) {
             final ValueOutput.TypedOutputList<ItemStack> list = output.list(TAG_HOMELESS, ItemStack.CODEC);
             homeless.forEach(list::add);
@@ -190,6 +197,7 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
         super.loadAdditional(input);
         homeless.clear();
         homeless.addAll(cells.load(input));
+        upgrades.load(input);
         input.listOrEmpty(TAG_HOMELESS, ItemStack.CODEC).forEach(homeless::add);
         priority = DevicePriority.clamp(input.getIntOr(TAG_PRIORITY, priority));
         lamps = input.getLongOr(TAG_LAMPS, lamps);

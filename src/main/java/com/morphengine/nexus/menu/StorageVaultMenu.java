@@ -1,5 +1,6 @@
 package com.morphengine.nexus.menu;
 
+import com.morphengine.nexus.block.entity.DeviceUpgrades;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.item.VaultCellItem;
 import com.morphengine.nexus.registry.NexusMenuTypes;
@@ -10,14 +11,14 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Storage Vault panel: the cell slots, the vault's priority with buttons to
- * change it, and the player's inventory. Priority buttons go through the
- * vanilla menu button packet; the priority returns in a data slot.
+ * Storage Vault panel: the cell slots, the upgrade slots, the
+ * vault's priority with buttons to change it, and the player's inventory.
+ * Priority buttons go through the vanilla menu button packet; the priority
+ * returns in a data slot.
  */
 public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> implements NetworkBadgeView {
 
@@ -25,6 +26,8 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
     public static final int CELL_COLUMNS = 4;
     public static final int CELLS_LEFT = 64;
     public static final int CELLS_TOP = 52;
+    public static final int UPGRADES_LEFT = 172;
+    public static final int UPGRADES_TOP = CELLS_TOP;
     public static final int INVENTORY_LEFT = 19;
     public static final int INVENTORY_TOP = 142;
 
@@ -32,6 +35,7 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
     public static final int BUTTON_PRIORITY = 0;
 
     private static final int SLOT_SPACING = 18;
+    private static final int PANEL_SLOTS = StorageVaultBlockEntity.SLOTS + DeviceUpgrades.SIZE;
 
     private final DataSlot priority = DataSlot.standalone();
     private final NetworkBadgeSync badgeSync = new NetworkBadgeSync();
@@ -46,6 +50,8 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
             addSlot(new CellSlot(cells, slot, CELLS_LEFT + slot % CELL_COLUMNS * SLOT_SPACING,
                     CELLS_TOP + slot / CELL_COLUMNS * SLOT_SPACING));
         }
+        UpgradeColumn.slots(viewer() != null && vault != null ? vault.upgrades() : null, UPGRADES_LEFT, UPGRADES_TOP)
+                .forEach(this::addSlot);
         addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(priority);
     }
@@ -88,24 +94,11 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
 
     @Override
     public ItemStack quickMoveStack(final Player player, final int slotIndex) {
-        final Slot slot = slots.get(slotIndex);
-        if (!slot.hasItem()) {
-            return ItemStack.EMPTY;
-        }
-        final ItemStack stack = slot.getItem();
-        final ItemStack original = stack.copy();
+        final ItemStack stack = slots.get(slotIndex).getItem();
         final int cellSlots = StorageVaultBlockEntity.SLOTS;
-        final boolean moved = slotIndex < cellSlots
-                ? moveItemStackTo(stack, cellSlots, slots.size(), true)
-                : stack.getItem() instanceof VaultCellItem && moveItemStackTo(stack, 0, cellSlots, false);
-        if (!moved) {
-            return ItemStack.EMPTY;
+        if (stack.getItem() instanceof VaultCellItem) {
+            return shiftClick(slotIndex, PANEL_SLOTS, 0, cellSlots);
         }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
+        return shiftClick(slotIndex, PANEL_SLOTS, cellSlots, UpgradeColumn.takes(stack) ? PANEL_SLOTS : cellSlots);
     }
 }

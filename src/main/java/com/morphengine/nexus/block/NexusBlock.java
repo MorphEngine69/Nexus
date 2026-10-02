@@ -44,6 +44,14 @@ public final class NexusBlock extends NetworkDeviceBlock {
         registerDefaultState(defaultBlockState().setValue(STATUS, NexusStatus.NO_ENERGY));
     }
 
+    /**
+     * @return whether another Nexus leads the network the Nexus in {@code state}
+     *         is in, as last shown on its block; readable on both sides
+     */
+    public static boolean isInConflict(final BlockState state) {
+        return state.getValue(STATUS) == NexusStatus.CONFLICT;
+    }
+
     @Override
     protected MapCodec<NexusBlock> codec() {
         return CODEC;

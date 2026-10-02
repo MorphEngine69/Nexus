@@ -4,6 +4,7 @@ import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.Network;
 import com.morphengine.nexus.api.network.NetworkStatistics;
 import com.morphengine.nexus.block.NetworkColoring;
+import com.morphengine.nexus.block.NexusBlock;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.menu.NexusMenu;
 import com.morphengine.nexus.networking.NexusRecolorPayload;
@@ -12,6 +13,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.DyeColor;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
@@ -25,7 +27,8 @@ import java.util.List;
 public final class NexusScreen extends PanelScreen<NexusMenu> {
 
     private static final int IMAGE_WIDTH = 236;
-    private static final int IMAGE_HEIGHT = 180;
+    private static final int IMAGE_HEIGHT = NexusMenu.INVENTORY_TOP + 84;
+    private static final int LABEL_GAP = 11;
     private static final int PADDING = 8;
     private static final int ROW_GAP = 8;
     private static final int LINE_HEIGHT = 11;
@@ -37,6 +40,7 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
     private static final int CONFLICT_TEXT = 0xFFE8605A;
 
     private final List<Swatch> swatches = new ArrayList<>();
+    private final StatLine statLine = new StatLine();
     private int colorLabelY;
     private int statsY;
 
@@ -90,16 +94,22 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
     @Override
     protected void extractPanel(
             final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+        statLine.begin();
         graphics.text(font, Component.translatable("gui.nexus.color"), leftPos + PADDING, colorLabelY,
                 PanelStyle.TEXT_DIM, false);
         renderSwatches(graphics, currentNetwork());
         final NexusBlockEntity nexus = getMenu().blockEntity();
-        if (nexus != null && nexus.isInConflict()) {
+        if (nexus != null && NexusBlock.isInConflict(nexus.getBlockState())) {
             graphics.textWithWordWrap(font, Component.translatable("gui.nexus.conflict"), leftPos + PADDING, statsY,
-                    imageWidth - PADDING * 2, CONFLICT_TEXT);
+                    NexusMenu.UPGRADES_LEFT - PADDING * 2, CONFLICT_TEXT);
         } else {
             renderStats(graphics, leftPos + PADDING, statsY);
         }
+        for (Slot slot : getMenu().slots) {
+            style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
+        }
+        graphics.text(font, playerInventoryTitle, leftPos + NexusMenu.INVENTORY_LEFT,
+                topPos + NexusMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 
     private void renderSwatches(final GuiGraphicsExtractor graphics, final @Nullable Network network) {
@@ -116,22 +126,30 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
 
     private void renderStats(final GuiGraphicsExtractor graphics, final int x, final int startY) {
         final NetworkStatistics statistics = getMenu().statistics();
-        final List<Component> lines = List.of(
-                Component.translatable("gui.nexus.stats.devices", statistics.devices()),
-                Component.translatable("gui.nexus.stats.energy",
-                        EnergyFormat.amount(statistics.energyStored()) + " / "
-                                + EnergyFormat.amount(statistics.energyCapacity())),
-                Component.translatable("gui.nexus.stats.input", EnergyFormat.amount(statistics.energyInput())),
-                Component.translatable("gui.nexus.stats.output", EnergyFormat.amount(statistics.energyOutput())),
-                Component.translatable("gui.nexus.stats.machines", statistics.count(DeviceRole.MACHINE)),
-                Component.translatable("gui.nexus.stats.pullers", statistics.count(DeviceRole.PULLER)),
-                Component.translatable("gui.nexus.stats.pushers", statistics.count(DeviceRole.PUSHER)),
-                Component.translatable("gui.nexus.stats.storages", statistics.count(DeviceRole.STORAGE)));
+        final List<StatLine.Stat> lines = List.of(
+                StatLine.Stat.plain(Component.translatable("gui.nexus.stats.devices", statistics.devices())),
+                EnergyFormat.stored(statistics.energyStored(), statistics.energyCapacity()),
+                EnergyFormat.rate("input", statistics.energyInput()),
+                EnergyFormat.rate("output", statistics.energyOutput()),
+                StatLine.Stat.plain(
+                        Component.translatable("gui.nexus.stats.machines", statistics.count(DeviceRole.MACHINE))),
+                StatLine.Stat.plain(
+                        Component.translatable("gui.nexus.stats.pullers", statistics.count(DeviceRole.PULLER))),
+                StatLine.Stat.plain(
+                        Component.translatable("gui.nexus.stats.pushers", statistics.count(DeviceRole.PUSHER))),
+                StatLine.Stat.plain(
+                        Component.translatable("gui.nexus.stats.storages", statistics.count(DeviceRole.STORAGE))));
         int y = startY;
-        for (Component line : lines) {
-            graphics.text(font, line, x, y, PanelStyle.TEXT_DIM, false);
-            y += LINE_HEIGHT;
+        for (StatLine.Stat line : lines) {
+            y += statLine.draw(graphics, font, line,
+                    new PanelBounds(x, y, NexusMenu.UPGRADES_LEFT - PADDING * 2, 0), PanelStyle.TEXT_DIM);
         }
+    }
+
+    @Override
+    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
+        statLine.showTooltip(graphics, font, mouseX, mouseY);
     }
 
     @Override

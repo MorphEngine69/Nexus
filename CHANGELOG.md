@@ -203,8 +203,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chunk Loader Upgrade: keeps the chunk its device stands in loaded, with
   nobody near, so a network goes on working and a Network Transmitter reaches
   a Network Receiver in another dimension. One per device. Pullers, Pushers,
-  Placers, Removers, Assemblers, the Coal Generator, the Nexus Link and the
-  Network Transmitter and Receiver take it. Several devices in one chunk share
+  Placers, Removers, Assemblers, the Coal Generator, the Nexus Link, the
+  Network Transmitter and Receiver, the Nexus, the Storage Vault and the
+  Energy Cell take it. Several devices in one chunk share
   it, and the chunk is let go when the last of them loses its upgrade or is
   broken.
 - The Network Receiver has a panel now, with its upgrade slot and a name you
@@ -214,6 +215,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The Nexus Link and the Coal Generator have a second upgrade slot.
+- The Nexus, the Storage Vault and the Energy Cell have a column of four
+  upgrade slots, and the Nexus panel shows your inventory.
+- The Nexus and Energy Cell panels write large energy figures short, such as
+  18.43M or 25.00 млрд in the units of your language; hover a line to see the
+  exact figure.
 - A Nexus with a name or a color of its own now drops when broken in creative
   mode too, with its network, so it can be moved.
 - A Nexus Terminal stays bound to its network when the network is renamed
