@@ -1,6 +1,8 @@
 package com.morphengine.nexus.transport;
 
 import com.morphengine.nexus.api.resource.ResourceAmount;
+import com.morphengine.nexus.api.resource.ResourceGroup;
+import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.transport.SchedulingMode;
 import com.morphengine.nexus.api.transport.TransferQuota;
@@ -8,6 +10,7 @@ import com.morphengine.nexus.storage.CellStorage;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 import java.util.random.RandomGenerator;
 
 import static com.morphengine.nexus.test.TestResources.DIRT;
@@ -100,11 +103,48 @@ class PushTaskTest {
     }
 
     @Test
+    void groupDeliversTheFirstMemberTheNetworkHolds() {
+        final CellStorage target = empty();
+        final PushTask task = task(SchedulingMode.IN_ORDER, new GroupEntry(group(SAND, DIRT)));
+
+        task.runOnce(route(network(), target));
+
+        assertThat(target.contents()).containsExactly(new ResourceAmount(DIRT, 4));
+    }
+
+    @Test
+    void groupGoesOnToTheNextMemberTheTargetTakes() {
+        final CellStorage network = chest(new ResourceAmount(DIRT, 2), new ResourceAmount(SAND, 100));
+        final CellStorage target = empty();
+        final PushTask task = task(SchedulingMode.IN_ORDER, new GroupEntry(group(SAND, DIRT)));
+
+        task.runOnce(route(network, target));
+        task.runOnce(route(network, target));
+
+        assertThat(target.contents()).containsExactly(new ResourceAmount(DIRT, 2), new ResourceAmount(SAND, 4));
+    }
+
+    @Test
+    void groupWithoutMembersInTheNetworkFallsThroughToTheNextEntry() {
+        final CellStorage target = empty();
+        final PushTask task = task(SchedulingMode.IN_ORDER, new GroupEntry(group(item("clay"))),
+                StockEntry.unlimited(STONE));
+
+        task.runOnce(route(network(), target));
+
+        assertThat(target.contents()).containsExactly(new ResourceAmount(STONE, 4));
+    }
+
+    @Test
     void entryMustKeepAPositiveAmount() {
         assertThatThrownBy(() -> new StockEntry(STONE, 0)).isInstanceOf(IllegalArgumentException.class);
     }
 
-    private static PushTask task(final SchedulingMode scheduling, final StockEntry... entries) {
+    private static ResourceGroup group(final ResourceKey... members) {
+        return Set.of(members)::contains;
+    }
+
+    private static PushTask task(final SchedulingMode scheduling, final PushEntry... entries) {
         return new PushTask(List.of(entries), scheduling, FOUR, alwaysPicking(0));
     }
 

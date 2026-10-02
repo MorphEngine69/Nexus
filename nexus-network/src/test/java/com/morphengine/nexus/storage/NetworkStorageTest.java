@@ -235,6 +235,86 @@ class NetworkStorageTest {
         assertThat(network.insert(STONE, 7, Action.SIMULATE, Actor.NOBODY)).isEqualTo(7);
     }
 
+    @Test
+    void prioritiesAreListedOnceEachHighestFirst() {
+        network.addSource(cell(), 0);
+        network.addSource(cell(), 5);
+        network.addSource(cell(), 0);
+
+        assertThat(network.priorities()).containsExactly(5, 0);
+    }
+
+    @Test
+    void revisionChangesWhenSourcesChange() {
+        final CellStorage source = cell();
+        final int initial = network.revision();
+
+        network.addSource(source, 0);
+        final int added = network.revision();
+        network.changePriority(source, 3);
+        final int moved = network.revision();
+        network.removeSource(source);
+
+        assertThat(List.of(initial, added, moved, network.revision())).doesNotHaveDuplicates();
+    }
+
+    @Test
+    void bandInsertsOnlyIntoSourcesOfItsPriority() {
+        final CellStorage low = cell();
+        final CellStorage high = cell();
+        network.addSource(low, 0);
+        network.addSource(high, 5);
+
+        final long accepted = network.band(0).insert(STONE, 10, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(accepted).isEqualTo(10);
+        assertThat(low.amountOf(STONE)).isEqualTo(10);
+        assertThat(high.amountOf(STONE)).isZero();
+    }
+
+    @Test
+    void bandChangesCountTowardsTheTotalsAndAreHeard() {
+        final CellStorage source = cell();
+        network.addSource(source, 2);
+        network.addListener(listener);
+
+        network.band(2).insert(STONE, 10, Action.EXECUTE, Actor.NOBODY);
+        network.band(2).extract(STONE, 4, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(network.amountOf(STONE)).isEqualTo(6);
+        assertThat(heard).containsExactly(STONE + "=10", STONE + "=6");
+    }
+
+    @Test
+    void bandReadsAndExtractsOnlyItsOwnSources() {
+        network.addSource(cellWith(STONE, 20), 0);
+        network.addSource(cellWith(STONE, 30), 5);
+
+        assertThat(network.band(5).amountOf(STONE)).isEqualTo(30);
+        assertThat(network.band(5).extract(STONE, 100, Action.EXECUTE, Actor.NOBODY)).isEqualTo(30);
+        assertThat(network.amountOf(STONE)).isEqualTo(20);
+    }
+
+    @Test
+    void bandOfAPriorityWithoutSourcesHoldsAndTakesNothing() {
+        network.addSource(cell(), 0);
+
+        assertThat(network.band(7).insert(STONE, 10, Action.EXECUTE, Actor.NOBODY)).isZero();
+        assertThat(network.band(7).amountOf(STONE)).isZero();
+        assertThat(network.band(7).contents()).isEmpty();
+    }
+
+    @Test
+    void bandSimulationChangesNothing() {
+        final CellStorage source = cell();
+        network.addSource(source, 0);
+
+        final long accepted = network.band(0).insert(STONE, 10, Action.SIMULATE, Actor.NOBODY);
+
+        assertThat(accepted).isEqualTo(10);
+        assertThat(network.amountOf(STONE)).isZero();
+    }
+
     private static CellStorage cell() {
         return new CellStorage(ITEMS, SMALL, List.of());
     }

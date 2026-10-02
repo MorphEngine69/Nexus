@@ -9,21 +9,34 @@ import java.util.Objects;
 
 /**
  * The energy of one network: its buffers seen as a single {@link EnergyBuffer}.
- * Inserts fill and extracts drain the buffers in list order. Sums saturate at
- * {@link Long#MAX_VALUE} instead of overflowing.
+ * Inserts fill the buffers in the {@linkplain PriorityOrder#fillOrder fill
+ * order} of their priorities, extracts drain them in the {@linkplain
+ * PriorityOrder#drainOrder drain order}. Sums saturate at {@link Long#MAX_VALUE}
+ * instead of overflowing.
  */
 public final class EnergyPool implements EnergyBuffer {
 
     public static final EnergyPool EMPTY = new EnergyPool(List.of());
 
     private final List<EnergyBuffer> buffers;
+    private final List<EnergyBuffer> drainOrder;
 
     /**
-     * @param buffers buffers in fill order; the list is copied, the buffers are
-     *                shared with their owners and read live
+     * @param buffers buffers all at one priority, filled and drained in list
+     *                order; the list is copied, the buffers are shared with
+     *                their owners and read live
      */
     public EnergyPool(final List<? extends EnergyBuffer> buffers) {
-        this.buffers = List.copyOf(Objects.requireNonNull(buffers, "buffers must not be null"));
+        this(PriorityOrder.inListOrder(Objects.requireNonNull(buffers, "buffers must not be null")));
+    }
+
+    /**
+     * @param buffers the buffers by priority; shared with their owners and read live
+     */
+    public EnergyPool(final PriorityOrder<EnergyBuffer> buffers) {
+        Objects.requireNonNull(buffers, "buffers must not be null");
+        this.buffers = buffers.fillOrder();
+        this.drainOrder = buffers.drainOrder();
     }
 
     public int size() {
@@ -62,8 +75,8 @@ public final class EnergyPool implements EnergyBuffer {
     public long extract(final long amount, final Action action) {
         requireNotNegative(amount);
         long remaining = amount;
-        for (int i = 0; i < buffers.size() && remaining > 0; i++) {
-            remaining -= buffers.get(i).extract(remaining, action);
+        for (int i = 0; i < drainOrder.size() && remaining > 0; i++) {
+            remaining -= drainOrder.get(i).extract(remaining, action);
         }
         return amount - remaining;
     }

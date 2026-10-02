@@ -8,6 +8,7 @@ import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.StorageView;
 import com.morphengine.nexus.math.SaturatedMath;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -59,6 +60,38 @@ public final class CraftingPlanner {
         requests = 0;
         craft(simulation, resource, amount);
         return simulation.toPlan(target);
+    }
+
+    /**
+     * Finds the most of {@code resource}, up to {@code amount}, that can be
+     * crafted with nothing missing. More units never take less, so the amount
+     * is found by halving the range between one that works and one that does
+     * not; each step plans in full, so this costs about {@code log2(amount)}
+     * plans.
+     *
+     * @param amount units asked for, must be positive
+     * @return the plan for the largest amount that can start; the plan for
+     *         {@code amount} itself when not even one unit can
+     */
+    public CraftingPlan planLargest(final ResourceKey resource, final long amount) {
+        final CraftingPlan asked = plan(resource, amount);
+        if (asked.isComplete()) {
+            return asked;
+        }
+        @Nullable CraftingPlan best = null;
+        long works = 0;
+        long fails = amount;
+        while (fails - works > 1) {
+            final long middle = works + (fails - works) / 2;
+            final CraftingPlan attempt = plan(resource, middle);
+            if (attempt.isComplete()) {
+                works = middle;
+                best = attempt;
+            } else {
+                fails = middle;
+            }
+        }
+        return best != null ? best : asked;
     }
 
     private void request(final PlanSimulation simulation, final BlueprintInput input, final long amount) {

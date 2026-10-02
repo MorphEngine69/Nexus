@@ -62,6 +62,44 @@ class FuelBurnerTest {
     }
 
     @Test
+    void higherSpeedBurnsSeveralTicksOfFuelEachTick() {
+        burner.setSpeed(3);
+        burner.ignite(10);
+
+        final long produced = burner.tick(buffer);
+
+        assertThat(produced).isEqualTo(120);
+        assertThat(burner.burnTicksLeft()).isEqualTo(7);
+    }
+
+    @Test
+    void theSameFuelGivesTheSameEnergyAtAnySpeed() {
+        burner.setSpeed(4);
+        burner.ignite(10);
+
+        long total = 0;
+        for (int i = 0; i < 5; i++) {
+            total += burner.tick(buffer);
+        }
+
+        assertThat(total).isEqualTo(400);
+        assertThat(burner.isBurning()).isFalse();
+    }
+
+    @Test
+    void roomIsCheckedForAFullTickAtTheCurrentSpeed() {
+        burner.setSpeed(2);
+        buffer.insert(930, Action.EXECUTE);
+
+        assertThat(burner.hasRoomIn(buffer)).isFalse();
+    }
+
+    @Test
+    void rejectsASpeedBelowOne() {
+        assertThatThrownBy(() -> burner.setSpeed(0)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void restoreClampsTicksLeftToTotal() {
         burner.restore(50, 20);
 

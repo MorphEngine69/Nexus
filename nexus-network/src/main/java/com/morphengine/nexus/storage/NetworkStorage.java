@@ -6,6 +6,7 @@ import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.api.storage.StorageListener;
+import com.morphengine.nexus.math.SaturatedMath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,11 @@ import java.util.Objects;
  * this relies on sources changing only through this storage while they are part
  * of it. Listeners hear about every change. {@linkplain InsertInterceptor
  * Interceptors} see every insert first and may claim part of it; what they
- * claim counts as inserted but never reaches a source. Server thread only.
+ * claim counts as inserted but never reaches a source.
+ *
+ * <p>The sources of one priority can also be reached as a {@linkplain #band
+ * band}, for a network that ranks them together with buffers of its own, as it
+ * does with energy. Server thread only.
  */
 public final class NetworkStorage implements Storage {
 
@@ -33,6 +38,7 @@ public final class NetworkStorage implements Storage {
     private final ResourceCounter totals = new ResourceCounter();
     private final List<StorageListener> listeners = new ArrayList<>();
     private final List<InsertInterceptor> interceptors = new ArrayList<>();
+    private int revision;
 
     /**
      * Adds a source; its contents count towards the totals from now on.
@@ -48,6 +54,7 @@ public final class NetworkStorage implements Storage {
             throw new IllegalArgumentException("storage is already a source: " + storage);
         }
         insertSorted(new Source(storage, priority));
+        revision++;
         for (ResourceAmount content : storage.contents()) {
             notifyListeners(content.resource(), totals.add(content.resource(), content.amount()));
         }
@@ -62,6 +69,7 @@ public final class NetworkStorage implements Storage {
             return false;
         }
         sources.remove(index);
+        revision++;
         for (ResourceAmount content : storage.contents()) {
             notifyListeners(content.resource(), totals.remove(content.resource(), content.amount()));
         }
@@ -80,11 +88,44 @@ public final class NetworkStorage implements Storage {
         }
         sources.remove(index);
         insertSorted(new Source(storage, priority));
+        revision++;
         return true;
     }
 
     public int sourceCount() {
         return sources.size();
+    }
+
+    /**
+     * @return a number that changes whenever a source is added, removed or
+     *         moved to another priority
+     */
+    public int revision() {
+        return revision;
+    }
+
+    /**
+     * @return the distinct priorities of the sources, highest first
+     */
+    public List<Integer> priorities() {
+        final List<Integer> priorities = new ArrayList<>();
+        for (Source source : sources) {
+            if (priorities.isEmpty() || priorities.getLast() != source.priority()) {
+                priorities.add(source.priority());
+            }
+        }
+        return List.copyOf(priorities);
+    }
+
+    /**
+     * The sources of {@code priority} seen as one storage. What goes in or out
+     * through it counts towards the totals and is heard by the listeners like
+     * any other change, but inserts are not offered to the interceptors: a band
+     * is for a network moving a resource between its own buffers, such as
+     * energy. A band of a priority no source has holds and takes nothing.
+     */
+    public Storage band(final int priority) {
+        return new Band(priority);
     }
 
     public void addListener(final StorageListener listener) {
@@ -230,6 +271,90 @@ public final class NetworkStorage implements Storage {
         }
     }
 
+    /**
+     * @return index of the first source of {@code priority}, or where one would go
+     */
+    private int bandStart(final int priority) {
+        int start = 0;
+        while (start < sources.size() && sources.get(start).priority() > priority) {
+            start++;
+        }
+        return start;
+    }
+
+    /**
+     * @return index just past the last source of {@code priority}, from {@code start}
+     */
+    private int bandEnd(final int start, final int priority) {
+        int end = start;
+        while (end < sources.size() && sources.get(end).priority() == priority) {
+            end++;
+        }
+        return end;
+    }
+
     private record Source(Storage storage, int priority) {
+    }
+
+    /** The sources of one priority; see {@link #band}. */
+    private final class Band implements Storage {
+
+        private final int priority;
+
+        Band(final int priority) {
+            this.priority = priority;
+        }
+
+        @Override
+        public long amountOf(final ResourceKey resource) {
+            final int start = bandStart(priority);
+            final int end = bandEnd(start, priority);
+            long amount = 0;
+            for (int i = start; i < end; i++) {
+                amount = SaturatedMath.add(amount, sources.get(i).storage().amountOf(resource));
+            }
+            return amount;
+        }
+
+        @Override
+        public List<ResourceAmount> contents() {
+            final ResourceCounter counter = new ResourceCounter();
+            final int start = bandStart(priority);
+            final int end = bandEnd(start, priority);
+            for (int i = start; i < end; i++) {
+                for (ResourceAmount content : sources.get(i).storage().contents()) {
+                    counter.add(content.resource(), content.amount());
+                }
+            }
+            return counter.contents();
+        }
+
+        @Override
+        public long insert(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
+            StorageArguments.check(resource, amount, action, actor);
+            final int start = bandStart(priority);
+            final long inserted = amount - insertIntoGroup(start, bandEnd(start, priority), resource, amount, action,
+                    actor);
+            if (inserted > 0 && action.isExecute()) {
+                notifyListeners(resource, totals.add(resource, inserted));
+            }
+            return inserted;
+        }
+
+        @Override
+        public long extract(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
+            StorageArguments.check(resource, amount, action, actor);
+            final int start = bandStart(priority);
+            final int end = bandEnd(start, priority);
+            long remaining = amount;
+            for (int i = start; i < end && remaining > 0; i++) {
+                remaining -= sources.get(i).storage().extract(resource, remaining, action, actor);
+            }
+            final long extracted = amount - remaining;
+            if (extracted > 0 && action.isExecute()) {
+                notifyListeners(resource, totals.remove(resource, extracted));
+            }
+            return extracted;
+        }
     }
 }
