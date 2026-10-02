@@ -2,6 +2,7 @@ package com.morphengine.nexus.client.render;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.AssemblerBlock;
+import com.morphengine.nexus.block.AssemblerChain;
 import com.morphengine.nexus.block.NetworkDeviceBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
@@ -16,9 +17,10 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ExtractBlockOutlineRenderStateEvent;
 
 /**
- * While the player looks at an Assembler, outlines the machine its face
- * touches in the network's color, so it is plain which of the blocks around
- * it gets the inputs. The Assembler keeps its own vanilla outline.
+ * While the player looks at an Assembler, outlines the machine it works with,
+ * at the end of its {@link AssemblerChain}, in the network's color, so it is
+ * plain which of the blocks around gets the inputs. The Assembler keeps its
+ * own vanilla outline.
  */
 @EventBusSubscriber(modid = Nexus.MOD_ID, value = Dist.CLIENT)
 public final class AssemblerMachineOutline {
@@ -32,7 +34,7 @@ public final class AssemblerMachineOutline {
         if (!(assembler.getBlock() instanceof AssemblerBlock)) {
             return;
         }
-        final BlockPos machine = event.getBlockPos().relative(assembler.getValue(AssemblerBlock.FACING));
+        final BlockPos machine = AssemblerChain.linkOf(event.getLevel(), event.getBlockPos()).machine();
         final BlockState machineState = event.getLevel().getBlockState(machine);
         if (machineState.isAir()) {
             return;
