@@ -27,6 +27,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -57,6 +58,7 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
 
     private final NetworkState networkState = new NetworkState(this);
     private final ClickGuard clickGuard = new ClickGuard();
+    private final DeviceUpgrades upgrades = new DeviceUpgrades(this);
     private Network network = NexusNetworks.createDefault();
     private long establishedAt = NOT_ESTABLISHED;
     /** Whether the directory knows where this Nexus stands; not saved, as the directory itself is. */
@@ -100,14 +102,6 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
         if (level != null && state.getValue(NexusBlock.STATUS) != status) {
             level.setBlock(worldPosition, state.setValue(NexusBlock.STATUS, status), Block.UPDATE_CLIENTS);
         }
-    }
-
-    /**
-     * @return whether another Nexus leads the network this one is in, as last
-     *         shown on its block; readable on both sides
-     */
-    public boolean isInConflict() {
-        return getBlockState().getValue(NexusBlock.STATUS) == NexusStatus.CONFLICT;
     }
 
     /**
@@ -156,6 +150,21 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
         return clickGuard.ignoresClick(level);
     }
 
+    public Container upgrades() {
+        return upgrades.container();
+    }
+
+    /**
+     * Broken, the Nexus drops its upgrade and lets go of its chunk.
+     */
+    @Override
+    public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null) {
+            upgrades.dropAndRelease(level, pos);
+        }
+    }
+
     @Override
     public void setRemoved() {
         super.setRemoved();
@@ -165,21 +174,18 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
     @Override
     public void rename(final String newName) {
         network.rename(newName.isBlank() ? NexusNetworks.DEFAULT_NAME : newName);
-        syncToClients();
+        setChanged();
+        if (level != null) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     public void recolor(final NetworkColor newColor) {
         network.recolor(newColor);
-        syncToClients();
-        if (level != null) {
-            networkState.paintDevices(level, newColor);
-        }
-    }
-
-    private void syncToClients() {
         setChanged();
         if (level != null) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            networkState.paintDevices(level, newColor);
         }
     }
 
@@ -200,6 +206,7 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
         output.putString(TAG_NETWORK_NAME, network.name());
         output.putInt(TAG_NETWORK_COLOR, network.color().rgb());
         output.putLong(TAG_ESTABLISHED_AT, establishedAt);
+        upgrades.save(output);
     }
 
     @Override
@@ -210,6 +217,7 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
         final UUID id = input.read(TAG_NETWORK_ID, UUIDUtil.CODEC).orElse(network.id());
         network = new Network(id, name, new NetworkColor(color));
         establishedAt = input.getLongOr(TAG_ESTABLISHED_AT, NOT_ESTABLISHED);
+        upgrades.load(input);
     }
 
     /**

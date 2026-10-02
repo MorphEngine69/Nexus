@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 /**
  * Charge of one Energy Cell, tinted with the color of the network it belongs
@@ -15,14 +16,15 @@ import net.minecraft.world.entity.player.Inventory;
 public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
 
     private static final int IMAGE_WIDTH = 236;
-    private static final int IMAGE_HEIGHT = 122;
-    private static final int LINE_HEIGHT = 12;
+    private static final int IMAGE_HEIGHT = EnergyCellMenu.INVENTORY_TOP + 84;
+    private static final int LABEL_GAP = 11;
     private static final int BAR_HEIGHT = 16;
     private static final int GAP = 8;
     private static final int PERCENT = 100;
     private static final int PRIORITY_TOP = 32;
     private static final int BAR_TOP = 52;
 
+    private final StatLine statLine = new StatLine();
     private PriorityRow priority;
 
     public EnergyCellScreen(final EnergyCellMenu menu, final Inventory inventory, final Component title) {
@@ -56,18 +58,30 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
         priority.draw(graphics, font, style, getMenu().priority());
 
         int y = topPos + BAR_TOP;
-        drawChargeBar(graphics, style, view, new PanelBounds(x, y, imageWidth - PanelStyle.PADDING * 2, BAR_HEIGHT));
+        drawChargeBar(graphics, style, view,
+                new PanelBounds(x, y, EnergyCellMenu.UPGRADES_LEFT - PanelStyle.PADDING * 2, BAR_HEIGHT));
 
         y += BAR_HEIGHT + GAP;
-        graphics.text(font, Component.translatable("gui.nexus.stats.energy",
-                EnergyFormat.amount(view.stored()) + " / " + EnergyFormat.amount(view.capacity())),
-                x, y, PanelStyle.TEXT_LIGHT, false);
-        y += LINE_HEIGHT;
-        graphics.text(font, Component.translatable("gui.nexus.stats.input", EnergyFormat.amount(view.input())),
-                x, y, PanelStyle.TEXT_DIM, false);
-        y += LINE_HEIGHT;
-        graphics.text(font, Component.translatable("gui.nexus.stats.output", EnergyFormat.amount(view.output())),
-                x, y, PanelStyle.TEXT_DIM, false);
+        final int textWidth = EnergyCellMenu.UPGRADES_LEFT - PanelStyle.PADDING * 2;
+        statLine.begin();
+        y += statLine.draw(graphics, font, EnergyFormat.stored(view.stored(), view.capacity()),
+                new PanelBounds(x, y, textWidth, 0), PanelStyle.TEXT_LIGHT);
+        y += statLine.draw(graphics, font, EnergyFormat.rate("input", view.input()),
+                new PanelBounds(x, y, textWidth, 0), PanelStyle.TEXT_DIM);
+        statLine.draw(graphics, font, EnergyFormat.rate("output", view.output()),
+                new PanelBounds(x, y, textWidth, 0), PanelStyle.TEXT_DIM);
+
+        for (Slot slot : getMenu().slots) {
+            style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
+        }
+        graphics.text(font, playerInventoryTitle, leftPos + EnergyCellMenu.INVENTORY_LEFT,
+                topPos + EnergyCellMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
+    }
+
+    @Override
+    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
+        statLine.showTooltip(graphics, font, mouseX, mouseY);
     }
 
     @Override

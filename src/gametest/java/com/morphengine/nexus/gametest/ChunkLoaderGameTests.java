@@ -2,9 +2,12 @@ package com.morphengine.nexus.gametest;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.TransferDeviceBlock;
+import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.block.entity.NetworkReceiverBlockEntity;
 import com.morphengine.nexus.block.entity.NetworkTransmitterBlockEntity;
+import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.NexusLinkBlockEntity;
+import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
 import com.morphengine.nexus.registry.NexusBlocks;
 import com.morphengine.nexus.registry.NexusItems;
@@ -76,6 +79,7 @@ public final class ChunkLoaderGameTests {
     private static void holdsTheChunk(final GameTestHelper helper) {
         holdsTheChunkWhileInADevice(helper);
         holdsTheChunkForTransmitterAndReceiver(helper);
+        holdsTheChunkForNexusVaultAndCell(helper);
         takesOneChunkLoaderOnly(helper);
         helper.succeed();
     }
@@ -118,6 +122,26 @@ public final class ChunkLoaderGameTests {
         helper.assertTrue(held(helper, FIRST), Component.literal("a receiver did not hold the chunk"));
         helper.destroyBlock(FIRST);
         helper.assertFalse(held(helper, FIRST), Component.literal("a broken receiver held the chunk"));
+    }
+
+    private static void holdsTheChunkForNexusVaultAndCell(final GameTestHelper helper) {
+        place(helper, FIRST, NexusBlocks.NEXUS.get().defaultBlockState());
+        helper.getBlockEntity(FIRST, NexusBlockEntity.class).upgrades().setItem(0, loader());
+        helper.assertTrue(held(helper, FIRST), Component.literal("a Nexus did not hold the chunk"));
+        helper.destroyBlock(FIRST);
+        helper.assertFalse(held(helper, FIRST), Component.literal("a broken Nexus held the chunk"));
+
+        place(helper, FIRST, NexusBlocks.STORAGE_VAULT.get().defaultBlockState());
+        helper.getBlockEntity(FIRST, StorageVaultBlockEntity.class).upgrades().setItem(0, loader());
+        helper.assertTrue(held(helper, FIRST), Component.literal("a Storage Vault did not hold the chunk"));
+        helper.destroyBlock(FIRST);
+        helper.assertFalse(held(helper, FIRST), Component.literal("a broken Storage Vault held the chunk"));
+
+        place(helper, FIRST, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
+        helper.getBlockEntity(FIRST, EnergyCellBlockEntity.class).upgrades().setItem(0, loader());
+        helper.assertTrue(held(helper, FIRST), Component.literal("an Energy Cell did not hold the chunk"));
+        helper.destroyBlock(FIRST);
+        helper.assertFalse(held(helper, FIRST), Component.literal("a broken Energy Cell held the chunk"));
     }
 
     private static void takesOneChunkLoaderOnly(final GameTestHelper helper) {

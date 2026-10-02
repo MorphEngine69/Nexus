@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -47,6 +48,7 @@ public final class EnergyCellBlockEntity extends BlockEntity
     private final ClickGuard clickGuard = new ClickGuard();
     private final NetworkLink network = new NetworkLink();
     private final DeviceName name = new DeviceName();
+    private final DeviceUpgrades upgrades = new DeviceUpgrades(this);
     private long insertedAtLastCheck;
     private long extractedAtLastCheck;
     private int priority = DEFAULT_PRIORITY;
@@ -125,6 +127,21 @@ public final class EnergyCellBlockEntity extends BlockEntity
         return handler;
     }
 
+    public Container upgrades() {
+        return upgrades.container();
+    }
+
+    /**
+     * Broken, the cell drops its upgrade and lets go of its chunk.
+     */
+    @Override
+    public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null) {
+            upgrades.dropAndRelease(level, pos);
+        }
+    }
+
     @Override
     public void joinNetwork(final NetworkController joined) {
         network.join(joined);
@@ -179,6 +196,7 @@ public final class EnergyCellBlockEntity extends BlockEntity
         output.putLong(TAG_ENERGY, buffer.stored());
         output.putInt(TAG_PRIORITY, priority);
         name.save(output);
+        upgrades.save(output);
     }
 
     @Override
@@ -188,6 +206,7 @@ public final class EnergyCellBlockEntity extends BlockEntity
         buffer.restore(SimpleEnergyBuffer.Snapshot.storing(stored));
         priority = DevicePriority.clamp(input.getIntOr(TAG_PRIORITY, DEFAULT_PRIORITY));
         name.load(input);
+        upgrades.load(input);
     }
 
     @Override

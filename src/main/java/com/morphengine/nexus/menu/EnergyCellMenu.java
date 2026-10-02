@@ -1,6 +1,7 @@
 package com.morphengine.nexus.menu;
 
 import com.morphengine.nexus.api.energy.EnergyBuffer;
+import com.morphengine.nexus.block.entity.DeviceUpgrades;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.energy.EnergyRateMeter;
 import com.morphengine.nexus.networking.EnergyCellViewPayload;
@@ -10,11 +11,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * Panel of one Energy Cell: its own charge and throughput, in the color of its
- * network, and its priority in the network's pool with buttons to change it.
+ * network, its priority in the network's pool with buttons to change it, the
+ * upgrade slots and the player's inventory.
  * The server refreshes the view every {@value #REFRESH_INTERVAL_TICKS} ticks
  * and sends it only when it changed; the priority returns in a data slot.
  */
@@ -22,6 +25,11 @@ public final class EnergyCellMenu extends DeviceMenu<EnergyCellBlockEntity> {
 
     /** Menu button id of the first {@link PriorityButtons priority button}. */
     public static final int BUTTON_PRIORITY = 0;
+
+    public static final int UPGRADES_LEFT = 208;
+    public static final int UPGRADES_TOP = 52;
+    public static final int INVENTORY_LEFT = 37;
+    public static final int INVENTORY_TOP = 136;
 
     private static final int REFRESH_INTERVAL_TICKS = 20;
 
@@ -33,6 +41,10 @@ public final class EnergyCellMenu extends DeviceMenu<EnergyCellBlockEntity> {
 
     public EnergyCellMenu(final int containerId, final Inventory inventory, final BlockPos pos) {
         super(NexusMenuTypes.ENERGY_CELL.get(), containerId, inventory, pos, EnergyCellBlockEntity.class);
+        final EnergyCellBlockEntity cell = blockEntity();
+        UpgradeColumn.slots(viewer() != null && cell != null ? cell.upgrades() : null, UPGRADES_LEFT, UPGRADES_TOP)
+                .forEach(this::addSlot);
+        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(priority);
     }
 
@@ -78,5 +90,11 @@ public final class EnergyCellMenu extends DeviceMenu<EnergyCellBlockEntity> {
             view = current;
             PacketDistributor.sendToPlayer(viewer, new EnergyCellViewPayload(containerId, current));
         }
+    }
+
+    @Override
+    public ItemStack quickMoveStack(final Player player, final int slotIndex) {
+        final boolean isUpgrade = UpgradeColumn.takes(slots.get(slotIndex).getItem());
+        return shiftClick(slotIndex, DeviceUpgrades.SIZE, 0, isUpgrade ? DeviceUpgrades.SIZE : 0);
     }
 }
