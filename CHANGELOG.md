@@ -120,7 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Energy Vault Cells in six sizes, from 8.4 million FE at 1k to 4.3 billion FE
   at 512k. They hold energy only, so they have no filter, and their lamp stays
   green until the cell is full. Their energy joins the network's energy pool
-  after the Energy Cells.
+  at the priority of their Storage Vault.
 - The terminal lists the network's energy, Energy Cells included, as a
   lightning bolt next to its items and fluids.
 - Upgrades for Pullers and Pushers. Speed Upgrade: works more often, up to
@@ -129,9 +129,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   block and stops there, a Puller leaves a set amount behind instead of
   emptying the block; scroll over a filter slot to set it. Capacity Upgrade:
   adds a full row of 9 filter slots, up to 3 stacked in one slot, for 36 in all.
-- Range, Fortune and Silk Touch Upgrades are in the creative tab already;
-  their tooltip says they are still in development, and no device takes them
-  yet.
 - A Match button on Pullers and Pushers picks how closely the filter compares
   an item: exactly, ignoring wear, or ignoring every component. It applies
   wherever the filter decides yes or no, so a blacklisted item still gets
@@ -167,9 +164,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   giving back what it held. Tasks pause without energy and lose nothing.
 - The Autocrafting Upgrade works now: a Pusher with it orders a craft of what
   its whitelist lists and the network has run out of.
+- Craft Less: when the network lacks something for the amount asked, a button
+  in the crafting request window brings the amount down to the most the
+  network can craft, counting everything it would have to craft on the way.
+- Assemblers can be chained: an Assembler facing another Assembler works with
+  the machine at the end of the chain, so several Assemblers with their own
+  Blueprints share one furnace. Waiting for the machine to empty counts the
+  inputs of every Assembler in the chain.
+- Energy Cells have a priority, 10 by default, and rank together with the
+  Storage Vaults and their Energy Vault Cells: energy fills the highest
+  priority first and is drawn from the lowest first.
+- The Coal Generator takes up to four Speed Upgrades: each makes it burn its
+  fuel one time faster, so the same coal gives its energy sooner.
+- Placer: sits against the world like a Pusher and places blocks from the
+  network in front of it, as its whitelist lists them or anything its
+  blacklist does not, or drops them there as items. Set to fluids, it pours a
+  source block.
+- Remover: breaks the block in front of it and puts what it drops into the
+  network, but only when the network has room for all of it; its filter lists
+  blocks. Set to pick up items, it collects the items lying in front of it.
+  Set to fluids, it takes fluid source blocks. Fortune Upgrades break with
+  Fortune, up to level three, and a Silk Touch Upgrade breaks with Silk Touch.
+- Network Transmitter and Network Receiver: link a Network Card to a receiver
+  by right-clicking it, then put the card into a transmitter. Everything
+  connected to the receiver joins the transmitter's network, however far
+  away, even in another dimension, while its chunk is loaded.
+- Nexus Link: lets Nexus Terminals reach its network within 32 blocks, and 32
+  more for every Range Upgrade, up to four.
+- Nexus Terminal: a terminal to carry. Right-click a Nexus to bind it, then use
+  it anywhere a Nexus Link of that network reaches. Sneak and use it to switch
+  between terminal, crafting terminal and blueprint terminal. Its crafting grid
+  and encoder slots give their items back when you close it.
+- Puller, Pusher, Placer and Remover filters can match by tag: Ctrl-click or
+  middle-click an item in a filter slot to match every item of one of its
+  tags instead, such as all logs or all iron ores; click again for the next
+  tag. A small mark in the corner shows a slot that matches by tag. Tags are
+  not used while a Regulator Upgrade keeps stock.
+- Chunk Loader Upgrade: keeps the chunk its device stands in loaded, with
+  nobody near, so a network goes on working and a Network Transmitter reaches
+  a Network Receiver in another dimension. One per device. Pullers, Pushers,
+  Placers, Removers, Assemblers, the Coal Generator, the Nexus Link and the
+  Network Transmitter and Receiver take it. Several devices in one chunk share
+  it, and the chunk is let go when the last of them loses its upgrade or is
+  broken.
+- The Network Receiver has a panel now, with its upgrade slot and a name you
+  can change. Right-click it with a Network Card in hand to link the card, as
+  before.
 
 ### Changed
 
+- The Nexus Link and the Coal Generator have a second upgrade slot.
+- A Nexus with a name or a color of its own now drops when broken in creative
+  mode too, with its network, so it can be moved.
+- A Nexus Terminal stays bound to its network when the network is renamed
+  and when the Nexus is broken and placed somewhere else. A Nexus replaced on
+  the same spot keeps working with terminals bound there.
+- A broken Nexus keeps the color of its network as well as its name.
+- The priority row of the Energy Cell panel sits at the top, as in every
+  other panel.
 - Keeping an amount stocked now takes a Regulator Upgrade in the Pusher; a
   Pusher set to keep stock without one delivers as long as the block takes
   more.
@@ -188,3 +240,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Slimmer panel headers with a smaller title.
 
 ### Fixed
+
+- Assemblers set against each other now always share the network, whichever
+  way they face. Before, an Assembler whose face touched another Assembler
+  stayed out of the network unless it had a cable of its own.
