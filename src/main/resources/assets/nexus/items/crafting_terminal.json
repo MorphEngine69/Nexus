@@ -1,6 +1,9 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "nexus:block/crafting_terminal"
+    "type": "minecraft:special",
+    "base": "nexus:block/geo_device",
+    "model": {
+      "type": "geckolib:geckolib"
+    }
   }
 }

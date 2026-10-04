@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block.entity;
 
+import com.geckolib.animation.RawAnimation;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.transport.RedstoneMode;
@@ -65,7 +66,7 @@ import java.util.random.RandomGenerator;
  * lights or darkens its cable arms with the network's energy. It keeps its
  * settings and its upgrades.
  */
-public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
+public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity {
 
     public static final int FILTER_SLOTS = 9;
     /** A Capacity Upgrade adds this many filter slots; placeholder balance. */
@@ -75,6 +76,7 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     /** A Pusher with an Autocrafting Upgrade orders a craft at most once per so many operations. */
     private static final int OPERATIONS_PER_ORDER = 10;
     private static final int POWER_CHECK_INTERVAL_TICKS = 20;
+    private static final RawAnimation AT_REST = RawAnimation.begin().thenLoop("idle");
 
     private static final String TAG_SETTINGS = "settings";
     private static final String TAG_SIGNAL = "redstone_signal";
@@ -97,7 +99,7 @@ public final class TransferDeviceBlockEntity extends NetworkDeviceBlockEntity {
     private int cooldown;
 
     public TransferDeviceBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.TRANSFER_DEVICE.get(), pos, state);
+        super(NexusBlockEntityTypes.TRANSFER_DEVICE.get(), pos, state, current -> AT_REST);
         this.kind = kindOf(state);
         this.upgrades = new UpgradeContainer(UPGRADE_SLOTS, kind.upgradeLimits(), this::upgradesChanged);
     }

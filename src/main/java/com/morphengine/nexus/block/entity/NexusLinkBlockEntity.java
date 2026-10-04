@@ -31,7 +31,7 @@ import java.util.Objects;
  * more for every Range Upgrade, in its own dimension. Once a second it lights
  * its block while the network has energy.
  */
-public final class NexusLinkBlockEntity extends NetworkDeviceBlockEntity implements AccessPoint, Renamable {
+public final class NexusLinkBlockEntity extends AnimatedDeviceBlockEntity implements AccessPoint, Renamable {
 
     /** Placeholder balance, like the Range Upgrades it takes. */
     public static final int BASE_RANGE = 32;
@@ -49,7 +49,7 @@ public final class NexusLinkBlockEntity extends NetworkDeviceBlockEntity impleme
             this::upgradesChanged);
 
     public NexusLinkBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.NEXUS_LINK.get(), pos, state);
+        super(NexusBlockEntityTypes.NEXUS_LINK.get(), pos, state, WirelessBlock::animationOf);
     }
 
     public static void serverTick(

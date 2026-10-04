@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block;
 
+import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -10,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -25,8 +27,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * Crafting Monitor: shows the crafting tasks of its network, their progress and
  * what holds them up, and cancels them. Its screen faces the player who placed
- * it and takes no cable; it glows while the network has energy and shows a
- * busy pattern while a task runs.
+ * it and takes no cable; it glows while the network has energy, and shows a row
+ * with a bar of progress for each of the first tasks.
  */
 public final class CraftingMonitorBlock extends NetworkDeviceBlock {
 
@@ -37,10 +39,33 @@ public final class CraftingMonitorBlock extends NetworkDeviceBlock {
     /** The network has crafting tasks. Set only by the server. */
     public static final BooleanProperty ACTIVE = AssemblerBlock.ACTIVE;
 
+    private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final RawAnimation STANDBY = RawAnimation.begin().thenLoop("standby");
+    private static final RawAnimation WORKING = RawAnimation.begin().thenLoop("working");
+    private static final RawAnimation PAUSED = RawAnimation.begin().thenLoop("paused");
+
     public CraftingMonitorBlock(final BlockBehaviour.Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(POWERED, false)
                 .setValue(ACTIVE, false));
+    }
+
+    /**
+     * @return the animation of the screen in a block state: still without energy and tasks, the ready marks on standby,
+     *         the bars while tasks run, the orange icons while tasks wait for energy
+     */
+    public static RawAnimation animationOf(final BlockState state) {
+        final boolean powered = state.getValue(POWERED);
+        final boolean active = state.getValue(ACTIVE);
+        if (powered) {
+            return active ? WORKING : STANDBY;
+        }
+        return active ? PAUSED : IDLE;
+    }
+
+    @Override
+    protected RenderShape getRenderShape(final BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     @Override

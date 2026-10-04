@@ -1,0 +1,623 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "online": {
+      "loop": true,
+      "animation_length": 12,
+      "bones": {
+        "crystal": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            },
+            "12.0": {
+              "vector": [
+                0,
+                720,
+                0
+              ]
+            }
+          },
+          "position": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            },
+            "3.0": {
+              "vector": [
+                0,
+                0.3,
+                0
+              ],
+              "easing": "easeInOutSine"
+            },
+            "6.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ],
+              "easing": "easeInOutSine"
+            },
+            "9.0": {
+              "vector": [
+                0,
+                -0.3,
+                0
+              ],
+              "easing": "easeInOutSine"
+            },
+            "12.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ],
+              "easing": "easeInOutSine"
+            }
+          }
+        },
+        "shards": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            },
+            "12.0": {
+              "vector": [
+                0,
+                -1080,
+                0
+              ]
+            }
+          },
+          "position": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            },
+            "1.5": {
+              "vector": [
+                0,
+                0.4,
+                0
+              ],
+              "easing": "easeInOutSine"
+            },
+            "3.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ],
+              "easing": "easeInOutSine"
+            },
+            "4.5": {
+              "vector": [
+                0,
+                -0.4,
+                0
+              ],
+              "easing": "easeInOutSine"
+            },
+            "6.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ],
+              "easing": "easeInOutSine"
+            }
+          }
+        },
+        "beam_low": {
+          "scale": {
+            "0.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            },
+            "1.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "2.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "3.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "4.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "5.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "6.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "7.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "8.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "9.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "10.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "11.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "12.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            }
+          }
+        },
+        "beam_high": {
+          "scale": {
+            "0.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ]
+            },
+            "1.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "2.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "3.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "4.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "5.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "6.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "7.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "8.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "9.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "10.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            },
+            "11.0": {
+              "vector": [
+                1.6,
+                1.6,
+                1.6
+              ],
+              "easing": "easeInOutSine"
+            },
+            "12.0": {
+              "vector": [
+                0.7,
+                0.7,
+                0.7
+              ],
+              "easing": "easeInOutSine"
+            }
+          }
+        }
+      }
+    },
+    "idle": {
+      "loop": true,
+      "animation_length": 60,
+      "bones": {
+        "crystal": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            },
+            "60.0": {
+              "vector": [
+                0,
+                360,
+                0
+              ]
+            }
+          }
+        },
+        "shards": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            },
+            "60.0": {
+              "vector": [
+                0,
+                -360,
+                0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "conflict": {
+      "loop": true,
+      "animation_length": 2,
+      "bones": {
+        "crystal": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            },
+            "0.0833": {
+              "vector": [
+                8.974278839039577,
+                -1.9368777799013195,
+                -13.411029221253747
+              ]
+            },
+            "0.1667": {
+              "vector": [
+                -10.311598952783854,
+                5.325407052424719,
+                -11.46152403517448
+              ]
+            },
+            "0.25": {
+              "vector": [
+                11.4738805468238,
+                2.720572377455337,
+                3.4583759766106716
+              ]
+            },
+            "0.3333": {
+              "vector": [
+                9.401066675067096,
+                4.714069512704633,
+                -11.14408733767901
+              ]
+            },
+            "0.4167": {
+              "vector": [
+                -1.859349259565633,
+                5.23131030679702,
+                -2.2164515782469056
+              ]
+            },
+            "0.5": {
+              "vector": [
+                -0.5339839690736383,
+                13.662063006749346,
+                -4.360589446965884
+              ]
+            },
+            "0.5833": {
+              "vector": [
+                11.843135913813953,
+                -12.535341750839777,
+                -6.164200538821216
+              ]
+            },
+            "0.6667": {
+              "vector": [
+                6.996796752308981,
+                -10.412239562596525,
+                7.04460902070614
+              ]
+            },
+            "0.75": {
+              "vector": [
+                -2.4048760473823627,
+                5.378721714939072,
+                -7.201958121546559
+              ]
+            },
+            "0.8333": {
+              "vector": [
+                -6.71718788877679,
+                -8.60048450675339,
+                -2.3890659908817593
+              ]
+            },
+            "0.9167": {
+              "vector": [
+                -6.792572909457791,
+                3.3016621848511356,
+                6.24129982528564
+              ]
+            },
+            "1.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        "shards": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                0
+              ]
+            },
+            "2.0": {
+              "vector": [
+                0,
+                -1440,
+                0
+              ]
+            }
+          }
+        },
+        "beam_low": {
+          "scale": {
+            "0.0": {
+              "vector": [
+                0.4,
+                0.4,
+                0.4
+              ]
+            },
+            "0.1667": {
+              "vector": [
+                1.8,
+                1.8,
+                1.8
+              ],
+              "easing": "easeInOutSine"
+            },
+            "0.3333": {
+              "vector": [
+                0.4,
+                0.4,
+                0.4
+              ],
+              "easing": "easeInOutSine"
+            },
+            "0.5": {
+              "vector": [
+                1.8,
+                1.8,
+                1.8
+              ],
+              "easing": "easeInOutSine"
+            },
+            "0.6667": {
+              "vector": [
+                0.4,
+                0.4,
+                0.4
+              ],
+              "easing": "easeInOutSine"
+            },
+            "0.8333": {
+              "vector": [
+                1.8,
+                1.8,
+                1.8
+              ],
+              "easing": "easeInOutSine"
+            },
+            "1.0": {
+              "vector": [
+                0.4,
+                0.4,
+                0.4
+              ],
+              "easing": "easeInOutSine"
+            }
+          }
+        },
+        "beam_high": {
+          "scale": {
+            "0.0": {
+              "vector": [
+                0.4,
+                0.4,
+                0.4
+              ]
+            },
+            "0.1667": {
+              "vector": [
+                1.8,
+                1.8,
+                1.8
+              ],
+              "easing": "easeInOutSine"
+            },
+            "0.3333": {
+              "vector": [
+                0.4,
+                0.4,
+                0.4
+              ],
+              "easing": "easeInOutSine"
+            },
+            "0.5": {
+              "vector": [
+                1.8,
+                1.8,
+                1.8
+              ],
+              "easing": "easeInOutSine"
+            },
+            "0.6667": {
+              "vector": [
+                0.4,
+                0.4,
+                0.4
+              ],
+              "easing": "easeInOutSine"
+            },
+            "0.8333": {
+              "vector": [
+                1.8,
+                1.8,
+                1.8
+              ],
+              "easing": "easeInOutSine"
+            },
+            "1.0": {
+              "vector": [
+                0.4,
+                0.4,
+                0.4
+              ],
+              "easing": "easeInOutSine"
+            }
+          }
+        }
+      }
+    }
+  },
+  "geckolib_format_version": 2
+}

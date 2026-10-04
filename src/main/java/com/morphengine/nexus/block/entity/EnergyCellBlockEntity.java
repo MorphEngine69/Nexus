@@ -3,30 +3,23 @@ package com.morphengine.nexus.block.entity;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
+import com.morphengine.nexus.energy.ChargeMeter;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.level.EnergyContributor;
 import com.morphengine.nexus.level.NetworkController;
-import com.morphengine.nexus.level.NetworkLink;
-import com.morphengine.nexus.level.NetworkMember;
 import com.morphengine.nexus.menu.EnergyCellMenu;
-import com.morphengine.nexus.menu.NetworkBadge;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponentGetter;
-import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import org.jspecify.annotations.Nullable;
 
 /**
  * An Energy Cell: an FE buffer that joins the energy pool of its network at
@@ -34,8 +27,8 @@ import org.jspecify.annotations.Nullable;
  * Vaults at theirs, so it fills before the energy cells of the storage and is
  * drained after them.
  */
-public final class EnergyCellBlockEntity extends BlockEntity
-        implements EnergyContributor, NetworkMember, MenuHost, Renamable {
+public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
+        implements EnergyContributor, Renamable {
 
     public static final int DEFAULT_PRIORITY = 10;
 
@@ -45,16 +38,13 @@ public final class EnergyCellBlockEntity extends BlockEntity
 
     private final SimpleEnergyBuffer buffer;
     private final EnergyHandler handler;
-    private final ClickGuard clickGuard = new ClickGuard();
-    private final NetworkLink network = new NetworkLink();
-    private final DeviceName name = new DeviceName();
     private final DeviceUpgrades upgrades = new DeviceUpgrades(this);
     private long insertedAtLastCheck;
     private long extractedAtLastCheck;
     private int priority = DEFAULT_PRIORITY;
 
     public EnergyCellBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.ENERGY_CELL.get(), pos, state);
+        super(NexusBlockEntityTypes.ENERGY_CELL.get(), pos, state, EnergyCellBlock::animationOf);
         final EnergyCellTier tier = tierOf(state);
         this.buffer = new SimpleEnergyBuffer(tier.capacity(), tier.maxTransfer(), tier.maxTransfer());
         this.handler = new BufferEnergyHandler(buffer, BufferEnergyHandler.Access.RECEIVE_AND_GIVE, this::setChanged);
@@ -79,8 +69,12 @@ public final class EnergyCellBlockEntity extends BlockEntity
         }
         cell.insertedAtLastCheck = inserted;
         cell.extractedAtLastCheck = extracted;
-        if (state.getValue(EnergyCellBlock.CHARGING) != charging) {
-            level.setBlock(pos, state.setValue(EnergyCellBlock.CHARGING, charging), Block.UPDATE_CLIENTS);
+        final int charge = ChargeMeter.segments(
+                cell.buffer.stored(), cell.buffer.capacity(), EnergyCellBlock.SEGMENTS);
+        final BlockState shown = state.setValue(EnergyCellBlock.CHARGING, charging)
+                .setValue(EnergyCellBlock.CHARGE, charge);
+        if (shown != state) {
+            level.setBlock(pos, shown, Block.UPDATE_CLIENTS);
         }
     }
 
@@ -113,7 +107,7 @@ public final class EnergyCellBlockEntity extends BlockEntity
         }
         priority = clamped;
         setChanged();
-        final NetworkController controller = network.controller();
+        final NetworkController controller = controller();
         if (controller != null) {
             controller.invalidateNetwork();
         }
@@ -143,31 +137,8 @@ public final class EnergyCellBlockEntity extends BlockEntity
     }
 
     @Override
-    public void joinNetwork(final NetworkController joined) {
-        network.join(joined);
-    }
-
-    @Override
-    public void leaveNetwork(final NetworkController left) {
-        network.leave(left);
-    }
-
-    /**
-     * @return name and color of the cell's network; {@code null} when no Nexus is connected
-     */
-    public @Nullable NetworkBadge networkBadge() {
-        return NetworkBadge.of(network);
-    }
-
-    @Override
-    public Component getDisplayName() {
-        return name.orDefault(getBlockState().getBlock().getName());
-    }
-
-    @Override
     public void rename(final String newName) {
-        name.rename(newName);
-        setChanged();
+        changeName(newName);
     }
 
     @Override
@@ -176,26 +147,10 @@ public final class EnergyCellBlockEntity extends BlockEntity
     }
 
     @Override
-    public void markClosed() {
-        clickGuard.markClosed(level);
-    }
-
-    @Override
-    public void markPlaced() {
-        clickGuard.markPlaced(level);
-    }
-
-    @Override
-    public boolean ignoresClick() {
-        return clickGuard.ignoresClick(level);
-    }
-
-    @Override
     protected void saveAdditional(final ValueOutput output) {
         super.saveAdditional(output);
         output.putLong(TAG_ENERGY, buffer.stored());
         output.putInt(TAG_PRIORITY, priority);
-        name.save(output);
         upgrades.save(output);
     }
 
@@ -205,25 +160,6 @@ public final class EnergyCellBlockEntity extends BlockEntity
         final long stored = Math.max(0, input.getLongOr(TAG_ENERGY, 0));
         buffer.restore(SimpleEnergyBuffer.Snapshot.storing(stored));
         priority = DevicePriority.clamp(input.getIntOr(TAG_PRIORITY, DEFAULT_PRIORITY));
-        name.load(input);
         upgrades.load(input);
-    }
-
-    @Override
-    protected void applyImplicitComponents(final DataComponentGetter components) {
-        super.applyImplicitComponents(components);
-        name.applyFrom(components);
-    }
-
-    @Override
-    protected void collectImplicitComponents(final DataComponentMap.Builder components) {
-        super.collectImplicitComponents(components);
-        name.collectInto(components);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(final ValueOutput output) {
-        DeviceName.removeFrom(output);
     }
 }

@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block;
 
+import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.block.entity.AssemblerBlockEntity;
@@ -11,6 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -39,10 +41,30 @@ public final class AssemblerBlock extends NetworkDeviceBlock {
     /** It keeps at least one crafting task. Set only by the server. */
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
+    private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final RawAnimation ONLINE = RawAnimation.begin().thenLoop("online");
+    private static final RawAnimation WORKING = RawAnimation.begin().thenLoop("active");
+
     public AssemblerBlock(final BlockBehaviour.Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(POWERED, false)
                 .setValue(ACTIVE, false));
+    }
+
+    /**
+     * @return the animation of the model in {@code state}: still without energy, a slow swell with energy, busy
+     *         while it keeps crafting tasks
+     */
+    public static RawAnimation animationOf(final BlockState state) {
+        if (state.getValue(ACTIVE)) {
+            return WORKING;
+        }
+        return state.getValue(POWERED) ? ONLINE : IDLE;
+    }
+
+    @Override
+    protected RenderShape getRenderShape(final BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     @Override

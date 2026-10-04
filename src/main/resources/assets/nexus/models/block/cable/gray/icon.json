@@ -1,6 +1,0 @@
-{
-  "parent": "nexus:block/cable/icon",
-  "textures": {
-    "cable": "nexus:block/cable/gray"
-  }
-}

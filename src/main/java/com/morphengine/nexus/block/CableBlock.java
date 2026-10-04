@@ -41,7 +41,7 @@ public final class CableBlock extends PipeBlock implements NetworkBlock, SimpleW
     private static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     /** The network has energy: the colored band in the groove glows. Set only by the server. */
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
-    private static final float THICKNESS = 6.0F;
+    private static final float THICKNESS = 5.0F;
 
     private final DyeColor color;
     private final Paint paint;

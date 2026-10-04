@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block.entity;
 
+import com.geckolib.animation.RawAnimation;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.api.network.Network;
 import com.morphengine.nexus.api.network.NetworkColor;
@@ -33,12 +34,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -47,7 +49,8 @@ import java.util.UUID;
  * Nexus is broken and placed elsewhere: the dropped Nexus carries the id, name
  * and color of its network.
  */
-public final class NexusBlockEntity extends BlockEntity implements NetworkController, MenuHost, Renamable {
+public final class NexusBlockEntity extends AnimatedBlockEntity
+        implements NetworkController, MenuHost, Renamable {
 
     private static final String TAG_NETWORK_ID = "network_id";
     private static final String TAG_NETWORK_NAME = "network_name";
@@ -55,6 +58,11 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
     private static final String TAG_ESTABLISHED_AT = "established_at";
     /** Not established yet: treated as the newest, so it never outranks a running Nexus. */
     private static final long NOT_ESTABLISHED = Long.MAX_VALUE;
+
+    private static final Map<NexusStatus, RawAnimation> ANIMATIONS = new EnumMap<>(Map.of(
+            NexusStatus.ONLINE, RawAnimation.begin().thenLoop("online"),
+            NexusStatus.NO_ENERGY, RawAnimation.begin().thenLoop("idle"),
+            NexusStatus.CONFLICT, RawAnimation.begin().thenLoop("conflict")));
 
     private final NetworkState networkState = new NetworkState(this);
     private final ClickGuard clickGuard = new ClickGuard();
@@ -65,7 +73,8 @@ public final class NexusBlockEntity extends BlockEntity implements NetworkContro
     private boolean recorded;
 
     public NexusBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.NEXUS.get(), pos, state);
+        super(NexusBlockEntityTypes.NEXUS.get(), pos, state,
+                current -> ANIMATIONS.get(current.getValue(NexusBlock.STATUS)));
     }
 
     @Override

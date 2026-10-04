@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block;
 
+import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.block.entity.CoalGeneratorBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.PipeBlock;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -39,6 +41,9 @@ public final class CoalGeneratorBlock extends NetworkDeviceBlock {
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
+    private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final RawAnimation BURNING = RawAnimation.begin().thenLoop("burning");
+
     private static final double CRACKLE_CHANCE = 0.1;
     private static final double SPARK_CHANCE = 0.3;
     private static final double FLUE_SMOKE_CHANCE = 0.5;
@@ -53,6 +58,18 @@ public final class CoalGeneratorBlock extends NetworkDeviceBlock {
     public CoalGeneratorBlock(final BlockBehaviour.Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(LIT, false));
+    }
+
+    /**
+     * @return the animation of the model in {@code state}: no flame while it is not burning
+     */
+    public static RawAnimation animationOf(final BlockState state) {
+        return state.getValue(LIT) ? BURNING : IDLE;
+    }
+
+    @Override
+    protected RenderShape getRenderShape(final BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     @Override

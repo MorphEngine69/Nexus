@@ -86,6 +86,7 @@ public final class StorageGameTests {
             Map.entry("broken_vault_drops_cells_with_contents", StorageGameTests::brokenVaultDropsCells),
             Map.entry("vault_saved_with_more_slots_keeps_every_cell", StorageGameTests::vaultKeepsCellsPastItsSlots),
             Map.entry("vault_lamps_follow_energy", StorageGameTests::vaultLampsFollowEnergy),
+            Map.entry("vault_shows_working_cell", StorageGameTests::vaultShowsWorkingCell),
             Map.entry("terminal_goes_online_with_energy", StorageGameTests::terminalGoesOnlineWithEnergy),
             Map.entry("terminal_falls_off_without_cable", StorageGameTests::terminalFallsOffWithoutCable),
             Map.entry("recipe_for_most_crafts_splits_ingredients", StorageGameTests::recipeSplitsIngredients));
@@ -231,6 +232,24 @@ public final class StorageGameTests {
                 .thenSucceed();
     }
 
+    private static void vaultShowsWorkingCell(final GameTestHelper helper) {
+        final BlockPos vaultPos = NEXUS.east(2);
+        final BlockPos cellPos = NEXUS.south();
+        buildLine(helper, cable(), vault());
+        place(helper, cellPos, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
+        vaultEntity(helper, vaultPos).cells().setItem(0, cell(CellTier.ONE_K));
+
+        helper.startSequence()
+                .thenExecute(() -> charge(helper, cellPos))
+                .thenWaitUntil(() -> assertLamp(helper, vaultPos, VaultLamp.GREEN))
+                .thenExecute(() -> assertBusy(helper, vaultPos, false))
+                .thenExecute(() -> assertAmount(helper,
+                        network(helper).insert(dirt(), 10, Action.EXECUTE, Actor.NOBODY), 10, "dirt accepted"))
+                .thenWaitUntil(() -> assertBusy(helper, vaultPos, true))
+                .thenWaitUntil(() -> assertBusy(helper, vaultPos, false))
+                .thenSucceed();
+    }
+
     private static void terminalGoesOnlineWithEnergy(final GameTestHelper helper) {
         final BlockPos cellPos = NEXUS.south();
         final BlockPos terminalPos = NEXUS.east().above();
@@ -301,6 +320,12 @@ public final class StorageGameTests {
     private static void assertLamp(final GameTestHelper helper, final BlockPos pos, final VaultLamp expected) {
         final VaultLamp shown = vaultEntity(helper, pos).lampAt(0);
         helper.assertTrue(shown == expected, Component.literal("lamp shows " + shown + ", expected " + expected));
+    }
+
+    private static void assertBusy(final GameTestHelper helper, final BlockPos pos, final boolean expected) {
+        final boolean shown = vaultEntity(helper, pos).isBusyAt(0);
+        helper.assertTrue(shown == expected,
+                Component.literal("cell working shown " + shown + ", expected " + expected));
     }
 
     private static void assertStatus(final GameTestHelper helper, final BlockPos pos, final TerminalStatus expected) {

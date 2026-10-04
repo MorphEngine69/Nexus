@@ -4,7 +4,7 @@ import com.morphengine.nexus.api.storage.CellStatus;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The lamp beside one cell of a Storage Vault. All lamps of a vault are packed
+ * The meter of one cell of a Storage Vault, as many steps lit as the ordinal. All meters of a vault are packed
  * into one {@code long}, two bits per slot, so the client gets them in a single
  * value.
  */

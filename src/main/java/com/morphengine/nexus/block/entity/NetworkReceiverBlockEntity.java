@@ -34,7 +34,7 @@ import java.util.Map;
  * chunk loaded, as the link needs. Once a second it shows on its block
  * whether a network with energy reaches it.
  */
-public final class NetworkReceiverBlockEntity extends NetworkDeviceBlockEntity implements Renamable {
+public final class NetworkReceiverBlockEntity extends AnimatedDeviceBlockEntity implements Renamable {
 
     public static final int UPGRADE_SLOTS = 1;
     public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(Map.of(UpgradeTypes.CHUNK_LOADER, 1));
@@ -46,7 +46,7 @@ public final class NetworkReceiverBlockEntity extends NetworkDeviceBlockEntity i
             this::upgradesChanged);
 
     public NetworkReceiverBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.NETWORK_RECEIVER.get(), pos, state);
+        super(NexusBlockEntityTypes.NETWORK_RECEIVER.get(), pos, state, WirelessBlock::animationOf);
     }
 
     public static void serverTick(
