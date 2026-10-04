@@ -33,18 +33,22 @@ import java.util.List;
 /**
  * Storage Vault: holds up to {@value VaultCellSlots#SIZE} Vault Cells and lends
  * them to its network at its priority. Once a second it saves the contents of
- * changed cells onto their items and shows on its lamps how full each cell is;
- * with no energy in the network every lamp is dark. Cells that lost their slot
+ * changed cells onto their items and shows on its meters how full each cell is;
+ * with no energy in the network every meter is dark. Every {@value #BUSY_PERIOD_TICKS}
+ * ticks it also shows which cells took or gave resources in that time. Cells that lost their slot
  * when the vault got fewer slots are dropped in front of it on its next tick.
  */
-public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
+public final class StorageVaultBlockEntity extends AnimatedDeviceBlockEntity
         implements StorageHost, Renamable, VaultCellSlots.Owner {
 
     public static final int SLOTS = VaultCellSlots.SIZE;
+    /** One swell of a working cell's meter; the cells shown as working only change at its start, when it is at rest. */
+    public static final int BUSY_PERIOD_TICKS = 72;
 
     private static final String TAG_PRIORITY = "priority";
     private static final String TAG_LAMPS = "lamps";
     private static final String TAG_HOMELESS = "homeless_cells";
+    private static final String TAG_BUSY = "busy";
     private static final int REFRESH_INTERVAL_TICKS = 20;
 
     private final VaultCellSlots cells = new VaultCellSlots(this);
@@ -53,9 +57,11 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
     private int priority;
     /** Lamps of all slots as packed by {@link VaultLamp}; on the client, as last sent. */
     private long lamps;
+    /** The slots shown as working, one bit per slot; on the client, as last sent. */
+    private int busy;
 
     public StorageVaultBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.STORAGE_VAULT.get(), pos, state);
+        super(NexusBlockEntityTypes.STORAGE_VAULT.get(), pos, state, StorageVaultBlock::animationOf);
     }
 
     public static void serverTick(
@@ -66,6 +72,9 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
         if (level.getGameTime() % REFRESH_INTERVAL_TICKS == 0) {
             vault.cells.flush();
             vault.refreshLamps();
+        }
+        if (level.getGameTime() % BUSY_PERIOD_TICKS == 0) {
+            vault.refreshBusy();
         }
     }
 
@@ -87,6 +96,10 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
 
     public VaultLamp lampAt(final int slot) {
         return VaultLamp.unpack(lamps, slot);
+    }
+
+    public boolean isBusyAt(final int slot) {
+        return (busy & 1 << slot) != 0;
     }
 
     /**
@@ -152,6 +165,15 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
         }
     }
 
+    private void refreshBusy() {
+        final int touched = cells.takeTouched();
+        final int shown = isNetworkPowered() ? touched : 0;
+        if (shown != busy && level != null) {
+            busy = shown;
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
     @Override
     public AbstractContainerMenu createMenu(final int containerId, final Inventory inventory, final Player player) {
         return new StorageVaultMenu(containerId, inventory, worldPosition);
@@ -201,15 +223,17 @@ public final class StorageVaultBlockEntity extends NetworkDeviceBlockEntity
         input.listOrEmpty(TAG_HOMELESS, ItemStack.CODEC).forEach(homeless::add);
         priority = DevicePriority.clamp(input.getIntOr(TAG_PRIORITY, priority));
         lamps = input.getLongOr(TAG_LAMPS, lamps);
+        busy = input.getIntOr(TAG_BUSY, busy);
     }
 
     /**
-     * Clients only need the lamps; cells reach them through the menu.
+     * Clients only need the lamps and the working cells; cells reach them through the menu.
      */
     @Override
     public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
         final CompoundTag tag = new CompoundTag();
         tag.putLong(TAG_LAMPS, lamps);
+        tag.putInt(TAG_BUSY, busy);
         return tag;
     }
 

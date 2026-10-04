@@ -6,20 +6,14 @@ import com.morphengine.nexus.energy.FuelBurner;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NetworkController;
-import com.morphengine.nexus.level.NetworkLink;
-import com.morphengine.nexus.level.NetworkMember;
 import com.morphengine.nexus.menu.CoalGeneratorMenu;
 import com.morphengine.nexus.menu.CoalGeneratorView;
-import com.morphengine.nexus.menu.NetworkBadge;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.registry.NexusTags;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponentGetter;
-import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
@@ -31,7 +25,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -45,7 +38,7 @@ import java.util.Map;
  * draws energy from the network. Each Speed Upgrade burns the fuel one time
  * faster, so the same fuel gives its energy sooner.
  */
-public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuHost, NetworkMember, Renamable {
+public final class CoalGeneratorBlockEntity extends AnimatedDeviceBlockEntity implements Renamable {
 
     /** Placeholder balance, like the other numbers of the generator. */
     public static final int MAX_SPEED_UPGRADES = 4;
@@ -72,14 +65,11 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
             this::upgradesChanged);
     private final EnergyHandler handler =
             new BufferEnergyHandler(buffer, BufferEnergyHandler.Access.GIVE_ONLY, this::setChanged);
-    private final ClickGuard clickGuard = new ClickGuard();
-    private final NetworkLink network = new NetworkLink();
-    private final DeviceName name = new DeviceName();
     private final NeighbourEnergyOutputs outputs = new NeighbourEnergyOutputs(MAX_OUTPUT_PER_SIDE);
     private long producedLastTick;
 
     public CoalGeneratorBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.COAL_GENERATOR.get(), pos, state);
+        super(NexusBlockEntityTypes.COAL_GENERATOR.get(), pos, state, CoalGeneratorBlock::animationOf);
     }
 
     public static void serverTick(
@@ -113,17 +103,7 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
 
     public CoalGeneratorView view() {
         return new CoalGeneratorView(buffer.stored(), buffer.capacity(), producedLastTick,
-                burner.burnTicksLeft(), burner.burnTicksTotal(), NetworkBadge.of(network));
-    }
-
-    @Override
-    public void joinNetwork(final NetworkController joined) {
-        network.join(joined);
-    }
-
-    @Override
-    public void leaveNetwork(final NetworkController left) {
-        network.leave(left);
+                burner.burnTicksLeft(), burner.burnTicksTotal(), networkBadge());
     }
 
     private void tick(final ServerLevel level, final BlockPos pos, final BlockState state) {
@@ -158,7 +138,7 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
     }
 
     private void feedNetwork() {
-        final NetworkController controller = network.controller();
+        final NetworkController controller = controller();
         if (controller == null || buffer.stored() == 0) {
             return;
         }
@@ -171,34 +151,13 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
     }
 
     @Override
-    public Component getDisplayName() {
-        return name.orDefault(getBlockState().getBlock().getName());
-    }
-
-    @Override
     public void rename(final String newName) {
-        name.rename(newName);
-        setChanged();
+        changeName(newName);
     }
 
     @Override
     public AbstractContainerMenu createMenu(final int containerId, final Inventory inventory, final Player player) {
         return new CoalGeneratorMenu(containerId, inventory, worldPosition);
-    }
-
-    @Override
-    public void markClosed() {
-        clickGuard.markClosed(level);
-    }
-
-    @Override
-    public void markPlaced() {
-        clickGuard.markPlaced(level);
-    }
-
-    @Override
-    public boolean ignoresClick() {
-        return clickGuard.ignoresClick(level);
     }
 
     @Override
@@ -219,7 +178,6 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
         output.putInt(TAG_BURN_TOTAL, burner.burnTicksTotal());
         ContainerHelper.saveAllItems(output, fuel.getItems());
         ContainerHelper.saveAllItems(output.child(TAG_UPGRADES), upgrades.getItems());
-        name.save(output);
     }
 
     @Override
@@ -230,25 +188,6 @@ public final class CoalGeneratorBlockEntity extends BlockEntity implements MenuH
         ContainerHelper.loadAllItems(input, fuel.getItems());
         ContainerHelper.loadAllItems(input.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
         burner.setSpeed(1 + upgrades.count(UpgradeTypes.SPEED));
-        name.load(input);
-    }
-
-    @Override
-    protected void applyImplicitComponents(final DataComponentGetter components) {
-        super.applyImplicitComponents(components);
-        name.applyFrom(components);
-    }
-
-    @Override
-    protected void collectImplicitComponents(final DataComponentMap.Builder components) {
-        super.collectImplicitComponents(components);
-        name.collectInto(components);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(final ValueOutput output) {
-        DeviceName.removeFrom(output);
     }
 
     /** The fuel slot; any change to it is saved with the generator. */

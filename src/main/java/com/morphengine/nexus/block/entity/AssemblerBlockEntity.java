@@ -60,7 +60,7 @@ import java.util.Map;
  * the machine is waited for is up to the root of the chain, and counts the
  * inputs of the Blueprints of every Assembler in it.
  */
-public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity implements AutocraftingHost, Renamable {
+public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implements AutocraftingHost, Renamable {
 
     public static final int UPGRADE_SLOTS = 4;
     /** Placeholder balance: up to four Speed Upgrades share one slot. */
@@ -85,7 +85,7 @@ public final class AssemblerBlockEntity extends NetworkDeviceBlockEntity impleme
     private int cooldown;
 
     public AssemblerBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.ASSEMBLER.get(), pos, state);
+        super(NexusBlockEntityTypes.ASSEMBLER.get(), pos, state, AssemblerBlock::animationOf);
     }
 
     public static void serverTick(

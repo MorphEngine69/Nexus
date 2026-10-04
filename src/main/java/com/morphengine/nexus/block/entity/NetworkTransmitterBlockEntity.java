@@ -40,7 +40,7 @@ import java.util.Objects;
  * appears or goes away. Once a second it works out what its panel shows and
  * lights its block while the link goes through and the network has energy.
  */
-public final class NetworkTransmitterBlockEntity extends NetworkDeviceBlockEntity implements Renamable {
+public final class NetworkTransmitterBlockEntity extends AnimatedDeviceBlockEntity implements Renamable {
 
     public static final int UPGRADE_SLOTS = 1;
     public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(Map.of(UpgradeTypes.CHUNK_LOADER, 1));
@@ -55,7 +55,7 @@ public final class NetworkTransmitterBlockEntity extends NetworkDeviceBlockEntit
     private TransmitterStatus status = TransmitterStatus.NO_CARD;
 
     public NetworkTransmitterBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.NETWORK_TRANSMITTER.get(), pos, state);
+        super(NexusBlockEntityTypes.NETWORK_TRANSMITTER.get(), pos, state, WirelessBlock::animationOf);
     }
 
     public static void serverTick(

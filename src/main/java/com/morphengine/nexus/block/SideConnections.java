@@ -56,7 +56,16 @@ public final class SideConnections {
     }
 
     /**
-     * @return one bit per side with something attached, bit {@code side.ordinal()}
+     * @return whether the block of {@code state} tells, side by side, what is attached to it; a device that joins the
+     *         network on one side only does not
+     */
+    public static boolean hasSides(final BlockState state) {
+        return state.hasProperty(property(Direction.NORTH));
+    }
+
+    /**
+     * @return one bit per side with something attached, bit {@code side.ordinal()}; the block must have
+     *         {@link #hasSides sides}
      */
     public static int attachedMask(final BlockState state) {
         int mask = 0;

@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block.entity;
 
+import com.geckolib.animation.RawAnimation;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.TerminalBlock;
 import com.morphengine.nexus.level.AutocraftingComponent;
@@ -37,8 +38,9 @@ import org.jspecify.annotations.Nullable;
  * grid, a blueprint terminal its encoder. Once a second it lights or darkens
  * its screen with the network's energy.
  */
-public final class TerminalBlockEntity extends NetworkDeviceBlockEntity implements TerminalHost {
+public final class TerminalBlockEntity extends AnimatedDeviceBlockEntity implements TerminalHost {
 
+    private static final RawAnimation AT_REST = RawAnimation.begin().thenLoop("idle");
     private static final String TAG_SETTINGS = "settings";
     private static final int REFRESH_INTERVAL_TICKS = 20;
 
@@ -48,7 +50,7 @@ public final class TerminalBlockEntity extends NetworkDeviceBlockEntity implemen
     private TerminalSettings settings = TerminalSettings.DEFAULT;
 
     public TerminalBlockEntity(final BlockPos pos, final BlockState state) {
-        super(NexusBlockEntityTypes.TERMINAL.get(), pos, state);
+        super(NexusBlockEntityTypes.TERMINAL.get(), pos, state, current -> AT_REST);
         this.kind = kindOf(state);
         this.craftingGrid = kind.hasCraftingGrid() ? new TerminalCraftingGrid(this::setChanged) : null;
         this.encoder = kind.hasEncoder() ? new BlueprintEncoder(this::setChanged) : null;

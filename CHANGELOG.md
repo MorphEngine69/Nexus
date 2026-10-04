@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- New graphite icons for Vault Cells, upgrades, the Blueprint, the Network Card and the Nexus
+  Terminal. Cells show what they hold, with a band in the color of their size, and upgrades show
+  their purpose: a pickaxe for Silk Touch, a target for Range, a crafting screen for Autocrafting.
+- Nexus now needs GeckoLib. The Nexus, Network Transmitter, Network Receiver
+  and Nexus Link have new animated models in the colors of their network, with
+  a port that opens on every side where a cable is attached.
+- The Nexus shows a faceted crystal floating between two emitters, with
+  shards circling it. Rings and crystal go dark without energy and glow with
+  it; a Nexus in conflict flashes red.
+- Network Transmitter and Network Receiver show an arrow on every side,
+  pointing up for the transmitter and down for the receiver, that sways
+  slowly. The transmitter sends rings across its top, the receiver draws
+  packets into a dish. The Nexus Link shows three bars of signal and a beam
+  sweeping its dial.
+- The Terminal, Crafting Terminal and Blueprint Terminal have new screens with
+  a raised picture each: a search bar over rows of cells, a crafting grid with
+  its result, a ruled sheet beside a card. They glow in the color of the
+  network while it has energy; without it they go dark but can still be told
+  apart.
+- The Crafting Monitor has a new screen with a row for each of the first three
+  crafting tasks: an icon and a bar that fills as the task progresses. Without
+  tasks it shows a ready mark in each row; with tasks but no energy the icons
+  turn orange and the bars stand still.
+- Cables are thinner, and look better in inventory slots, the creative tabs and
+  recipe viewers: a proper piece of cable with a colored band along each side, in
+  the color of the cable.
 - Cables in all 16 dye colors. They connect on every side, including up and
   down, to cables of the same color and to the Nexus. Cables of different
   colors run side by side without joining.
@@ -200,6 +226,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tags instead, such as all logs or all iron ores; click again for the next
   tag. A small mark in the corner shows a slot that matches by tag. Tags are
   not used while a Regulator Upgrade keeps stock.
+
 - Chunk Loader Upgrade: keeps the chunk its device stands in loaded, with
   nobody near, so a network goes on working and a Network Transmitter reaches
   a Network Receiver in another dimension. One per device. Pullers, Pushers,
@@ -228,6 +255,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A broken Nexus keeps the color of its network as well as its name.
 - The priority row of the Energy Cell panel sits at the top, as in every
   other panel.
+
+- Network Transmitter, Network Receiver and Nexus Link no longer take a cable
+  on their top side: that is where their antenna stands.
+- Placer and Remover have new heads, easy to tell from the Puller and the
+  Pusher: a thin square frame holding a flat stamp, and the same frame holding
+  a tilted pickaxe.
 - Keeping an amount stocked now takes a Regulator Upgrade in the Pusher; a
   Pusher set to keep stock without one delivers as long as the block takes
   more.

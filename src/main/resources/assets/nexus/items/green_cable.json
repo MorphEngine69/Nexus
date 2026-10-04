@@ -6,8 +6,11 @@
       {
         "when": "gui",
         "model": {
-          "type": "minecraft:model",
-          "model": "nexus:block/cable/green/icon"
+          "type": "minecraft:special",
+          "base": "nexus:block/geo_cable",
+          "model": {
+            "type": "geckolib:geckolib"
+          }
         }
       }
     ],

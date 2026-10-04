@@ -31,6 +31,7 @@ final class VaultCellSlots extends SimpleContainer {
     private final Owner owner;
     private final @Nullable LiveCell[] live = new LiveCell[SIZE];
     private final boolean[] dirty = new boolean[SIZE];
+    private int touched;
 
     VaultCellSlots(final Owner owner) {
         super(SIZE);
@@ -56,6 +57,15 @@ final class VaultCellSlots extends SimpleContainer {
     @Nullable CellStatus statusOf(final int slot) {
         final LiveCell cell = live[slot];
         return cell != null ? cell.cell().usage().status() : null;
+    }
+
+    /**
+     * @return the slots whose cell took or gave resources since the last call, one bit per slot, which the call clears
+     */
+    int takeTouched() {
+        final int slots = touched;
+        touched = 0;
+        return slots;
     }
 
     /**
@@ -173,6 +183,7 @@ final class VaultCellSlots extends SimpleContainer {
 
     private void markDirty(final int slot) {
         dirty[slot] = true;
+        touched |= 1 << slot;
         owner.contentsChanged();
     }
 

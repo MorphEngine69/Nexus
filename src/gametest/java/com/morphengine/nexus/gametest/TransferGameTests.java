@@ -8,6 +8,13 @@ import com.morphengine.nexus.api.resource.FilterMatchMode;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.transport.RedstoneMode;
+import com.morphengine.nexus.block.AssemblerBlock;
+import com.morphengine.nexus.block.CoalGeneratorBlock;
+import com.morphengine.nexus.block.EnergyCellBlock;
+import com.morphengine.nexus.block.EnergyCellTier;
+import com.morphengine.nexus.block.NetworkColoring;
+import com.morphengine.nexus.block.NetworkDeviceBlock;
+import com.morphengine.nexus.block.SideConnections;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
@@ -84,6 +91,8 @@ public final class TransferGameTests {
 
     private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
+    /** Inserts of one maximum transfer that fill a basic Energy Cell to sixty percent. */
+    private static final int SIXTY_PERCENT_STEPS = 60;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos CELL = NEXUS.south();
     private static final BlockPos VAULT = NEXUS.east();
@@ -123,7 +132,16 @@ public final class TransferGameTests {
             Map.entry("remover_takes_fluid_source", TransferGameTests::removerTakesFluid),
             Map.entry("puller_with_tag_takes_only_members", TransferGameTests::pullerWithTag),
             Map.entry("pusher_with_tag_delivers_members", TransferGameTests::pusherWithTag),
-            Map.entry("filter_tag_survives_saving", TransferGameTests::filterTagSurvivesSaving));
+            Map.entry("filter_tag_survives_saving", TransferGameTests::filterTagSurvivesSaving),
+            Map.entry("devices_take_cables_on_every_side_but_their_face",
+                    TransferGameTests::devicesTakeCablesOnEverySideButTheirFace),
+            Map.entry("transfer_devices_show_network_color", TransferGameTests::devicesShowNetworkColor),
+            Map.entry("assembler_takes_cables_on_every_side_but_its_face",
+                    TransferGameTests::assemblerTakesCablesOnEverySideButItsFace),
+            Map.entry("assembler_shows_network_color", TransferGameTests::assemblerShowsNetworkColor),
+            Map.entry("generator_takes_cables_on_every_side_but_its_front",
+                    TransferGameTests::generatorTakesCablesOnEverySideButItsFront),
+            Map.entry("energy_cell_shows_its_charge_level", TransferGameTests::energyCellShowsItsChargeLevel));
 
     private TransferGameTests() {
     }
@@ -642,6 +660,118 @@ public final class TransferGameTests {
             }
         }
         throw helper.assertionException(pos, Component.literal("no free upgrade slot"));
+    }
+
+    private static List<TransferDeviceBlock> allDevices() {
+        return List.of(NexusBlocks.PULLER.get(), NexusBlocks.PUSHER.get(), NexusBlocks.PLACER.get(),
+                NexusBlocks.REMOVER.get());
+    }
+
+    private static void devicesTakeCablesOnEverySideButTheirFace(final GameTestHelper helper) {
+        final BlockPos centre = new BlockPos(5, 3, 5);
+        for (Direction side : Direction.values()) {
+            place(helper, centre.relative(side), cable());
+        }
+        for (TransferDeviceBlock block : allDevices()) {
+            for (Direction facing : Direction.values()) {
+                assertAttachedExceptFace(helper, centre, block, facing);
+            }
+        }
+        helper.succeed();
+    }
+
+    private static void assertAttachedExceptFace(
+            final GameTestHelper helper, final BlockPos pos, final TransferDeviceBlock block, final Direction facing) {
+        place(helper, pos, device(block, facing));
+        for (Direction side : Direction.values()) {
+            final boolean attached = SideConnections.isAttached(helper.getBlockState(pos), side);
+            helper.assertTrue(attached == (side != facing), Component.literal(block.kind() + " facing " + facing
+                    + (attached ? " has an arm on " : " lacks an arm on ") + side));
+        }
+    }
+
+    private static void devicesShowNetworkColor(final GameTestHelper helper) {
+        buildNetwork(helper);
+        final Map<BlockPos, BlockState> devices = Map.of(
+                CABLE.above(), device(NexusBlocks.PULLER.get(), Direction.EAST),
+                CABLE.north(), device(NexusBlocks.PUSHER.get(), Direction.NORTH),
+                CABLE.south(), device(NexusBlocks.PLACER.get(), Direction.SOUTH),
+                TARGET, device(NexusBlocks.REMOVER.get(), Direction.EAST));
+        devices.forEach((pos, state) -> place(helper, pos, state));
+
+        helper.startSequence()
+                .thenExecute(() -> helper.getBlockEntity(NEXUS, NexusBlockEntity.class)
+                        .recolor(NetworkColoring.colorOf(DyeColor.RED)))
+                .thenWaitUntil(() -> devices.keySet().forEach(pos -> helper.assertBlockProperty(
+                        pos, NetworkDeviceBlock.NETWORK_COLOR, DyeColor.RED)))
+                .thenSucceed();
+    }
+
+    private static void assemblerTakesCablesOnEverySideButItsFace(final GameTestHelper helper) {
+        final BlockPos centre = new BlockPos(5, 3, 5);
+        for (Direction side : Direction.values()) {
+            place(helper, centre.relative(side), cable());
+        }
+        for (Direction facing : Direction.values()) {
+            place(helper, centre,
+                    NexusBlocks.ASSEMBLER.get().defaultBlockState().setValue(AssemblerBlock.FACING, facing));
+            for (Direction side : Direction.values()) {
+                final boolean attached = SideConnections.isAttached(helper.getBlockState(centre), side);
+                helper.assertTrue(attached == (side != facing), Component.literal("Assembler facing " + facing
+                        + (attached ? " has a port on " : " lacks a port on ") + side));
+            }
+        }
+        helper.succeed();
+    }
+
+    private static void assemblerShowsNetworkColor(final GameTestHelper helper) {
+        buildNetwork(helper);
+        final BlockPos assembler = CABLE.above();
+        place(helper, assembler, NexusBlocks.ASSEMBLER.get().defaultBlockState()
+                .setValue(AssemblerBlock.FACING, Direction.EAST));
+
+        helper.startSequence()
+                .thenExecute(() -> helper.getBlockEntity(NEXUS, NexusBlockEntity.class)
+                        .recolor(NetworkColoring.colorOf(DyeColor.GREEN)))
+                .thenWaitUntil(() -> helper.assertBlockProperty(
+                        assembler, NetworkDeviceBlock.NETWORK_COLOR, DyeColor.GREEN))
+                .thenSucceed();
+    }
+
+    private static void generatorTakesCablesOnEverySideButItsFront(final GameTestHelper helper) {
+        final BlockPos centre = new BlockPos(5, 3, 5);
+        for (Direction side : Direction.values()) {
+            place(helper, centre.relative(side), cable());
+        }
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            place(helper, centre,
+                    NexusBlocks.COAL_GENERATOR.get().defaultBlockState().setValue(CoalGeneratorBlock.FACING, facing));
+            for (Direction side : Direction.values()) {
+                final boolean attached = SideConnections.isAttached(helper.getBlockState(centre), side);
+                helper.assertTrue(attached == (side != facing), Component.literal("Coal Generator facing " + facing
+                        + (attached ? " has a port on " : " lacks a port on ") + side));
+            }
+        }
+        helper.succeed();
+    }
+
+    private static void energyCellShowsItsChargeLevel(final GameTestHelper helper) {
+        final BlockPos cell = new BlockPos(5, 3, 5);
+        place(helper, cell, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
+        helper.assertBlockProperty(cell, EnergyCellBlock.CHARGE, 0);
+        final EnergyHandler handler = helper.getLevel()
+                .getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(cell), Direction.WEST);
+        helper.assertTrue(handler != null, Component.literal("no energy cell at " + cell));
+        for (int step = 0; step < SIXTY_PERCENT_STEPS; step++) {
+            try (Transaction transaction = Transaction.openRoot()) {
+                handler.insert((int) EnergyCellTier.BASIC.maxTransfer(), transaction);
+                transaction.commit();
+            }
+        }
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertBlockProperty(cell, EnergyCellBlock.CHARGE, 5))
+                .thenSucceed();
     }
 
     private static void buildNetwork(final GameTestHelper helper) {

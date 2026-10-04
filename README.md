@@ -70,6 +70,7 @@ English, Russian, Spanish, German and French.
 | Minecraft | 26.2 |
 | NeoForge | 26.2.0.88 |
 | Java | 25 |
+| [GeckoLib](https://github.com/bernie-g/geckolib) | 5.5.6 |
 
 JEI or REI is optional and adds recipe transfer to the terminals.
 

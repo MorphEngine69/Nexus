@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block;
 
+import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
@@ -11,6 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -23,17 +25,31 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Storage Vault: a rack of {@value StorageVaultBlockEntity#SLOTS} cell bays on its
- * front, which faces the player who placed it and takes no cable. A lamp beside
- * each bay tells how full its cell is.
+ * front, which faces the player who placed it and takes no cable. A meter on
+ * each drawer tells how full its cell is and swells while the cell works.
  */
 public final class StorageVaultBlock extends NetworkDeviceBlock {
 
     public static final MapCodec<StorageVaultBlock> CODEC = simpleCodec(StorageVaultBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
+    private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
+
     public StorageVaultBlock(final BlockBehaviour.Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
+    }
+
+    /**
+     * @return the animation of the model: none, the meters are driven by the renderer from the block entity
+     */
+    public static RawAnimation animationOf(final BlockState state) {
+        return IDLE;
+    }
+
+    @Override
+    protected RenderShape getRenderShape(final BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     @Override

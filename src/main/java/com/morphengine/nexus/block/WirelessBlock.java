@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block;
 
+import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.block.entity.NetworkReceiverBlockEntity;
@@ -10,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -23,7 +25,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * A device that carries a network beyond its cables: a Network Transmitter, a
  * Network Receiver or a Nexus Link, as its {@link WirelessKind} says. Its
- * antenna stands on top, so it takes cable on every other side.
+ * antenna stands on top, so it takes cable on every other side, and it works
+ * its animation while it does its job.
  */
 public final class WirelessBlock extends NetworkDeviceBlock {
 
@@ -37,6 +40,9 @@ public final class WirelessBlock extends NetworkDeviceBlock {
      * reached, a link has a network with energy. Set only by the server.
      */
     public static final BooleanProperty ACTIVE = BlockStateProperties.POWERED;
+
+    private static final RawAnimation WORKING = RawAnimation.begin().thenLoop("active");
+    private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
 
     private final WirelessKind kind;
 
@@ -57,9 +63,21 @@ public final class WirelessBlock extends NetworkDeviceBlock {
         return state.getBlock() instanceof WirelessBlock wireless && wireless.kind.isLinkEnd();
     }
 
+    /**
+     * @return the animation of the model in {@code state}
+     */
+    public static RawAnimation animationOf(final BlockState state) {
+        return state.getValue(ACTIVE) ? WORKING : IDLE;
+    }
+
     @Override
     public boolean acceptsConnection(final BlockState state, final Direction side) {
         return side != Direction.UP;
+    }
+
+    @Override
+    protected RenderShape getRenderShape(final BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     @Override
