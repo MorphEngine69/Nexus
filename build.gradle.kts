@@ -15,6 +15,7 @@ val modProperties = listOf(
     "neoforge_version",
     "neoforge_version_range",
     "loader_version_range",
+    "geckolib_version",
 ).associateWith { property(it) as String }
 
 val modId = modProperties.getValue("mod_id")
@@ -176,6 +177,9 @@ repositories {
     maven("https://maven.blamejared.com") {
         content { includeGroup("mezz.jei") }
     }
+    maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/") {
+        content { includeGroup("com.geckolib") }
+    }
     maven("https://maven.shedaniel.me") {
         content {
             includeGroup("me.shedaniel")
@@ -187,6 +191,9 @@ repositories {
 
 dependencies {
     implementation("org.jspecify:jspecify:$jspecifyVersion")
+    val geckolib = "com.geckolib:geckolib-neoforge-${property("minecraft_version")}:${property("geckolib_version")}"
+    implementation(geckolib)
+    "interfaceInjectionData"(geckolib)
     compileOnly("mezz.jei:jei-${property("minecraft_version")}-neoforge-api:${property("jei_version")}")
     compileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${property("rei_version")}")
 }
