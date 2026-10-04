@@ -19,7 +19,7 @@ import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -65,8 +65,12 @@ final class BlockPlacement implements Storage {
         };
     }
 
+    /**
+     * Places through the item's own use, as a player's click does, so that the
+     * game fires the placement event protection rules listen to.
+     */
     private long place(final ItemKey item, final Action action) {
-        if (!(item.item().getItem() instanceof BlockItem blockItem) || !space.state().canBeReplaced()) {
+        if (!(item.item().getItem() instanceof BlockItem) || !space.state().canBeReplaced()) {
             return 0;
         }
         if (!action.isExecute()) {
@@ -75,8 +79,8 @@ final class BlockPlacement implements Storage {
         final FakePlayer player = space.player();
         final ItemStack stack = item.toStack(1);
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        final boolean placed = blockItem.place(new BlockPlaceContext(player, InteractionHand.MAIN_HAND, stack,
-                space.hit())).consumesAction();
+        final boolean placed = stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, space.hit()))
+                .consumesAction();
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         return placed ? 1 : 0;
     }

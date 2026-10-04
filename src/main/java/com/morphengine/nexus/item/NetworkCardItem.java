@@ -1,5 +1,7 @@
 package com.morphengine.nexus.item;
 
+import com.morphengine.nexus.access.NetworkAccess;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.WirelessBlock;
 import com.morphengine.nexus.block.WirelessKind;
 import com.morphengine.nexus.registry.NexusDataComponents;
@@ -46,10 +48,14 @@ public final class NetworkCardItem extends Item {
                 || wireless.kind() != WirelessKind.RECEIVER) {
             return InteractionResult.PASS;
         }
+        final Player player = context.getPlayer();
+        if (player != null && !NetworkAccess.permits(player, level.getBlockEntity(pos), Permission.CONFIGURE)) {
+            NetworkAccess.refuse(player, Permission.CONFIGURE);
+            return InteractionResult.FAIL;
+        }
         if (!level.isClientSide()) {
             context.getItemInHand().set(NexusDataComponents.LINKED_RECEIVER.get(), GlobalPos.of(level.dimension(),
                     pos.immutable()));
-            final Player player = context.getPlayer();
             if (player != null) {
                 player.sendOverlayMessage(Component.translatable("item.nexus.network_card.linked",
                         pos.getX(), pos.getY(), pos.getZ()));

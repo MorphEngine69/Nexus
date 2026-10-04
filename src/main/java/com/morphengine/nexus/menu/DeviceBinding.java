@@ -1,5 +1,7 @@
 package com.morphengine.nexus.menu;
 
+import com.morphengine.nexus.access.NetworkAccess;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.MenuHost;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -59,9 +61,22 @@ public final class DeviceBinding<B extends BlockEntity & MenuHost> {
         return access;
     }
 
+    /**
+     * @return whether the menu stays open: the device still stands, the player
+     *         is within reach of it, and on the server may still open it
+     */
     public boolean stillValid(final Player player) {
         return blockEntity != null && access.evaluate((level, at) -> level.getBlockState(at).is(
-                blockEntity.getBlockState().getBlock()) && player.isWithinBlockInteractionRange(at, REACH), true);
+                blockEntity.getBlockState().getBlock()) && player.isWithinBlockInteractionRange(at, REACH), true)
+                && permits(player, Permission.OPEN);
+    }
+
+    /**
+     * @return on the server, whether {@code player} may do what takes
+     *         {@code permission} with the device; on the client always yes
+     */
+    public boolean permits(final Player player, final Permission permission) {
+        return blockEntity == null || NetworkAccess.permits(player, blockEntity, permission);
     }
 
     /**

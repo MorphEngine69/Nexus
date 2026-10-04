@@ -10,13 +10,12 @@ import com.morphengine.nexus.block.NexusStatus;
 import com.morphengine.nexus.level.NetworkComponent;
 import com.morphengine.nexus.level.NetworkComponentType;
 import com.morphengine.nexus.level.NetworkController;
-import com.morphengine.nexus.level.NetworkDirectory;
+import com.morphengine.nexus.level.NetworkGuard;
 import com.morphengine.nexus.level.NetworkState;
 import com.morphengine.nexus.menu.NexusMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.GlobalPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentGetter;
@@ -67,10 +66,9 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
     private final NetworkState networkState = new NetworkState(this);
     private final ClickGuard clickGuard = new ClickGuard();
     private final DeviceUpgrades upgrades = new DeviceUpgrades(this);
+    private final NetworkGuard guard = new NetworkGuard(this::establish);
     private Network network = NexusNetworks.createDefault();
     private long establishedAt = NOT_ESTABLISHED;
-    /** Whether the directory knows where this Nexus stands; not saved, as the directory itself is. */
-    private boolean recorded;
 
     public NexusBlockEntity(final BlockPos pos, final BlockState state) {
         super(NexusBlockEntityTypes.NEXUS.get(), pos, state,
@@ -88,17 +86,30 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
             nexus.establishedAt = level.getGameTime();
             nexus.setChanged();
         }
-        if (!nexus.recorded && level instanceof ServerLevel serverLevel) {
-            final UUID claimed = NetworkDirectory.of(serverLevel.getServer())
-                    .claim(nexus.network.id(), GlobalPos.of(level.dimension(), pos), serverLevel.getServer());
-            if (!claimed.equals(nexus.network.id())) {
-                nexus.network = new Network(claimed, nexus.network.name(), nexus.network.color());
-                nexus.setChanged();
-            }
-            nexus.recorded = true;
-        }
+        nexus.establish();
         nexus.networkState.tick(level, pos);
     }
+
+    /**
+     * On the server, the first time it runs, records this Nexus in the
+     * directory of networks, where a copy of a Nexus that still stands gets a
+     * network of its own, and takes up the access of the network it leads.
+     */
+    private void establish() {
+        if (!guard.isEstablished() && level instanceof ServerLevel serverLevel) {
+            final UUID led = guard.establish(serverLevel, worldPosition, network.id());
+            if (!led.equals(network.id())) {
+                network = new Network(led, network.name(), network.color());
+                setChanged();
+            }
+        }
+    }
+
+    @Override
+    public NetworkGuard guard() {
+        return guard;
+    }
+
 
     @Override
     public long establishedAt() {
@@ -145,18 +156,8 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
     }
 
     @Override
-    public void markClosed() {
-        clickGuard.markClosed(level);
-    }
-
-    @Override
-    public void markPlaced() {
-        clickGuard.markPlaced(level);
-    }
-
-    @Override
-    public boolean ignoresClick() {
-        return clickGuard.ignoresClick(level);
+    public ClickGuard clickGuard() {
+        return clickGuard;
     }
 
     public Container upgrades() {
@@ -243,7 +244,9 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
             final String named = custom.getString().strip();
             name = named.substring(0, Math.min(named.length(), Network.MAX_NAME_LENGTH));
         }
-        network = new Network(components.getOrDefault(NexusDataComponents.NETWORK_ID.get(), network.id()), name,
+        final UUID carried = components.get(NexusDataComponents.NETWORK_ID.get());
+        guard.carry(carried);
+        network = new Network(carried != null ? carried : network.id(), name,
                 components.getOrDefault(NexusDataComponents.NETWORK_COLOR.get(), network.color()));
     }
 

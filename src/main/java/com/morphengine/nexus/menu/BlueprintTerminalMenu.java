@@ -1,6 +1,7 @@
 package com.morphengine.nexus.menu;
 
 import com.morphengine.nexus.api.automation.BlueprintKind;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.block.entity.BlueprintEncoder;
 import com.morphengine.nexus.blueprint.BlueprintDraft;
@@ -15,6 +16,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Blueprint Terminal panel: the network's storage, the encoder kept by the
@@ -48,6 +51,7 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
     public static final int BLUEPRINT_COLUMN = 8;
 
     private static final int ENCODER_SLOTS = 2;
+    private static final Set<Permission> CONFIGURE = Set.of(Permission.CONFIGURE);
 
     private final TerminalMenuState terminal;
     private final @Nullable BlueprintEncoder encoder;
@@ -68,6 +72,24 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
         addSlot(new EncoderSlot(blueprints, BlueprintEncoder.BLANK_SLOT, encoder));
         addSlot(new EncoderSlot(blueprints, BlueprintEncoder.OUTPUT_SLOT, encoder));
         addStandardInventorySlots(inventory, 0, 0);
+        addDataSlot(terminal.access());
+    }
+
+    /**
+     * @return {@link Permission#CONFIGURE} for the encoder's Blueprints: they are
+     *         the terminal's, and what they encode drives the network's
+     *         automation; nothing for the inventory
+     */
+    @Override
+    public Set<Permission> permissionsFor(final Slot slot) {
+        return slot.container instanceof Inventory ? Set.of() : CONFIGURE;
+    }
+
+    /**
+     * @return on the server, whether {@code player} may change the draft and encode
+     */
+    private boolean mayEncode(final Player player) {
+        return encoder != null && permits(player, Permission.CONFIGURE);
     }
 
     @Override
@@ -134,7 +156,7 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
 
     @Override
     public boolean clickMenuButton(final Player player, final int buttonId) {
-        if (encoder == null || !(player instanceof ServerPlayer serverPlayer)) {
+        if (encoder == null || !(player instanceof ServerPlayer serverPlayer) || !mayEncode(player)) {
             return false;
         }
         final BlueprintDraft current = encoder.draft();
@@ -183,7 +205,7 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
         final ItemStack stack = slot.getItem();
         if (slotIndex < ENCODER_SLOTS) {
             moveItemStackTo(stack, ENCODER_SLOTS, slots.size(), true);
-        } else if (BlueprintItem.isBlank(stack)) {
+        } else if (BlueprintItem.isBlank(stack) && permits(player, Permission.CONFIGURE)) {
             moveItemStackTo(stack, BlueprintEncoder.BLANK_SLOT, BlueprintEncoder.BLANK_SLOT + 1, false);
         } else if (player instanceof ServerPlayer serverPlayer) {
             terminal.insert(serverPlayer, this, stack);
@@ -194,6 +216,13 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
             slot.setChanged();
         }
         return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void clicked(final int slotIndex, final int buttonNum, final ContainerInput input, final Player player) {
+        if (SlotGuard.allows(this, slotIndex, input, player)) {
+            super.clicked(slotIndex, buttonNum, input, player);
+        }
     }
 
     @Override

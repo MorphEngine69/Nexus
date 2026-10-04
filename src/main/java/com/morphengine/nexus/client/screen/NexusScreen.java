@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.Network;
 import com.morphengine.nexus.api.network.NetworkStatistics;
@@ -11,6 +12,7 @@ import com.morphengine.nexus.networking.NexusRecolorPayload;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -20,9 +22,13 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
- * The Nexus panel: the network's name in the title, its color and its figures.
+ * The Nexus panel, in two tabs chosen by the buttons left of it: the network,
+ * with its name in the title, its color, its figures, the upgrade slots and
+ * the inventory; and its access, who may do what with it. The access tab
+ * puts the slots out of sight, as it needs the room.
  */
 public final class NexusScreen extends PanelScreen<NexusMenu> {
 
@@ -38,9 +44,14 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
     private static final int SWATCH_LABEL_GAP = 4;
     private static final int UNSELECTED_SWATCH_BORDER = 0xFF2C2D32;
     private static final int CONFLICT_TEXT = 0xFFE8605A;
+    /** Where a slot goes while the access tab hides it: far outside any screen. */
+    private static final int HIDDEN = -10_000;
 
     private final List<Swatch> swatches = new ArrayList<>();
     private final StatLine statLine = new StatLine();
+    private final List<int[]> slotPlaces = new ArrayList<>();
+    private Tab tab = Tab.NETWORK;
+    private @Nullable AccessPanel access;
     private int colorLabelY;
     private int statsY;
 
@@ -56,6 +67,15 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
         buildSwatches(swatchesY);
         final int swatchRows = (DyeColor.values().length + SWATCHES_PER_ROW - 1) / SWATCHES_PER_ROW;
         statsY = swatchesY + swatchRows * (SWATCH_SIZE + SWATCH_GAP) + ROW_GAP;
+        if (slotPlaces.isEmpty()) {
+            for (Slot slot : getMenu().slots) {
+                slotPlaces.add(new int[] {slot.x, slot.y});
+            }
+        }
+        if (access == null && minecraft != null && minecraft.player != null) {
+            access = new AccessPanel(getMenu(), font, minecraft.player.getUUID());
+        }
+        showSlots();
     }
 
     private void buildSwatches(final int startY) {
@@ -68,6 +88,17 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
             final int x = startX + column * (SWATCH_SIZE + SWATCH_GAP);
             final int y = startY + row * (SWATCH_SIZE + SWATCH_GAP);
             swatches.add(new Swatch(colors[i], new PanelBounds(x, y, SWATCH_SIZE, SWATCH_SIZE)));
+        }
+    }
+
+    /**
+     * Puts the slots where the menu has them on the network tab, and out of sight on the access tab.
+     */
+    private void showSlots() {
+        for (int index = 0; index < getMenu().slots.size() && index < slotPlaces.size(); index++) {
+            final Slot slot = getMenu().slots.get(index);
+            slot.x = tab == Tab.NETWORK ? slotPlaces.get(index)[0] : HIDDEN;
+            slot.y = tab == Tab.NETWORK ? slotPlaces.get(index)[1] : HIDDEN;
         }
     }
 
@@ -91,9 +122,30 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
         return NetworkColoring.colorOf(color).rgb();
     }
 
+    private SideButtons tabs() {
+        return new SideButtons(leftPos, topPos, Tab.values().length);
+    }
+
+    private AccessLayout accessLayout() {
+        return AccessLayout.of(leftPos, topPos, imageWidth);
+    }
+
     @Override
     protected void extractPanel(
             final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+        final SideButtons buttons = tabs();
+        for (Tab shown : Tab.values()) {
+            buttons.draw(graphics, style, shown.ordinal(), shown.icon(),
+                    shown == tab || buttons.buttonAt(mouseX, mouseY) == shown.ordinal());
+        }
+        if (tab == Tab.ACCESS && access != null) {
+            access.draw(graphics, style, accessLayout());
+            return;
+        }
+        drawNetworkTab(graphics, style);
+    }
+
+    private void drawNetworkTab(final GuiGraphicsExtractor graphics, final PanelStyle style) {
         statLine.begin();
         graphics.text(font, Component.translatable("gui.nexus.color"), leftPos + PADDING, colorLabelY,
                 PanelStyle.TEXT_DIM, false);
@@ -149,11 +201,31 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
     @Override
     protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
         super.extractTooltip(graphics, mouseX, mouseY);
-        statLine.showTooltip(graphics, font, mouseX, mouseY);
+        final int button = tabs().buttonAt(mouseX, mouseY);
+        if (button >= 0) {
+            graphics.setComponentTooltipForNextFrame(font, List.of(Tab.values()[button].label()), mouseX, mouseY);
+        } else if (tab == Tab.ACCESS && access != null) {
+            final List<Component> lines = access.tooltip(accessLayout(), mouseX, mouseY);
+            if (!lines.isEmpty()) {
+                graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+            }
+        } else {
+            statLine.showTooltip(graphics, font, mouseX, mouseY);
+        }
     }
 
     @Override
     public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+        final int button = tabs().buttonAt(event.x(), event.y());
+        if (button >= 0) {
+            tab = Tab.values()[button];
+            showSlots();
+            return true;
+        }
+        if (tab == Tab.ACCESS) {
+            return access != null && access.click(accessLayout(), event.x(), event.y())
+                    || super.mouseClicked(event, doubleClick);
+        }
         for (Swatch swatch : swatches) {
             if (swatch.bounds().contains(event.x(), event.y())) {
                 ClientPacketDistributor.sendToServer(new NexusRecolorPayload(getMenu().pos(), rgbOf(swatch.color())));
@@ -163,6 +235,27 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
         return super.mouseClicked(event, doubleClick);
     }
 
+    @Override
+    public boolean mouseScrolled(final double x, final double y, final double scrollX, final double scrollY) {
+        return tab == Tab.ACCESS && access != null && access.scroll(accessLayout(), x, y, scrollY)
+                || super.mouseScrolled(x, y, scrollX, scrollY);
+    }
+
     private record Swatch(DyeColor color, PanelBounds bounds) {
+    }
+
+    /**
+     * The tabs of the panel, in the order of their buttons.
+     */
+    private enum Tab {
+        NETWORK, ACCESS;
+
+        Identifier icon() {
+            return Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus/tab_" + name().toLowerCase(Locale.ROOT));
+        }
+
+        Component label() {
+            return Component.translatable("gui.nexus.access.tab." + name().toLowerCase(Locale.ROOT));
+        }
     }
 }

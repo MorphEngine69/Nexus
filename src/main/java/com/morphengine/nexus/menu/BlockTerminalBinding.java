@@ -1,5 +1,6 @@
 package com.morphengine.nexus.menu;
 
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.TerminalBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -33,6 +34,11 @@ public final class BlockTerminalBinding implements TerminalBinding {
     @Override
     public boolean stillValid(final Player player) {
         return binding.stillValid(player);
+    }
+
+    @Override
+    public boolean permits(final Player player, final Permission permission) {
+        return binding.permits(player, permission);
     }
 
     @Override

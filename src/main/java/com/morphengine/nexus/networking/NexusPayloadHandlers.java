@@ -2,6 +2,7 @@ package com.morphengine.nexus.networking;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.network.NetworkColor;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.Renamable;
 import com.morphengine.nexus.menu.CoalGeneratorMenu;
@@ -9,6 +10,7 @@ import com.morphengine.nexus.menu.DevicePanel;
 import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.menu.NexusMenu;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -34,6 +36,10 @@ public final class NexusPayloadHandlers {
                 DeviceRenamePayload.TYPE, DeviceRenamePayload.STREAM_CODEC, NexusPayloadHandlers::handleRename);
         registrar.playToServer(
                 NexusRecolorPayload.TYPE, NexusRecolorPayload.STREAM_CODEC, NexusPayloadHandlers::handleRecolor);
+        registrar.playToServer(NetworkAccessEditPayload.TYPE, NetworkAccessEditPayload.STREAM_CODEC,
+                NexusPayloadHandlers::handleAccessEdit);
+        registrar.playToClient(NetworkAccessPayload.TYPE, NetworkAccessPayload.STREAM_CODEC,
+                NexusPayloadHandlers::handleAccess);
         registrar.playToClient(NexusStatisticsPayload.TYPE, NexusStatisticsPayload.STREAM_CODEC,
                 NexusPayloadHandlers::handleStatistics);
         registrar.playToClient(
@@ -46,7 +52,8 @@ public final class NexusPayloadHandlers {
         context.enqueueWork(() -> {
             if (!(context.player().containerMenu instanceof DevicePanel panel)
                     || !panel.binding().pos().equals(payload.pos())
-                    || !(panel.binding().blockEntity() instanceof Renamable device)) {
+                    || !(panel.binding().blockEntity() instanceof Renamable device)
+                    || !panel.binding().permits(context.player(), Permission.CONFIGURE)) {
                 return;
             }
             try {
@@ -69,6 +76,23 @@ public final class NexusPayloadHandlers {
             } catch (IllegalArgumentException e) {
                 LOGGER.warn("Rejected network color at {} from {}: {}",
                         payload.pos(), context.player().getName().getString(), e.getMessage());
+            }
+        });
+    }
+
+    private static void handleAccessEdit(final NetworkAccessEditPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer player && player.containerMenu instanceof NexusMenu menu
+                    && menu.pos().equals(payload.pos())) {
+                menu.edit(player, payload.edit());
+            }
+        });
+    }
+
+    private static void handleAccess(final NetworkAccessPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player().containerMenu instanceof NexusMenu menu && menu.containerId == payload.containerId()) {
+                menu.acceptAccess(payload.view());
             }
         });
     }
@@ -99,8 +123,13 @@ public final class NexusPayloadHandlers {
         });
     }
 
+    /**
+     * @return the Nexus at {@code pos} while {@code player} looks at its panel
+     *         and may configure it; {@code null} otherwise
+     */
     private static @Nullable NexusBlockEntity editingNexus(final Player player, final BlockPos pos) {
-        if (player.containerMenu instanceof NexusMenu menu && menu.pos().equals(pos)) {
+        if (player.containerMenu instanceof NexusMenu menu && menu.pos().equals(pos)
+                && menu.permits(player, Permission.CONFIGURE)) {
             return menu.blockEntity();
         }
         return null;

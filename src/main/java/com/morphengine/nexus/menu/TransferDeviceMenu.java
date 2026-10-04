@@ -154,7 +154,7 @@ public final class TransferDeviceMenu extends DeviceMenu<TransferDeviceBlockEnti
     }
 
     @Override
-    public boolean clickMenuButton(final Player player, final int buttonId) {
+    protected boolean pressButton(final Player player, final int buttonId) {
         final TransferDeviceBlockEntity device = blockEntity();
         if (device == null || buttonId < 0 || buttonId >= BUTTON_IDS) {
             return false;

@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -28,6 +29,7 @@ public final class TerminalMenu extends AbstractContainerMenu implements Termina
         super(type, containerId);
         this.terminal = new TerminalMenuState(opening, TerminalKind.TERMINAL, containerId);
         addStandardInventorySlots(inventory, 0, 0);
+        addDataSlot(terminal.access());
     }
 
     @Override
@@ -54,6 +56,13 @@ public final class TerminalMenu extends AbstractContainerMenu implements Termina
             slot.setChanged();
         }
         return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void clicked(final int slotIndex, final int buttonNum, final ContainerInput input, final Player player) {
+        if (SlotGuard.allows(this, slotIndex, input, player)) {
+            super.clicked(slotIndex, buttonNum, input, player);
+        }
     }
 
     @Override

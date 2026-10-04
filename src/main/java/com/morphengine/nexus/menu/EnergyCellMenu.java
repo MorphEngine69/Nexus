@@ -53,7 +53,7 @@ public final class EnergyCellMenu extends DeviceMenu<EnergyCellBlockEntity> {
     }
 
     @Override
-    public boolean clickMenuButton(final Player player, final int buttonId) {
+    protected boolean pressButton(final Player player, final int buttonId) {
         final EnergyCellBlockEntity cell = blockEntity();
         final int index = buttonId - BUTTON_PRIORITY;
         if (cell == null || index < 0 || index >= PriorityButtons.count()) {

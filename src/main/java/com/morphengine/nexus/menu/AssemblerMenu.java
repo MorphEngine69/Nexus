@@ -91,7 +91,7 @@ public final class AssemblerMenu extends DeviceMenu<AssemblerBlockEntity> implem
     }
 
     @Override
-    public boolean clickMenuButton(final Player player, final int buttonId) {
+    protected boolean pressButton(final Player player, final int buttonId) {
         final AssemblerBlockEntity assembler = blockEntity();
         if (assembler == null) {
             return false;

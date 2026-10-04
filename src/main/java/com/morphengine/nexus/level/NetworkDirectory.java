@@ -100,7 +100,7 @@ public final class NetworkDirectory extends SavedData {
      *         {@code network}: one is recorded elsewhere, and it still stands
      *         there or its chunk is not loaded to tell
      */
-    private boolean isLeadElsewhere(final UUID network, final GlobalPos here, final MinecraftServer server) {
+    public boolean isLeadElsewhere(final UUID network, final GlobalPos here, final MinecraftServer server) {
         final GlobalPos known = nexusOf.get(network);
         if (known == null || known.equals(here)) {
             return false;

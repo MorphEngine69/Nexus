@@ -18,6 +18,7 @@ import com.morphengine.nexus.transfer.TransferKind;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -132,7 +133,8 @@ public final class NexusBlocks {
             cables.put(color, BLOCKS.registerBlock(
                     cableName(color),
                     properties -> new CableBlock(color, properties),
-                    properties -> properties.strength(CABLE_HARDNESS).sound(SoundType.METAL)));
+                    properties -> properties.strength(CABLE_HARDNESS).sound(SoundType.METAL)
+                            .pushReaction(PushReaction.BLOCK)));
         }
         return Collections.unmodifiableMap(cables);
     }

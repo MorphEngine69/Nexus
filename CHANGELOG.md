@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Networks have owners and access rules. The player who places a Nexus owns its
+  network; the new Access tab of the Nexus panel lists who else may use it.
+  Members are added from the players online and get one of the roles Admin,
+  User, Guest or Blocked, and every permission can still be allowed or denied
+  for a single player: opening panels, putting into and taking out of the
+  network, autocrafting, configuring devices and building. Everyone who is not
+  a member gets a role of their own, Blocked for a new network. The owner can
+  hand the network over to a member.
+- Devices work for the player who placed them: a Pusher, Placer, Puller,
+  Remover or Assembler stands still when its owner may no longer move
+  resources the way it does, and its panel says why.
+- Only players allowed to build may place or break the blocks of a network or
+  connect new blocks to it, and only those who manage it may pick up or move
+  its Nexus. A device can always be taken down by the player who placed it.
+- Server operators, and the player whose world it is, may always do
+  everything. Networks from older worlds stay open to everyone until an
+  operator claims them in the Access tab.
+- A panel shows a lock in its header when you may not do everything there.
 - New graphite icons for Vault Cells, upgrades, the Blueprint, the Network Card and the Nexus
   Terminal. Cells show what they hold, with a band in the color of their size, and upgrades show
   their purpose: a pickaxe for Silk Touch, a target for Range, a crafting screen for Autocrafting.
@@ -241,6 +259,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Placers and Removers place and break blocks as the player who owns them, so
+  land protection treats their work as that player's.
+- Cables can no longer be moved by pistons.
 - The Nexus Link and the Coal Generator have a second upgrade slot.
 - The Nexus, the Storage Vault and the Energy Cell have a column of four
   upgrade slots, and the Nexus panel shows your inventory.

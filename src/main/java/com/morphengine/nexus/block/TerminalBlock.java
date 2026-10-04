@@ -3,7 +3,6 @@ package com.morphengine.nexus.block;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.api.network.Paint;
-import com.morphengine.nexus.block.entity.MenuHost;
 import com.morphengine.nexus.block.entity.MenuHosts;
 import com.morphengine.nexus.block.entity.TerminalBlockEntity;
 import com.morphengine.nexus.level.NetworkChanges;
@@ -141,9 +140,7 @@ public final class TerminalBlock extends BaseEntityBlock implements NetworkBlock
             final Level level, final BlockPos pos, final BlockState state, final @Nullable LivingEntity placer,
             final ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (level.getBlockEntity(pos) instanceof MenuHost host) {
-            host.markPlaced();
-        }
+        MenuHosts.placed(level, pos, placer);
     }
 
     @Override

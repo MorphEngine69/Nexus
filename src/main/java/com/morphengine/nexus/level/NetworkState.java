@@ -75,12 +75,15 @@ public final class NetworkState {
     private NexusStatus status = NexusStatus.NO_ENERGY;
 
     /**
-     * @param controller the Nexus this state belongs to, told to members on join and leave
+     * @param controller the Nexus this state belongs to, told to members on join
+     *                   and leave; its gate guards the network's storage, asked
+     *                   only once the state is in use
      */
     public NetworkState(final NetworkController controller) {
         this.controller = controller;
         this.storage = component(NetworkComponentTypes.STORAGE).storage();
         storage.addInterceptor(component(NetworkComponentTypes.AUTOCRAFTING));
+        storage.guardWith((actor, permission) -> controller.gate().permits(actor, permission));
     }
 
     public void invalidate() {

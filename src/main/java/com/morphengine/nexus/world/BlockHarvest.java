@@ -43,7 +43,7 @@ final class BlockHarvest {
     /**
      * @return units dropped into the network; zero when the block stays
      */
-    long harvest(final ResourceFilter filter, final Storage network) {
+    long harvest(final ResourceFilter filter, final Storage network, final Actor actor) {
         if (!space.isLoaded()) {
             return 0;
         }
@@ -56,12 +56,12 @@ final class BlockHarvest {
         final FakePlayer player = space.player();
         final List<ResourceAmount> drops = dropsOf(Block.getDrops(state, level, pos, level.getBlockEntity(pos),
                 player, tool.toStack(level)));
-        if (!fitsInto(drops, network) || CommonHooks.fireBlockBreak(level, GameType.SURVIVAL, player, pos, state)
-                .isCanceled()) {
+        if (!fitsInto(drops, network, actor)
+                || CommonHooks.fireBlockBreak(level, GameType.SURVIVAL, player, pos, state).isCanceled()) {
             return 0;
         }
         level.destroyBlock(pos, false, player);
-        return store(drops, network);
+        return store(drops, network, actor);
     }
 
     private boolean isBreakable(final BlockState state) {
@@ -85,19 +85,19 @@ final class BlockHarvest {
         return counter.contents();
     }
 
-    private static boolean fitsInto(final List<ResourceAmount> drops, final Storage network) {
+    private static boolean fitsInto(final List<ResourceAmount> drops, final Storage network, final Actor actor) {
         for (ResourceAmount drop : drops) {
-            if (network.insert(drop.resource(), drop.amount(), Action.SIMULATE, Actor.NOBODY) < drop.amount()) {
+            if (network.insert(drop.resource(), drop.amount(), Action.SIMULATE, actor) < drop.amount()) {
                 return false;
             }
         }
         return true;
     }
 
-    private long store(final List<ResourceAmount> drops, final Storage network) {
+    private long store(final List<ResourceAmount> drops, final Storage network, final Actor actor) {
         long stored = 0;
         for (ResourceAmount drop : drops) {
-            final long inserted = network.insert(drop.resource(), drop.amount(), Action.EXECUTE, Actor.NOBODY);
+            final long inserted = network.insert(drop.resource(), drop.amount(), Action.EXECUTE, actor);
             stored += inserted;
             if (inserted < drop.amount() && drop.resource() instanceof ItemKey item) {
                 dropInWorld(item, drop.amount() - inserted);

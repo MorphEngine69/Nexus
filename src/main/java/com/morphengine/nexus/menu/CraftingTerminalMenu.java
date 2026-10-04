@@ -1,6 +1,7 @@
 package com.morphengine.nexus.menu;
 
 import com.morphengine.nexus.api.core.Action;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.entity.TerminalCraftingGrid;
 import com.morphengine.nexus.level.PlayerActor;
@@ -15,6 +16,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
@@ -28,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Crafting Terminal panel: the network's storage, a crafting grid kept by the
@@ -42,6 +45,7 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
     /** Menu button id that returns the grid to the network. */
     public static final int BUTTON_CLEAR_GRID = 0;
 
+    private static final Set<Permission> EXTRACT = Set.of(Permission.EXTRACT);
     private static final int RESULT_SLOT = 0;
     private static final int INVENTORY_START = 1 + TerminalCraftingGrid.SIDE * TerminalCraftingGrid.SIDE;
 
@@ -65,7 +69,18 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
             addSlot(new Slot(grid, slot, 0, 0));
         }
         addStandardInventorySlots(inventory, 0, 0);
+        addDataSlot(terminal.access());
         slotsChanged(grid);
+    }
+
+    /**
+     * @return {@link Permission#EXTRACT} for the grid and its result: the grid
+     *         is the terminal's, shared by everyone at it, and fills itself
+     *         from the network; nothing for the inventory
+     */
+    @Override
+    public Set<Permission> permissionsFor(final Slot slot) {
+        return slot.container instanceof Inventory ? Set.of() : EXTRACT;
     }
 
     /**
@@ -169,18 +184,19 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
      * @param slots for each grid slot, the items that fit it in order of preference
      */
     public void fillGrid(final List<List<ItemKey>> slots, final GridFill amount) {
-        if (player instanceof ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer serverPlayer && permits(serverPlayer, Permission.EXTRACT)) {
             new CraftingGridFiller(serverPlayer, grid, terminal.onlineStorage()).fill(slots, amount);
         }
     }
 
     /**
      * Returns everything on the grid to the network, or to the inventory for
-     * what the network does not take.
+     * what the network does not take; only for a player who may take from the grid.
      */
     @Override
     public boolean clickMenuButton(final Player clicker, final int buttonId) {
-        if (buttonId != BUTTON_CLEAR_GRID || !(clicker instanceof ServerPlayer serverPlayer)) {
+        if (buttonId != BUTTON_CLEAR_GRID || !(clicker instanceof ServerPlayer serverPlayer)
+                || !permits(serverPlayer, Permission.EXTRACT)) {
             return false;
         }
         new CraftingGridFiller(serverPlayer, grid, terminal.onlineStorage()).returnGrid();
@@ -225,6 +241,13 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
         slot.onTake(clicker, stack);
         clicker.drop(stack, false);
         return original;
+    }
+
+    @Override
+    public void clicked(final int slotIndex, final int buttonNum, final ContainerInput input, final Player clicker) {
+        if (SlotGuard.allows(this, slotIndex, input, clicker)) {
+            super.clicked(slotIndex, buttonNum, input, clicker);
+        }
     }
 
     @Override

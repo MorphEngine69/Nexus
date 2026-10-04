@@ -1,5 +1,7 @@
 package com.morphengine.nexus.item;
 
+import com.morphengine.nexus.access.NetworkAccess;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.NetworkDirectory;
 import com.morphengine.nexus.menu.PortableTerminals;
@@ -55,6 +57,14 @@ public final class NexusTerminalItem extends Item {
     }
 
     /**
+     * @return the id of the network {@code stack} is bound to; {@code null} when
+     *         it is bound to none, was bound before networks had ids, or is no Nexus Terminal
+     */
+    public static @Nullable UUID boundNetwork(final ItemStack stack) {
+        return stack.getItem() instanceof NexusTerminalItem ? stack.get(NexusDataComponents.BOUND_NETWORK.get()) : null;
+    }
+
+    /**
      * @return the Nexus of the network {@code stack} is bound to, while it stands
      *         in a loaded chunk; {@code null} otherwise. Server side only.
      */
@@ -78,8 +88,7 @@ public final class NexusTerminalItem extends Item {
      *         none, or the terminal was bound before networks had ids
      */
     private static @Nullable GlobalPos whereNexusOf(final ItemStack stack, final MinecraftServer server) {
-        final UUID network = stack.getItem() instanceof NexusTerminalItem
-                ? stack.get(NexusDataComponents.BOUND_NETWORK.get()) : null;
+        final UUID network = boundNetwork(stack);
         final GlobalPos known = network != null ? NetworkDirectory.of(server).nexusOf(network) : null;
         return known != null ? known : boundNexus(stack);
     }
@@ -106,9 +115,13 @@ public final class NexusTerminalItem extends Item {
         if (!(level.getBlockEntity(pos) instanceof NetworkController nexus)) {
             return InteractionResult.PASS;
         }
+        final Player player = context.getPlayer();
+        if (player != null && !NetworkAccess.permits(player, nexus, Permission.OPEN)) {
+            NetworkAccess.refuse(player, Permission.OPEN);
+            return InteractionResult.FAIL;
+        }
         if (!level.isClientSide()) {
             bind(context.getItemInHand(), nexus, GlobalPos.of(level.dimension(), pos.immutable()));
-            final Player player = context.getPlayer();
             if (player != null) {
                 player.sendOverlayMessage(Component.translatable("item.nexus.nexus_terminal.bound"));
             }

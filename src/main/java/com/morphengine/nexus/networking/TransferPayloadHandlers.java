@@ -1,6 +1,7 @@
 package com.morphengine.nexus.networking;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.menu.TransferDeviceMenu;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -25,8 +26,11 @@ public final class TransferPayloadHandlers {
     static void register(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
         registrar.playToServer(KeepAmountPayload.TYPE, KeepAmountPayload.STREAM_CODEC,
-                (payload, context) -> onTransferMenu(context, payload.containerId(),
-                        menu -> menu.setKeepAmount(payload.slot(), payload.amount())));
+                (payload, context) -> onTransferMenu(context, payload.containerId(), menu -> {
+                    if (menu.permits(context.player(), Permission.CONFIGURE)) {
+                        menu.setKeepAmount(payload.slot(), payload.amount());
+                    }
+                }));
         registrar.playToClient(TransferSettingsPayload.TYPE, TransferSettingsPayload.STREAM_CODEC,
                 (payload, context) -> onTransferMenu(context, payload.containerId(),
                         menu -> menu.acceptSettings(payload.settings())));
