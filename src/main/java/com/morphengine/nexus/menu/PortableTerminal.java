@@ -1,5 +1,8 @@
 package com.morphengine.nexus.menu;
 
+import com.morphengine.nexus.access.NetworkSecurityData;
+import com.morphengine.nexus.access.Secured;
+import com.morphengine.nexus.api.network.security.AccessPolicy;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.entity.BlueprintEncoder;
 import com.morphengine.nexus.block.entity.TerminalCraftingGrid;
@@ -8,6 +11,7 @@ import com.morphengine.nexus.level.AutocraftingComponent;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.registry.NexusDataComponents;
+import com.morphengine.nexus.security.NetworkSecurity;
 import com.morphengine.nexus.storage.NetworkStorage;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalSettings;
@@ -17,6 +21,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
+import java.util.UUID;
+
 /**
  * A Nexus Terminal in a player's hand, as the host of its menu. It reaches the
  * network of the Nexus it is bound to while that Nexus is loaded and a Nexus
@@ -25,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * grid goes back to the network and the Blueprints to the player, as a
  * crafting table gives its grid back. Server thread only.
  */
-final class PortableTerminal implements TerminalHost {
+final class PortableTerminal implements TerminalHost, Secured {
 
     private final ServerPlayer player;
     private final InteractionHand hand;
@@ -49,6 +55,23 @@ final class PortableTerminal implements TerminalHost {
      */
     private @Nullable NetworkController controller() {
         return NexusTerminalItem.nexusOf(stack(), player.level().getServer());
+    }
+
+    /**
+     * @return the rules of the network the terminal is bound to, also while its
+     *         Nexus is unloaded; none for a terminal bound to a network without
+     *         rules, as nothing can be reached through it
+     */
+    @Override
+    public AccessPolicy accessPolicy() {
+        final NetworkController controller = controller();
+        if (controller != null) {
+            return controller.security();
+        }
+        final UUID network = NexusTerminalItem.boundNetwork(stack());
+        final NetworkSecurity known = network != null
+                ? NetworkSecurityData.of(player.level().getServer()).find(network) : null;
+        return known != null ? known : AccessPolicy.UNRESTRICTED;
     }
 
     @Override

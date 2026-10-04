@@ -94,9 +94,7 @@ public abstract class NetworkDeviceBlock extends BaseEntityBlock implements Netw
             final Level level, final BlockPos pos, final BlockState state, final @Nullable LivingEntity placer,
             final ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (level.getBlockEntity(pos) instanceof MenuHost host) {
-            host.markPlaced();
-        }
+        MenuHosts.placed(level, pos, placer);
     }
 
     @Override

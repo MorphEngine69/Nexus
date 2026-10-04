@@ -1,6 +1,7 @@
 package com.morphengine.nexus.storage;
 
 import com.morphengine.nexus.api.core.Action;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.resource.ResourceFilter;
@@ -8,12 +9,15 @@ import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.CellSpec;
 import com.morphengine.nexus.api.storage.StorageListener;
+import com.morphengine.nexus.security.AccessGate;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
+import static com.morphengine.nexus.test.TestActors.actingFor;
 import static com.morphengine.nexus.test.TestResources.DIRT;
 import static com.morphengine.nexus.test.TestResources.ITEMS;
 import static com.morphengine.nexus.test.TestResources.SMALL;
@@ -22,6 +26,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NetworkStorageTest {
+
+    private static final UUID PLAYER = new UUID(0, 1);
 
     private final NetworkStorage network = new NetworkStorage();
     private final List<String> heard = new ArrayList<>();
@@ -313,6 +319,74 @@ class NetworkStorageTest {
 
         assertThat(accepted).isEqualTo(10);
         assertThat(network.amountOf(STONE)).isZero();
+    }
+
+    @Test
+    void gateTurnsAwayAnInsertForAPlayerWithoutTheRight() {
+        final CellStorage source = cell();
+        network.addSource(source, 0);
+        network.guardWith(AccessGate.of((player, permission) -> permission != Permission.INSERT));
+
+        final long accepted = network.insert(STONE, 10, Action.EXECUTE, actingFor(PLAYER));
+
+        assertThat(accepted).isZero();
+        assertThat(source.amountOf(STONE)).isZero();
+        assertThat(heardAnything()).isFalse();
+    }
+
+    @Test
+    void gateTurnsAwayAnExtractForAPlayerWithoutTheRight() {
+        network.addSource(cellWith(STONE, 10), 0);
+        network.guardWith(AccessGate.of((player, permission) -> permission != Permission.EXTRACT));
+
+        assertThat(network.extract(STONE, 10, Action.SIMULATE, actingFor(PLAYER))).isZero();
+        assertThat(network.extract(STONE, 10, Action.EXECUTE, actingFor(PLAYER))).isZero();
+        assertThat(network.amountOf(STONE)).isEqualTo(10);
+    }
+
+    @Test
+    void gateLetsAPlayerWithTheRightThrough() {
+        network.addSource(cell(), 0);
+        network.guardWith(AccessGate.of((player, permission) -> player.equals(PLAYER)));
+
+        assertThat(network.insert(STONE, 10, Action.EXECUTE, actingFor(PLAYER))).isEqualTo(10);
+        assertThat(network.extract(STONE, 4, Action.EXECUTE, actingFor(PLAYER))).isEqualTo(4);
+    }
+
+    @Test
+    void gateLetsTheNetworksOwnOperationsThrough() {
+        network.addSource(cell(), 0);
+        network.guardWith(AccessGate.of((player, permission) -> false));
+
+        assertThat(network.insert(STONE, 10, Action.EXECUTE, Actor.NOBODY)).isEqualTo(10);
+    }
+
+    @Test
+    void turnedAwayInsertIsNotOfferedToInterceptors() {
+        network.addSource(cell(), 0);
+        final List<Long> offered = new ArrayList<>();
+        network.addInterceptor(new InsertInterceptor() {
+            @Override
+            public long intercept(final ResourceKey resource, final long amount, final Action action) {
+                offered.add(amount);
+                return 0;
+            }
+
+            @Override
+            public long inserted(final ResourceKey resource, final long amount) {
+                offered.add(amount);
+                return 0;
+            }
+        });
+        network.guardWith(AccessGate.of((player, permission) -> false));
+
+        network.insert(STONE, 10, Action.EXECUTE, actingFor(PLAYER));
+
+        assertThat(offered).isEmpty();
+    }
+
+    private boolean heardAnything() {
+        return !heard.isEmpty();
     }
 
     private static CellStorage cell() {

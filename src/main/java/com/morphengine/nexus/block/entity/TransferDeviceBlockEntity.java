@@ -1,6 +1,7 @@
 package com.morphengine.nexus.block.entity;
 
 import com.geckolib.animation.RawAnimation;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.transport.RedstoneMode;
@@ -29,6 +30,7 @@ import com.morphengine.nexus.transport.TransferRate;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
+import com.morphengine.nexus.world.DeviceHand;
 import com.morphengine.nexus.world.FrontSpace;
 import com.morphengine.nexus.world.HarvestTool;
 import net.minecraft.core.BlockPos;
@@ -199,17 +201,29 @@ public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity {
         }
     }
 
+    /**
+     * Works for its owner: a device whose owner may not move resources the way
+     * it does in its network stands still, and one whose owner may not order
+     * crafts orders none.
+     */
     private void operate(final ServerLevel level, final BlockPos pos, final Direction face) {
         final NetworkController controller = controller();
         if (controller == null || !gate.isOpen() || !isNetworkPowered()) {
             return;
         }
+        final boolean allowed = ownerMay(kind.permission());
+        markHalted(allowed ? null : kind.permission());
+        if (!allowed) {
+            return;
+        }
         final SideStorage beside = besideStorage(level, pos, face);
         final SingleTypeStorage network =
                 new SingleTypeStorage(controller.resources(), settings.resource().resourceType());
-        operation().run(new Workplace(network, beside, new FrontSpace(level, pos, face, tool)));
+        final FrontSpace front = new FrontSpace(level, pos, face, new DeviceHand(tool, ownerProfile()));
+        operation().run(new Workplace(network, beside, front, actor()));
         gate.operated();
-        if (autocrafts && kind.ordersCrafts() && --operationsUntilOrder <= 0) {
+        if (autocrafts && kind.ordersCrafts() && --operationsUntilOrder <= 0
+                && ownerMay(Permission.AUTOCRAFTING)) {
             operationsUntilOrder = OPERATIONS_PER_ORDER;
             orderCraft(controller, beside);
         }

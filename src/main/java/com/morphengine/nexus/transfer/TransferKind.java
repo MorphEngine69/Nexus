@@ -2,9 +2,9 @@ package com.morphengine.nexus.transfer;
 
 import com.mojang.serialization.Codec;
 import com.morphengine.nexus.api.network.DeviceRole;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.resource.ResourceFilter;
-import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.api.transport.TransferQuota;
 import com.morphengine.nexus.transport.PullTask;
@@ -35,13 +35,13 @@ public enum TransferKind implements StringRepresentable {
      * to keep stock, it takes only what the block holds beyond the amounts its
      * whitelist keeps.
      */
-    PULLER(DeviceRole.PULLER, TransferResource.ALL, Limits.STORAGE_DEVICE) {
+    PULLER(DeviceRole.PULLER, Permission.INSERT, TransferResource.ALL, Limits.STORAGE_DEVICE) {
         @Override
         public DeviceOperation operationFor(
                 final TransferSettings settings, final TransferQuota quota, final RandomGenerator random) {
             final TransferTask task = pullTask(settings, quota);
             return place -> place.neighbour().isPresent()
-                    ? task.runOnce(new StorageRoute(place.neighbour(), place.network(), Actor.NOBODY)) : 0;
+                    ? task.runOnce(new StorageRoute(place.neighbour(), place.network(), place.actor())) : 0;
         }
     },
 
@@ -49,13 +49,13 @@ public enum TransferKind implements StringRepresentable {
      * Delivers from the network into the block the resources its whitelist
      * lists, or everything but what its blacklist lists.
      */
-    PUSHER(DeviceRole.PUSHER, TransferResource.ALL, Limits.STORAGE_DEVICE) {
+    PUSHER(DeviceRole.PUSHER, Permission.EXTRACT, TransferResource.ALL, Limits.STORAGE_DEVICE) {
         @Override
         public DeviceOperation operationFor(
                 final TransferSettings settings, final TransferQuota quota, final RandomGenerator random) {
             final TransferTask task = pushTask(settings, quota, random);
             return place -> place.neighbour().isPresent()
-                    ? task.runOnce(new StorageRoute(place.network(), place.neighbour(), Actor.NOBODY)) : 0;
+                    ? task.runOnce(new StorageRoute(place.network(), place.neighbour(), place.actor())) : 0;
         }
 
         @Override
@@ -74,13 +74,13 @@ public enum TransferKind implements StringRepresentable {
      * whitelist lists them or anything its blacklist does not, or drops them
      * there as items; pours fluids there as sources.
      */
-    PLACER(DeviceRole.PUSHER, TransferResource.MATERIAL, Limits.PLACER) {
+    PLACER(DeviceRole.PUSHER, Permission.EXTRACT, TransferResource.MATERIAL, Limits.PLACER) {
         @Override
         public DeviceOperation operationFor(
                 final TransferSettings settings, final TransferQuota quota, final RandomGenerator random) {
             final TransferTask task = pushTask(settings, quota, random);
             return place -> task.runOnce(new StorageRoute(place.network(),
-                    place.front().placement(settings.worldMode()), Actor.NOBODY));
+                    place.front().placement(settings.worldMode()), place.actor()));
         }
 
         @Override
@@ -104,17 +104,17 @@ public enum TransferKind implements StringRepresentable {
      * allows the block as an item, or picks up the items lying there; takes
      * fluid sources there.
      */
-    REMOVER(DeviceRole.PULLER, TransferResource.MATERIAL, Limits.REMOVER) {
+    REMOVER(DeviceRole.PULLER, Permission.INSERT, TransferResource.MATERIAL, Limits.REMOVER) {
         @Override
         public DeviceOperation operationFor(
                 final TransferSettings settings, final TransferQuota quota, final RandomGenerator random) {
             final ResourceFilter filter = settings.filter().toResourceFilter(settings.matchMode());
             if (settings.resource() == TransferResource.ITEM && settings.worldMode() == WorldMode.BLOCKS) {
-                return place -> place.front().harvest(filter, place.network());
+                return place -> place.front().harvest(filter, place.network(), place.actor());
             }
             final TransferTask task = new SweepTask(filter, quota);
             return place -> task.runOnce(new StorageRoute(sourceIn(place, settings), place.network(),
-                    Actor.NOBODY));
+                    place.actor()));
         }
 
         @Override
@@ -131,18 +131,30 @@ public enum TransferKind implements StringRepresentable {
     public static final Codec<TransferKind> CODEC = StringRepresentable.fromEnum(TransferKind::values);
 
     private final DeviceRole role;
+    private final Permission permission;
     private final List<TransferResource> resources;
     private final UpgradeLimits upgradeLimits;
     private final String serializedName = name().toLowerCase(Locale.ROOT);
 
-    TransferKind(final DeviceRole role, final List<TransferResource> resources, final UpgradeLimits upgradeLimits) {
+    TransferKind(final DeviceRole role, final Permission permission, final List<TransferResource> resources,
+                 final UpgradeLimits upgradeLimits) {
         this.role = role;
+        this.permission = permission;
         this.resources = resources;
         this.upgradeLimits = upgradeLimits;
     }
 
     public DeviceRole role() {
         return role;
+    }
+
+    /**
+     * @return what the device's owner must be allowed in its network for the
+     *         device to work: putting into the network for a device that takes
+     *         in, taking out of it for one that gives out
+     */
+    public Permission permission() {
+        return permission;
     }
 
     /**

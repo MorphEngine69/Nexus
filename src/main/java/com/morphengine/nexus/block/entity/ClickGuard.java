@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
  * button down would reopen the menu at once. Clicks shortly after either are
  * ignored.
  */
-final class ClickGuard {
+public final class ClickGuard {
 
     private static final int AFTER_CLOSE_TICKS = 2;
     /** Longer than the client's repeat delay of four ticks. */

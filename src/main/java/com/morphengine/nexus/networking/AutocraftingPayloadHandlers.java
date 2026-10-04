@@ -1,6 +1,7 @@
 package com.morphengine.nexus.networking;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.CraftingMonitorMenu;
 import com.morphengine.nexus.menu.TerminalPanel;
@@ -30,13 +31,13 @@ public final class AutocraftingPayloadHandlers {
     static void register(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
         registrar.playToServer(BlueprintSlotPayload.TYPE, BlueprintSlotPayload.STREAM_CODEC,
-                (payload, context) -> onMenu(context, payload.containerId(), BlueprintTerminalMenu.class,
+                (payload, context) -> onEncoder(context, payload.containerId(),
                         menu -> menu.setDraftSlot(payload.slot(), payload.resource())));
         registrar.playToServer(BlueprintAmountPayload.TYPE, BlueprintAmountPayload.STREAM_CODEC,
-                (payload, context) -> onMenu(context, payload.containerId(), BlueprintTerminalMenu.class,
+                (payload, context) -> onEncoder(context, payload.containerId(),
                         menu -> menu.setDraftAmount(payload.slot(), payload.amount())));
         registrar.playToServer(BlueprintRecipePayload.TYPE, BlueprintRecipePayload.STREAM_CODEC,
-                (payload, context) -> onMenu(context, payload.containerId(), BlueprintTerminalMenu.class,
+                (payload, context) -> onEncoder(context, payload.containerId(),
                         menu -> menu.replaceDraft(payload.draft())));
         registrar.playToServer(CraftRequestPayload.TYPE, CraftRequestPayload.STREAM_CODEC,
                 (payload, context) -> onMenu(context, payload.containerId(), TerminalPanel.class,
@@ -48,7 +49,7 @@ public final class AutocraftingPayloadHandlers {
                         }));
         registrar.playToServer(CancelTaskPayload.TYPE, CancelTaskPayload.STREAM_CODEC,
                 (payload, context) -> onMenu(context, payload.containerId(), CraftingMonitorMenu.class,
-                        menu -> menu.cancel(payload.task())));
+                        menu -> menu.cancel(context.player(), payload.task())));
         registrar.playToClient(BlueprintDraftPayload.TYPE, BlueprintDraftPayload.STREAM_CODEC,
                 (payload, context) -> onMenu(context, payload.containerId(), BlueprintTerminalMenu.class,
                         menu -> menu.acceptDraft(payload.draft(), payload.craftingOutputs())));
@@ -68,6 +69,18 @@ public final class AutocraftingPayloadHandlers {
         context.enqueueWork(() -> {
             final M menu = openMenu(context.player().containerMenu, containerId, type);
             if (menu != null) {
+                action.accept(menu);
+            }
+        });
+    }
+
+    /**
+     * Changes to the draft of a Blueprint encoder, for a player who may configure the network.
+     */
+    private static void onEncoder(
+            final IPayloadContext context, final int containerId, final Consumer<BlueprintTerminalMenu> action) {
+        onMenu(context, containerId, BlueprintTerminalMenu.class, menu -> {
+            if (menu.permits(context.player(), Permission.CONFIGURE)) {
                 action.accept(menu);
             }
         });

@@ -1,12 +1,14 @@
 package com.morphengine.nexus.storage;
 
 import com.morphengine.nexus.api.core.Action;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.api.storage.StorageListener;
 import com.morphengine.nexus.math.SaturatedMath;
+import com.morphengine.nexus.security.AccessGate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,9 @@ import java.util.Objects;
  * Interceptors} see every insert first and may claim part of it; what they
  * claim counts as inserted but never reaches a source.
  *
+ * <p>A {@linkplain #guardWith gate} decides every insert and extract first, by
+ * who it is for: one turned away moves nothing.
+ *
  * <p>The sources of one priority can also be reached as a {@linkplain #band
  * band}, for a network that ranks them together with buffers of its own, as it
  * does with energy. Server thread only.
@@ -38,6 +43,7 @@ public final class NetworkStorage implements Storage {
     private final ResourceCounter totals = new ResourceCounter();
     private final List<StorageListener> listeners = new ArrayList<>();
     private final List<InsertInterceptor> interceptors = new ArrayList<>();
+    private AccessGate gate = AccessGate.UNRESTRICTED;
     private int revision;
 
     /**
@@ -143,6 +149,16 @@ public final class NetworkStorage implements Storage {
         interceptors.add(Objects.requireNonNull(interceptor, "interceptor must not be null"));
     }
 
+    /**
+     * Has {@code newGate} decide every insert, by {@link Permission#INSERT}, and
+     * every extract, by {@link Permission#EXTRACT}, from now on, in place of the
+     * gate so far; until then everything passes. Bands are not guarded: they
+     * are for the network's own buffers.
+     */
+    public void guardWith(final AccessGate newGate) {
+        gate = Objects.requireNonNull(newGate, "gate must not be null");
+    }
+
     @Override
     public long amountOf(final ResourceKey resource) {
         return totals.amountOf(resource);
@@ -156,6 +172,9 @@ public final class NetworkStorage implements Storage {
     @Override
     public long insert(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
         StorageArguments.check(resource, amount, action, actor);
+        if (!gate.permits(actor, Permission.INSERT)) {
+            return 0;
+        }
         final long claimed = intercept(resource, amount, action);
         final long offered = amount - claimed;
         long remaining = offered;
@@ -187,6 +206,9 @@ public final class NetworkStorage implements Storage {
     @Override
     public long extract(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
         StorageArguments.check(resource, amount, action, actor);
+        if (!gate.permits(actor, Permission.EXTRACT)) {
+            return 0;
+        }
         long remaining = Math.min(amount, totals.amountOf(resource));
         final long wanted = remaining;
         int end = sources.size();

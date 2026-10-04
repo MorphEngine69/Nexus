@@ -7,7 +7,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * A player working with the network, such as at a terminal.
+ * A player working with the network, such as at a terminal: what they do is
+ * subject to their own access rights.
  */
 public record PlayerActor(UUID id, String name) implements Actor {
 
@@ -18,5 +19,10 @@ public record PlayerActor(UUID id, String name) implements Actor {
 
     public static PlayerActor of(final Player player) {
         return new PlayerActor(player.getUUID(), player.getName().getString());
+    }
+
+    @Override
+    public UUID player() {
+        return id;
     }
 }

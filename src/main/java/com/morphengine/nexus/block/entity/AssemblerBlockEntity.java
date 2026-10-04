@@ -5,6 +5,7 @@ import com.morphengine.nexus.api.automation.DispatchResult;
 import com.morphengine.nexus.api.automation.TaskState;
 import com.morphengine.nexus.api.automation.TaskStatus;
 import com.morphengine.nexus.api.core.Action;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.assembler.AssemblerSettings;
@@ -108,9 +109,20 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implem
         }
     }
 
+    /**
+     * Works for its owner: an Assembler hands inputs taken out of the network
+     * to its machine and puts what was made back, so one whose owner may not
+     * put into the network or take out of it stands still, holding what it has.
+     */
     private void operate(final ServerLevel level, final BlockPos pos) {
         final NetworkController controller = controller();
         if (controller == null || !isNetworkPowered()) {
+            return;
+        }
+        final Permission lacking = !ownerMay(Permission.INSERT) ? Permission.INSERT
+                : ownerMay(Permission.EXTRACT) ? null : Permission.EXTRACT;
+        markHalted(lacking);
+        if (lacking != null) {
             return;
         }
         final Storage network = controller.resources();
@@ -149,8 +161,15 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implem
         return result;
     }
 
+    /**
+     * Hands inputs to a machine only for an owner who may take them out of the
+     * network; for anyone else the Assembler has no machine to run in.
+     */
     private DispatchResult dispatchProcessing(final ServerLevel level, final List<ResourceAmount> inputs,
                                               final Action action) {
+        if (!ownerMay(Permission.EXTRACT)) {
+            return DispatchResult.NO_TARGET;
+        }
         if (machine.isBusy(level, worldPosition, work)) {
             return DispatchResult.LOCKED;
         }

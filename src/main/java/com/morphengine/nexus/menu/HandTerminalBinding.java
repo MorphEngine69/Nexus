@@ -1,5 +1,7 @@
 package com.morphengine.nexus.menu;
 
+import com.morphengine.nexus.access.NetworkAccess;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.item.NexusTerminalItem;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,7 +41,13 @@ final class HandTerminalBinding implements TerminalBinding {
 
     @Override
     public boolean stillValid(final Player clicker) {
-        return clicker.getItemInHand(hand).getItem() instanceof NexusTerminalItem;
+        return clicker.getItemInHand(hand).getItem() instanceof NexusTerminalItem
+                && permits(clicker, Permission.OPEN);
+    }
+
+    @Override
+    public boolean permits(final Player clicker, final Permission permission) {
+        return host == null || NetworkAccess.permits(clicker, host, permission);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.morphengine.nexus.menu;
 
+import com.morphengine.nexus.access.NetworkAccess;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.item.NexusTerminalItem;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusMenuTypes;
@@ -24,14 +26,19 @@ public final class PortableTerminals {
     }
 
     /**
-     * Opens the Nexus Terminal in {@code hand} as its mode says. Server side only.
+     * Opens the Nexus Terminal in {@code hand} as its mode says, for a player
+     * who may open the network it is bound to. Server side only.
      */
     public static void open(final ServerPlayer player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
         final TerminalKind mode = NexusTerminalItem.modeOf(stack);
         final TerminalSettings settings = settingsOf(stack);
-        final TerminalOpening opening = new TerminalOpening(
-                new HandTerminalBinding(player, hand, new PortableTerminal(player, hand, mode)), settings);
+        final PortableTerminal host = new PortableTerminal(player, hand, mode);
+        if (!NetworkAccess.permits(player, host, Permission.OPEN)) {
+            NetworkAccess.refuse(player, Permission.OPEN);
+            return;
+        }
+        final TerminalOpening opening = new TerminalOpening(new HandTerminalBinding(player, hand, host), settings);
         player.openMenu(new SimpleMenuProvider((containerId, inventory, opener) -> create(mode, containerId,
                 inventory, opening), stack.getHoverName()), buffer -> {
                     buffer.writeEnum(hand);

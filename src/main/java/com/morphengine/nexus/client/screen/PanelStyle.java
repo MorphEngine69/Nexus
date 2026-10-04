@@ -43,6 +43,7 @@ final class PanelStyle {
     private static final float BUTTON_TINT = 0.22F;
     private static final float HEADER_TINT = 0.40F;
     private static final int INTERIOR_ALPHA = 0xC0000000;
+    private static final int DISABLED_VEIL = 0xA0101016;
     private static final int TITLE_OFFSET_X = 8;
     private static final int TITLE_OFFSET_Y = 4;
 
@@ -99,6 +100,13 @@ final class PanelStyle {
 
     int track() {
         return ARGB.opaque(TRACK_BASE_RGB);
+    }
+
+    /**
+     * @return a dark wash laid over a button the player may not press
+     */
+    int disabledVeil() {
+        return DISABLED_VEIL;
     }
 
     /**

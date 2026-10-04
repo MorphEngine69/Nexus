@@ -1,7 +1,9 @@
 package com.morphengine.nexus.networking;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.menu.FilterMenu;
+import com.morphengine.nexus.menu.GuardedMenu;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -13,7 +15,8 @@ import java.util.function.Consumer;
 
 /**
  * Payloads of every panel with a filter. Each handler first checks that the
- * player still looks at the menu the payload names.
+ * player still looks at the menu the payload names and, for a device of a
+ * network, may configure it.
  */
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class FilterPayloadHandlers {
@@ -38,7 +41,8 @@ public final class FilterPayloadHandlers {
             final IPayloadContext context, final int containerId, final Consumer<FilterMenu> action) {
         context.enqueueWork(() -> {
             final AbstractContainerMenu menu = context.player().containerMenu;
-            if (menu instanceof FilterMenu filterMenu && menu.containerId == containerId) {
+            if (menu instanceof FilterMenu filterMenu && menu.containerId == containerId
+                    && GuardedMenu.permits(menu, context.player(), Permission.CONFIGURE)) {
                 action.accept(filterMenu);
             }
         });

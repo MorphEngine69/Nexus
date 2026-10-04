@@ -71,7 +71,7 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
     }
 
     @Override
-    public boolean clickMenuButton(final Player player, final int buttonId) {
+    protected boolean pressButton(final Player player, final int buttonId) {
         final StorageVaultBlockEntity vault = blockEntity();
         final int index = buttonId - BUTTON_PRIORITY;
         if (vault == null || index < 0 || index >= PriorityButtons.count()) {

@@ -1,6 +1,11 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.access.NetworkAccess;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.Renamable;
+import com.morphengine.nexus.menu.DeviceMenu;
+import com.morphengine.nexus.menu.GuardedMenu;
 import com.morphengine.nexus.menu.PanelMenu;
 import com.morphengine.nexus.menu.RenamablePanel;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -8,12 +13,17 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base for a Nexus panel, of a network device or of an item in hand: a frame
@@ -31,6 +41,12 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
     private static final int TITLE_HEIGHT = 8;
     private static final int CLOSE_AREA = 20;
     private static final int UNDERLINE_GAP = 1;
+    private static final int MARKER_SIZE = 12;
+    private static final int MARKER_TOP = 2;
+    private static final int ALERT_RGB = 0xFFE8605A;
+    private static final Identifier LOCK = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus/tab_access");
+    private static final List<Permission> PANEL_PERMISSIONS = List.of(Permission.INSERT, Permission.EXTRACT,
+            Permission.AUTOCRAFTING, Permission.CONFIGURE);
 
     private @Nullable CloseButton closeButton;
     private @Nullable EditBox titleEditor;
@@ -88,7 +104,73 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
             final int underline = title.top() + title.height() + UNDERLINE_GAP;
             graphics.fill(title.left(), underline, title.left() + title.width(), underline + 1, style.border());
         }
+        drawMarkers(graphics);
         extractPanel(graphics, style, mouseX, mouseY);
+    }
+
+    /**
+     * In the header, left of the close cross: a lock when the viewer may not do
+     * everything here, a red mark when the device stands still because its
+     * owner lacks a permission.
+     */
+    private void drawMarkers(final GuiGraphicsExtractor graphics) {
+        if (!lacking().isEmpty()) {
+            final PanelBounds lock = lockBounds();
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, LOCK, lock.left(), lock.top(), lock.width(),
+                    lock.height());
+        }
+        if (halted() != null) {
+            final PanelBounds alert = alertBounds();
+            graphics.text(font, Component.literal("!"), alert.left() + (alert.width() - font.width("!")) / 2,
+                    alert.top() + 2, ALERT_RGB, false);
+        }
+    }
+
+    private PanelBounds lockBounds() {
+        return new PanelBounds(leftPos + imageWidth - CLOSE_AREA - MARKER_SIZE, topPos + MARKER_TOP, MARKER_SIZE,
+                MARKER_SIZE);
+    }
+
+    private PanelBounds alertBounds() {
+        return new PanelBounds(lockBounds().left() - MARKER_SIZE, topPos + MARKER_TOP, MARKER_SIZE, MARKER_SIZE);
+    }
+
+    /**
+     * @return what the viewer may not do in the panel, as the server last said
+     */
+    private List<Permission> lacking() {
+        if (!(getMenu() instanceof GuardedMenu guarded)) {
+            return List.of();
+        }
+        final List<Permission> lacking = new ArrayList<>();
+        for (Permission permission : PANEL_PERMISSIONS) {
+            if (!guarded.viewerAccess().holds(permission)) {
+                lacking.add(permission);
+            }
+        }
+        return lacking;
+    }
+
+    private @Nullable Permission halted() {
+        return getMenu() instanceof DeviceMenu<?> device ? device.haltedFor() : null;
+    }
+
+    @Override
+    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
+        final List<Permission> lacking = lacking();
+        final Permission halted = halted();
+        if (!lacking.isEmpty() && lockBounds().contains(mouseX, mouseY)) {
+            final List<Component> lines = new ArrayList<>();
+            lines.add(Component.translatable("gui.nexus.access.restricted"));
+            for (Permission permission : lacking) {
+                lines.add(Component.literal("- ").append(NetworkAccess.nameOf(permission)));
+            }
+            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+        } else if (halted != null && alertBounds().contains(mouseX, mouseY)) {
+            graphics.setComponentTooltipForNextFrame(font, List.of(Component.translatable("gui.nexus.access.halted",
+                    NetworkAccess.nameOf(halted))), mouseX, mouseY);
+        }
     }
 
     @Override

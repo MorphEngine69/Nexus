@@ -1,12 +1,14 @@
 package com.morphengine.nexus.menu;
 
 import com.morphengine.nexus.api.automation.TaskStatus;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import com.morphengine.nexus.networking.CraftingMonitorPayload;
 import com.morphengine.nexus.registry.NexusMenuTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
@@ -44,11 +46,12 @@ public final class CraftingMonitorMenu extends DeviceMenu<CraftingMonitorBlockEn
     }
 
     /**
-     * Cancels a task of the network. Server side only.
+     * Cancels a task of the network, for a player who may order crafting there.
+     * Server side only.
      */
-    public void cancel(final UUID task) {
+    public void cancel(final Player player, final UUID task) {
         final CraftingMonitorBlockEntity monitor = blockEntity();
-        if (monitor != null) {
+        if (monitor != null && permits(player, Permission.AUTOCRAFTING)) {
             monitor.cancel(task);
         }
     }
