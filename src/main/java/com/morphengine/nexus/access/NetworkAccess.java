@@ -42,6 +42,15 @@ public final class NetworkAccess {
     }
 
     /**
+     * Like {@link #permits(Player, Object, Permission)}, but whoever placed {@code secured} may always do it.
+     */
+    public static boolean permitsOrOwns(
+            final Player player, final @Nullable Object secured, final Permission permission) {
+        return secured instanceof Secured block && block.isOwnedBy(player.getUUID())
+                || permits(player, secured, permission);
+    }
+
+    /**
      * Tells {@code player}, above the hotbar, that they lack {@code permission}.
      */
     public static void refuse(final Player player, final Permission permission) {

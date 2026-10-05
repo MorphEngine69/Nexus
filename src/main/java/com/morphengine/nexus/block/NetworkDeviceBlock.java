@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
@@ -62,8 +63,15 @@ public abstract class NetworkDeviceBlock extends BaseEntityBlock implements Netw
 
     @Override
     public BlockState getStateForPlacement(final BlockPlaceContext context) {
-        final BlockState oriented = orientedFor(context);
-        return SideConnections.attachedTo(oriented, context.getLevel(), context.getClickedPos(),
+        return withPorts(orientedFor(context), context.getLevel(), context.getClickedPos());
+    }
+
+    /**
+     * @param oriented the state of the block with its facing set, whose ports are not yet worked out
+     * @return {@code oriented} with a port on every side where something attaches
+     */
+    public final BlockState withPorts(final BlockState oriented, final BlockGetter level, final BlockPos pos) {
+        return SideConnections.attachedTo(oriented, level, pos,
                 (side, neighbour) -> showsPortTo(oriented, side, neighbour));
     }
 

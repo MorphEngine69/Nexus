@@ -325,5 +325,9 @@
   "gui.nexus.access.role.guest.description": "Только смотрит: открывает панели и терминалы",
   "gui.nexus.access.role.blocked": "Блокирован",
   "gui.nexus.access.role.blocked.description": "Ничего",
-  "gui.nexus.access.result.offline": "Этого игрока нет на сервере"
+  "gui.nexus.access.result.offline": "Этого игрока нет на сервере",
+  "item.nexus.wrench": "Ключ",
+  "tooltip.nexus.wrench.turn": "ПКМ: развернуть блок сети",
+  "tooltip.nexus.wrench.front": "ЛКМ: направить лицо блока в ударенную сторону",
+  "tooltip.nexus.wrench.dismantle": "Shift + ПКМ: снять блок сети в инвентарь"
 }

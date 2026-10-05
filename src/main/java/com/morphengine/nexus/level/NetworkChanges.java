@@ -41,9 +41,25 @@ public final class NetworkChanges {
      * own: removing a cable may have split one network into several.
      */
     public static void blockRemoved(final Level level, final BlockPos pos) {
+        if (!level.isClientSide()) {
+            invalidateReachable(level, networkNeighbours(level, pos));
+        }
+    }
+
+    /**
+     * Called after a block that stays where it is took another facing, so that it joined some neighbours and
+     * left others: the block and each neighbour are searched on their own, as a part may have been cut off.
+     */
+    public static void blockTurned(final Level level, final BlockPos pos) {
         if (level.isClientSide()) {
             return;
         }
+        final Set<BlockPos> starts = networkNeighbours(level, pos);
+        starts.add(pos.immutable());
+        invalidateReachable(level, starts);
+    }
+
+    private static Set<BlockPos> networkNeighbours(final Level level, final BlockPos pos) {
         final Set<BlockPos> neighbours = new HashSet<>();
         for (Direction side : Direction.values()) {
             final BlockPos neighbour = pos.relative(side);
@@ -51,7 +67,7 @@ public final class NetworkChanges {
                 neighbours.add(neighbour);
             }
         }
-        invalidateReachable(level, neighbours);
+        return neighbours;
     }
 
     /**
