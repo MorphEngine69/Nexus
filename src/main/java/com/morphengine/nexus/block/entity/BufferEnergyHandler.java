@@ -49,6 +49,9 @@ final class BufferEnergyHandler extends SnapshotJournal<SimpleEnergyBuffer.Snaps
 
     @Override
     public int extract(final int amount, final TransactionContext transaction) {
+        if (access == Access.RECEIVE_ONLY) {
+            return 0;
+        }
         final long removed = buffer.extract(amount, Action.SIMULATE);
         if (removed > 0) {
             updateSnapshots(transaction);
@@ -78,6 +81,8 @@ final class BufferEnergyHandler extends SnapshotJournal<SimpleEnergyBuffer.Snaps
     enum Access {
         RECEIVE_AND_GIVE,
         /** Energy is only taken out; the owner fills the buffer itself. */
-        GIVE_ONLY
+        GIVE_ONLY,
+        /** Energy is only put in; the owner is the one that takes it out. */
+        RECEIVE_ONLY
     }
 }

@@ -6,13 +6,13 @@ import com.morphengine.nexus.api.energy.EnergyBuffer;
 import java.util.Objects;
 
 /**
- * An {@link EnergyBuffer} with a fixed capacity and per-operation rate limits.
+ * An {@link EnergyBuffer} with a capacity and per-operation rate limits, which {@link #resize} may change.
  */
 public final class SimpleEnergyBuffer implements EnergyBuffer {
 
-    private final long capacity;
-    private final long maxInsert;
-    private final long maxExtract;
+    private long capacity;
+    private long maxInsert;
+    private long maxExtract;
     private long stored;
     private long totalInserted;
     private long totalExtracted;
@@ -29,6 +29,24 @@ public final class SimpleEnergyBuffer implements EnergyBuffer {
         this.capacity = capacity;
         this.maxInsert = requireNotNegative(maxInsert, "maxInsert");
         this.maxExtract = requireNotNegative(maxExtract, "maxExtract");
+    }
+
+    /**
+     * Gives the buffer new limits and keeps what it holds, as when a cell is upgraded to a bigger tier; a buffer that
+     * holds more than the new capacity is cut down to it.
+     *
+     * @param newCapacity   FE the buffer holds from now on, must be positive
+     * @param newMaxInsert  FE accepted per insert call, must not be negative
+     * @param newMaxExtract FE removed per extract call, must not be negative
+     */
+    public void resize(final long newCapacity, final long newMaxInsert, final long newMaxExtract) {
+        if (newCapacity <= 0) {
+            throw new IllegalArgumentException("capacity must be positive: " + newCapacity);
+        }
+        capacity = newCapacity;
+        maxInsert = requireNotNegative(newMaxInsert, "maxInsert");
+        maxExtract = requireNotNegative(newMaxExtract, "maxExtract");
+        stored = Math.min(stored, capacity);
     }
 
     @Override

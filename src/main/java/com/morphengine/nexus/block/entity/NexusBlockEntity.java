@@ -138,8 +138,7 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
     }
 
     /**
-     * @return the handler through which other mods put FE into the network and
-     *         take it out, on any side; empty on the client
+     * @return the handler through which FE goes into the network and comes out of it; empty on the client
      */
     public EnergyHandler energyHandler() {
         return networkState.energyHandler();

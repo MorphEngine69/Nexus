@@ -7,9 +7,9 @@ import com.morphengine.nexus.energy.ChargeMeter;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.level.EnergyContributor;
 import com.morphengine.nexus.level.NetworkController;
-import com.morphengine.nexus.level.NetworkNeighbours;
 import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
+import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
@@ -37,10 +37,12 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
 
     private static final String TAG_ENERGY = "energy";
     private static final String TAG_PRIORITY = "priority";
+    private static final String TAG_SIDES = "sides";
     private static final int CHARGE_CHECK_INTERVAL_TICKS = 20;
 
     private final SimpleEnergyBuffer buffer;
     private final EnergyHandler handler;
+    private final CellSides sides;
     private final DeviceUpgrades upgrades = new DeviceUpgrades(this);
     private long insertedAtLastCheck;
     private long extractedAtLastCheck;
@@ -51,6 +53,9 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
         final EnergyCellTier tier = tierOf(state);
         this.buffer = new SimpleEnergyBuffer(tier.capacity(), tier.maxTransfer(), tier.maxTransfer());
         this.handler = new BufferEnergyHandler(buffer, BufferEnergyHandler.Access.RECEIVE_AND_GIVE, this::setChanged);
+        this.sides = new CellSides(handler,
+                new BufferEnergyHandler(buffer, BufferEnergyHandler.Access.RECEIVE_ONLY, this::setChanged),
+                new BufferEnergyHandler(buffer, BufferEnergyHandler.Access.GIVE_ONLY, this::setChanged));
     }
 
     /**
@@ -79,6 +84,16 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
         if (shown != state) {
             level.setBlock(pos, shown, Block.UPDATE_CLIENTS);
         }
+    }
+
+    /**
+     * A cell that is upgraded keeps its block entity but changes its block, and takes the size of the new tier.
+     */
+    @Override
+    public void setBlockState(final BlockState state) {
+        super.setBlockState(state);
+        final EnergyCellTier tier = tierOf(state);
+        buffer.resize(tier.capacity(), tier.maxTransfer(), tier.maxTransfer());
     }
 
     private static EnergyCellTier tierOf(final BlockState state) {
@@ -126,16 +141,37 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
     }
 
     /**
-     * What the cell shows a block that asks for its energy from {@code side}. Only a block of a network may push FE
-     * in or pull FE out; a block of another mod, such as the pipe of a mod of pipes, gets nothing, so that FE leaves
-     * and enters the cell only through a Puller or a Pusher, which keep to the rules of the network. The answer
-     * follows what stands there now, so {@link EnergyCellBlock} drops what blocks were told when a neighbour changes.
+     * What the cell shows a block that asks for its energy from {@code side}: a block of a network always gets it, a
+     * block of another mod only through a side that was opened and as its mode says, see {@link CellSides}.
+     * Cached answers are dropped when a neighbour changes, see {@link EnergyCellBlock}.
      *
      * @param side the side of the cell that is asked about; {@code null} when the asker names no side
-     * @return the handler for a block of a network beyond {@code side}; {@code null} otherwise
      */
     public @Nullable EnergyHandler energyHandlerBeyond(final @Nullable Direction side) {
-        return level != null && NetworkNeighbours.hasNetworkBlockBeyond(level, worldPosition, side) ? handler : null;
+        return level == null ? null : sides.handlerFor(level, worldPosition, side);
+    }
+
+    public SideMode sideMode(final Direction side) {
+        return sides.mode(side);
+    }
+
+    /**
+     * @return the modes of all six sides as one number, to send to a panel
+     */
+    public int sideBits() {
+        return sides.bits();
+    }
+
+    /**
+     * Opens, closes or changes a side, and has other blocks ask again what the cell gives them.
+     */
+    public void setSideMode(final Direction side, final SideMode mode) {
+        if (sides.set(side, mode)) {
+            setChanged();
+            if (level != null) {
+                level.invalidateCapabilities(worldPosition);
+            }
+        }
     }
 
     public Container upgrades() {
@@ -168,6 +204,7 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
         super.saveAdditional(output);
         output.putLong(TAG_ENERGY, buffer.stored());
         output.putInt(TAG_PRIORITY, priority);
+        output.putInt(TAG_SIDES, sides.bits());
         upgrades.save(output);
     }
 
@@ -177,6 +214,7 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
         final long stored = Math.max(0, input.getLongOr(TAG_ENERGY, 0));
         buffer.restore(SimpleEnergyBuffer.Snapshot.storing(stored));
         priority = DevicePriority.clamp(input.getIntOr(TAG_PRIORITY, DEFAULT_PRIORITY));
+        sides.restore(input.getIntOr(TAG_SIDES, 0));
         upgrades.load(input);
     }
 }

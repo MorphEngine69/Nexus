@@ -26,16 +26,23 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
 
     private final StatLine statLine = new StatLine();
     private PriorityRow priority;
+    private SideModePanel sides;
 
     public EnergyCellScreen(final EnergyCellMenu menu, final Inventory inventory, final Component title) {
         super(menu, inventory, title, IMAGE_WIDTH, IMAGE_HEIGHT);
         this.priority = createPriorityRow();
+        this.sides = createSideModePanel();
     }
 
     @Override
     protected void init() {
         super.init();
         priority = createPriorityRow();
+        sides = createSideModePanel();
+    }
+
+    private SideModePanel createSideModePanel() {
+        return new SideModePanel(panelBounds(), EnergyCellMenu.BUTTON_SIDE_NEXT, EnergyCellMenu.BUTTON_SIDE_PREVIOUS);
     }
 
     private PriorityRow createPriorityRow() {
@@ -56,6 +63,7 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
         final int x = leftPos + PanelStyle.PADDING;
         PanelStyle.drawNetwork(graphics, font, network, leftPos, topPos);
         priority.draw(graphics, font, style, getMenu().priority());
+        sides.draw(graphics, font, style, getMenu().sideModes(), mouseX, mouseY);
 
         int y = topPos + BAR_TOP;
         drawChargeBar(graphics, style, view,
@@ -82,11 +90,13 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
     protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
         super.extractTooltip(graphics, mouseX, mouseY);
         statLine.showTooltip(graphics, font, mouseX, mouseY);
+        sides.showTooltip(graphics, font, getMenu().sideModes(), mouseX, mouseY);
     }
 
     @Override
     public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
-        return minecraft != null && priority.click(minecraft, getMenu().containerId, event.x(), event.y())
+        return minecraft != null && (priority.click(minecraft, getMenu().containerId, event.x(), event.y())
+                || sides.click(minecraft, getMenu().containerId, event.x(), event.y(), event.button()))
                 || super.mouseClicked(event, doubleClick);
     }
 

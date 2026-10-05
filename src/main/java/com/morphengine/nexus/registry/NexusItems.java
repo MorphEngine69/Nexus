@@ -11,6 +11,7 @@ import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.item.DeviceBlockItem;
 import com.morphengine.nexus.item.NetworkCardItem;
 import com.morphengine.nexus.item.NexusTerminalItem;
+import com.morphengine.nexus.item.TierUpgradeItem;
 import com.morphengine.nexus.item.VaultCellItem;
 import com.morphengine.nexus.item.WrenchItem;
 import com.morphengine.nexus.upgrade.NexusUpgradeType;
@@ -89,6 +90,16 @@ public final class NexusItems {
     public static final DeferredItem<NexusTerminalItem> NEXUS_TERMINAL =
             ITEMS.registerItem("nexus_terminal", properties -> new NexusTerminalItem(properties.stacksTo(1)));
 
+    public static final DeferredItem<TierUpgradeItem> ADVANCED_TIER_UPGRADE = tierUpgrade("advanced", 2);
+
+    public static final DeferredItem<TierUpgradeItem> SUPERIOR_TIER_UPGRADE = tierUpgrade("superior", 3);
+
+    public static final DeferredItem<TierUpgradeItem> QUANTUM_TIER_UPGRADE = tierUpgrade("quantum", 4);
+
+    /** Every tier upgrade, the lowest first. */
+    public static final List<DeferredItem<TierUpgradeItem>> TIER_UPGRADES = List.of(
+            ADVANCED_TIER_UPGRADE, SUPERIOR_TIER_UPGRADE, QUANTUM_TIER_UPGRADE);
+
     public static final DeferredItem<WrenchItem> WRENCH =
             ITEMS.registerItem("wrench", properties -> new WrenchItem(properties.stacksTo(1)));
 
@@ -159,6 +170,13 @@ public final class NexusItems {
                     cable.getValue(), DeviceBlockItem.Look.of(CABLE_ASSET).colored(cable.getKey())));
         }
         return Collections.unmodifiableMap(cables);
+    }
+
+    /**
+     * Ids read {@code <tier>_tier_upgrade}, such as {@code advanced_tier_upgrade}.
+     */
+    private static DeferredItem<TierUpgradeItem> tierUpgrade(final String tier, final int rank) {
+        return ITEMS.registerItem(tier + "_tier_upgrade", properties -> new TierUpgradeItem(rank, properties));
     }
 
     private static DeferredItem<DeviceBlockItem> deviceItem(final DeferredBlock<?> block) {

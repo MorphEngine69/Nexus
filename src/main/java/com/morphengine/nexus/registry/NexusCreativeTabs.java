@@ -4,6 +4,7 @@ import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.CableBlock;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.item.DeviceBlockItem;
+import com.morphengine.nexus.item.TierUpgradeItem;
 import com.morphengine.nexus.item.VaultCellItem;
 import com.morphengine.nexus.upgrade.UpgradeItem;
 import net.minecraft.core.registries.Registries;
@@ -56,6 +57,9 @@ public final class NexusCreativeTabs {
                             }
                         }
                         for (DeferredItem<UpgradeItem> upgrade : NexusItems.UPGRADES) {
+                            output.accept(upgrade.get());
+                        }
+                        for (DeferredItem<TierUpgradeItem> upgrade : NexusItems.TIER_UPGRADES) {
                             output.accept(upgrade.get());
                         }
                         output.accept(NexusItems.CABLES.get(CableBlock.DEFAULT_COLOR).get());
