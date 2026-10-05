@@ -25,7 +25,17 @@ final class ChainedMachine {
      * @return the machine's items and fluids, as the root of the chain sees them
      */
     SideStorage of(final ServerLevel level, final BlockPos assembler) {
-        final AssemblerChain.Link link = AssemblerChain.linkOf(level, assembler);
+        return accessTo(level, AssemblerChain.linkOf(level, assembler));
+    }
+
+    /**
+     * A machine of Nexus is reached through all its slots whatever its sides say; another block through the side the
+     * Assembler touches.
+     */
+    private SideStorage accessTo(final ServerLevel level, final AssemblerChain.Link link) {
+        if (level.getBlockEntity(link.root().relative(link.face())) instanceof MachineBlockEntity machine) {
+            return machine.assemblerAccess();
+        }
         return neighbour.itemsAndFluids(level, link.root(), link.face());
     }
 
@@ -41,7 +51,7 @@ final class ChainedMachine {
                 || root.settings().lock() != LockMode.UNTIL_EMPTY) {
             return false;
         }
-        return work.isBusy(neighbour.itemsAndFluids(level, link.root(), link.face()), chainBlueprints(level, link));
+        return work.isBusy(accessTo(level, link), chainBlueprints(level, link));
     }
 
     private static List<Blueprint> chainBlueprints(final ServerLevel level, final AssemblerChain.Link link) {

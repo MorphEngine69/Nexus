@@ -68,39 +68,50 @@ public final class DeviceBlockItem extends BlockItem implements GeoItem {
      * @param shiftTowardFrontPixels how far the model is moved toward its front, in pixels, so that a model that stands
      *                               against the back of its block is drawn in the middle
      * @param color                  the color of the texture, for a device that has a color of its own
+     * @param slotColor              the color of the texture in an inventory slot, where it can differ from the one
+     *                               the device has in the hand and in the world
      * @param animation              the pose of the model to show, the name of one of its animations
      * @param hiddenBones            the bones of the model that the item does not show
      */
     public record Look(
-            String asset, float shiftTowardFrontPixels, DyeColor color, String animation, List<String> hiddenBones) {
+            String asset, float shiftTowardFrontPixels, DyeColor color, DyeColor slotColor, String animation,
+            List<String> hiddenBones) {
 
         private static final String STILL = "idle";
 
         public Look {
             Objects.requireNonNull(asset, "asset must not be null");
             Objects.requireNonNull(color, "color must not be null");
+            Objects.requireNonNull(slotColor, "slotColor must not be null");
             Objects.requireNonNull(animation, "animation must not be null");
             hiddenBones = List.copyOf(hiddenBones);
         }
 
         public static Look of(final String asset) {
-            return new Look(asset, 0, NetworkColoring.UNCONNECTED, STILL, List.of());
+            return new Look(asset, 0, NetworkColoring.UNCONNECTED, NetworkColoring.UNCONNECTED, STILL, List.of());
         }
 
         public Look shifted(final float pixels) {
-            return new Look(asset, pixels, color, animation, hiddenBones);
+            return new Look(asset, pixels, color, slotColor, animation, hiddenBones);
         }
 
         public Look colored(final DyeColor newColor) {
-            return new Look(asset, shiftTowardFrontPixels, newColor, animation, hiddenBones);
+            return new Look(asset, shiftTowardFrontPixels, newColor, newColor, animation, hiddenBones);
+        }
+
+        /**
+         * @return the look with another color in an inventory slot only: the device looks the same in the hand
+         */
+        public Look inSlot(final DyeColor newSlotColor) {
+            return new Look(asset, shiftTowardFrontPixels, color, newSlotColor, animation, hiddenBones);
         }
 
         public Look posed(final String newAnimation) {
-            return new Look(asset, shiftTowardFrontPixels, color, newAnimation, hiddenBones);
+            return new Look(asset, shiftTowardFrontPixels, color, slotColor, newAnimation, hiddenBones);
         }
 
         public Look hiding(final List<String> bones) {
-            return new Look(asset, shiftTowardFrontPixels, color, animation, bones);
+            return new Look(asset, shiftTowardFrontPixels, color, slotColor, animation, bones);
         }
     }
 }

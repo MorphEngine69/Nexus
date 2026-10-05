@@ -13,12 +13,14 @@ import com.morphengine.nexus.client.render.DeviceRenderer;
 import com.morphengine.nexus.client.render.EnergyCellRenderer;
 import com.morphengine.nexus.client.render.FacedDeviceRenderer;
 import com.morphengine.nexus.client.render.KindDeviceRenderer;
+import com.morphengine.nexus.client.render.MachineRenderer;
 import com.morphengine.nexus.client.render.NexusRenderer;
 import com.morphengine.nexus.client.render.StorageVaultRenderer;
 import com.morphengine.nexus.client.screen.AssemblerScreen;
 import com.morphengine.nexus.client.screen.CoalGeneratorScreen;
 import com.morphengine.nexus.client.screen.CraftingMonitorScreen;
 import com.morphengine.nexus.client.screen.EnergyCellScreen;
+import com.morphengine.nexus.client.screen.MachineScreen;
 import com.morphengine.nexus.client.screen.NetworkReceiverScreen;
 import com.morphengine.nexus.client.screen.NetworkTransmitterScreen;
 import com.morphengine.nexus.client.screen.NexusLinkScreen;
@@ -58,6 +60,7 @@ public final class NexusClientSetup {
         event.register(NexusMenuTypes.NEXUS.get(), NexusScreen::new);
         event.register(NexusMenuTypes.ENERGY_CELL.get(), EnergyCellScreen::new);
         event.register(NexusMenuTypes.COAL_GENERATOR.get(), CoalGeneratorScreen::new);
+        event.register(NexusMenuTypes.MACHINE.get(), MachineScreen::new);
         event.register(NexusMenuTypes.STORAGE_VAULT.get(), StorageVaultScreen::new);
         event.register(NexusMenuTypes.VAULT_CELL.get(), VaultCellScreen::new);
         event.register(NexusMenuTypes.TERMINAL.get(), TerminalScreen<TerminalMenu>::new);
@@ -82,6 +85,7 @@ public final class NexusClientSetup {
     @SubscribeEvent
     static void registerRenderers(final EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(NexusBlockEntityTypes.NEXUS.get(), NexusRenderer::new);
+        event.registerBlockEntityRenderer(NexusBlockEntityTypes.MACHINE.get(), MachineRenderer::new);
         event.registerBlockEntityRenderer(NexusBlockEntityTypes.TRANSFER_DEVICE.get(),
                 context -> new KindDeviceRenderer<>(context, device -> device.kind().getSerializedName(),
                         TransferKind.PLACER.getSerializedName(), state -> state.getValue(TransferDeviceBlock.POWERED)));

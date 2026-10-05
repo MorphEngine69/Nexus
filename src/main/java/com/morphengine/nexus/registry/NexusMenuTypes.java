@@ -8,6 +8,7 @@ import com.morphengine.nexus.menu.CoalGeneratorMenu;
 import com.morphengine.nexus.menu.CraftingMonitorMenu;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.EnergyCellMenu;
+import com.morphengine.nexus.menu.MachineMenu;
 import com.morphengine.nexus.menu.NetworkReceiverMenu;
 import com.morphengine.nexus.menu.NetworkTransmitterMenu;
 import com.morphengine.nexus.menu.NexusLinkMenu;
@@ -45,6 +46,12 @@ public final class NexusMenuTypes {
             () -> IMenuTypeExtension.create(
                     (containerId, inventory, buffer) ->
                             new EnergyCellMenu(containerId, inventory, buffer.readBlockPos())));
+
+    public static final Supplier<MenuType<MachineMenu>> MACHINE = MENU_TYPES.register(
+            "machine",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) ->
+                            new MachineMenu(containerId, inventory, buffer.readBlockPos())));
 
     public static final Supplier<MenuType<CoalGeneratorMenu>> COAL_GENERATOR = MENU_TYPES.register(
             "coal_generator",

@@ -1,11 +1,12 @@
 package com.morphengine.nexus.client.render;
 
+import com.geckolib.constant.DataTickets;
 import com.geckolib.renderer.GeoItemRenderer;
 import com.geckolib.renderer.base.BoneSnapshots;
 import com.geckolib.renderer.base.GeoRenderState;
 import com.geckolib.renderer.base.RenderPassInfo;
 import com.morphengine.nexus.item.DeviceBlockItem;
-import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemDisplayContext;
 
 import java.util.List;
 import java.util.Locale;
@@ -22,18 +23,21 @@ public final class DeviceItemRenderer extends GeoItemRenderer<DeviceBlockItem> {
     private final List<String> hiddenBones;
 
     public DeviceItemRenderer(final DeviceBlockItem.Look look) {
-        super(modelOf(look.asset(), look.color()));
+        super(modelOf(look));
         this.shiftTowardFront = look.shiftTowardFrontPixels() / PIXELS_PER_BLOCK;
         this.hiddenBones = look.hiddenBones();
         withRenderLayer(new GlowWhenLitLayer<>(this));
     }
 
-    private static DeviceGeoModel<DeviceBlockItem> modelOf(final String asset, final DyeColor color) {
-        final String textureName = color.getName().toLowerCase(Locale.ROOT);
-        return new DeviceGeoModel<>(asset) {
+    private static DeviceGeoModel<DeviceBlockItem> modelOf(final DeviceBlockItem.Look look) {
+        final String textureName = look.color().getName().toLowerCase(Locale.ROOT);
+        final String slotTextureName = look.slotColor().getName().toLowerCase(Locale.ROOT);
+        return new DeviceGeoModel<>(look.asset()) {
             @Override
             protected String textureName(final GeoRenderState renderState) {
-                return textureName;
+                final ItemDisplayContext context = renderState.getOrDefaultGeckolibData(
+                        DataTickets.ITEM_RENDER_PERSPECTIVE, ItemDisplayContext.NONE);
+                return context == ItemDisplayContext.GUI ? slotTextureName : textureName;
             }
         };
     }

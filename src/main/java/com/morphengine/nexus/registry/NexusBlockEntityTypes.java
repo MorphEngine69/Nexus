@@ -5,6 +5,7 @@ import com.morphengine.nexus.block.entity.AssemblerBlockEntity;
 import com.morphengine.nexus.block.entity.CoalGeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
+import com.morphengine.nexus.block.entity.MachineBlockEntity;
 import com.morphengine.nexus.block.entity.NetworkReceiverBlockEntity;
 import com.morphengine.nexus.block.entity.NetworkTransmitterBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -35,6 +37,13 @@ public final class NexusBlockEntityTypes {
             "energy_cell",
             () -> new BlockEntityType<>(EnergyCellBlockEntity::new, NexusBlocks.ENERGY_CELLS.stream()
                     .<Block>map(DeferredBlock::get).collect(Collectors.toUnmodifiableSet())));
+
+    /** Every machine of every kind and tier. */
+    public static final Supplier<BlockEntityType<MachineBlockEntity>> MACHINE = BLOCK_ENTITY_TYPES.register(
+            "machine",
+            () -> new BlockEntityType<>(MachineBlockEntity::new, NexusBlocks.MACHINES.values().stream()
+                    .flatMap(List::stream).<Block>map(DeferredBlock::get)
+                    .collect(Collectors.toUnmodifiableSet())));
 
     public static final Supplier<BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
             BLOCK_ENTITY_TYPES.register("coal_generator", () -> new BlockEntityType<>(

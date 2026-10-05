@@ -5,6 +5,7 @@ import com.morphengine.nexus.block.CableBlock;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellMarks;
 import com.morphengine.nexus.block.EnergyCellTier;
+import com.morphengine.nexus.block.MachineBlock;
 import com.morphengine.nexus.item.BlueprintItem;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
@@ -14,6 +15,8 @@ import com.morphengine.nexus.item.NexusTerminalItem;
 import com.morphengine.nexus.item.TierUpgradeItem;
 import com.morphengine.nexus.item.VaultCellItem;
 import com.morphengine.nexus.item.WrenchItem;
+import com.morphengine.nexus.processing.MachineKind;
+import com.morphengine.nexus.processing.MachineMarks;
 import com.morphengine.nexus.upgrade.NexusUpgradeType;
 import com.morphengine.nexus.upgrade.UpgradeItem;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
@@ -23,6 +26,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -52,6 +56,9 @@ public final class NexusItems {
 
     public static final DeferredItem<DeviceBlockItem> COAL_GENERATOR = deviceItem(
             NexusBlocks.COAL_GENERATOR, DeviceBlockItem.Look.of("coal_generator").posed("burning"));
+
+    /** The items of the machines of every kind, the lowest tier first. */
+    public static final Map<MachineKind, List<DeferredItem<DeviceBlockItem>>> MACHINES = machineItems();
 
     public static final DeferredItem<DeviceBlockItem> STORAGE_VAULT = deviceItem(NexusBlocks.STORAGE_VAULT);
 
@@ -122,6 +129,9 @@ public final class NexusItems {
     public static final List<DeferredItem<UpgradeItem>> UPGRADES = List.of(SPEED_UPGRADE, STACK_UPGRADE,
             REGULATOR_UPGRADE, CAPACITY_UPGRADE, RANGE_UPGRADE, FORTUNE_UPGRADE, SILK_TOUCH_UPGRADE,
             AUTOCRAFTING_UPGRADE, CHUNK_LOADER_UPGRADE);
+
+    /** The still pose of the model that the item of a machine stands in: lit as if at work, nothing moving. */
+    private static final String ITEM_POSE = "item";
 
     /** A terminal panel stands against the back of its block; as an item it is moved to the middle. */
     private static final float PANEL_ITEM_SHIFT_PIXELS = 7;
@@ -200,6 +210,23 @@ public final class NexusItems {
             final DeferredBlock<EnergyCellBlock> block, final EnergyCellTier tier) {
         return deviceItem(block, DeviceBlockItem.Look.of(ENERGY_CELL_ASSET)
                 .hiding(EnergyCellMarks.bonesOfOtherRanks(tier.rank())));
+    }
+
+    /**
+     * The model of a machine is the same for every tier; the item shows only the marks of its own.
+     */
+    private static Map<MachineKind, List<DeferredItem<DeviceBlockItem>>> machineItems() {
+        final Map<MachineKind, List<DeferredItem<DeviceBlockItem>>> machines = new EnumMap<>(MachineKind.class);
+        for (MachineKind kind : MachineKind.values()) {
+            final List<DeferredItem<DeviceBlockItem>> tiers = new ArrayList<>();
+            final List<DeferredBlock<MachineBlock>> blocks = NexusBlocks.machineTiers(kind);
+            for (int index = 0; index < blocks.size(); index++) {
+                tiers.add(deviceItem(blocks.get(index), DeviceBlockItem.Look.of(kind.id())
+                        .inSlot(kind.slotColor()).posed(ITEM_POSE).hiding(MachineMarks.bonesOfOtherRanks(index + 1))));
+            }
+            machines.put(kind, List.copyOf(tiers));
+        }
+        return Collections.unmodifiableMap(machines);
     }
 
     private static DeferredItem<DeviceBlockItem> panelItem(final DeferredBlock<?> block) {

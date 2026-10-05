@@ -8,6 +8,7 @@ import com.morphengine.nexus.block.entity.Renamable;
 import com.morphengine.nexus.menu.CoalGeneratorMenu;
 import com.morphengine.nexus.menu.DevicePanel;
 import com.morphengine.nexus.menu.EnergyCellMenu;
+import com.morphengine.nexus.menu.MachineMenu;
 import com.morphengine.nexus.menu.NexusMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,6 +47,8 @@ public final class NexusPayloadHandlers {
                 EnergyCellViewPayload.TYPE, EnergyCellViewPayload.STREAM_CODEC, NexusPayloadHandlers::handleCellView);
         registrar.playToClient(CoalGeneratorViewPayload.TYPE, CoalGeneratorViewPayload.STREAM_CODEC,
                 NexusPayloadHandlers::handleGeneratorView);
+        registrar.playToClient(MachineViewPayload.TYPE, MachineViewPayload.STREAM_CODEC,
+                NexusPayloadHandlers::handleMachineView);
     }
 
     private static void handleRename(final DeviceRenamePayload payload, final IPayloadContext context) {
@@ -108,6 +111,15 @@ public final class NexusPayloadHandlers {
     private static void handleCellView(final EnergyCellViewPayload payload, final IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player().containerMenu instanceof EnergyCellMenu menu
+                    && menu.containerId == payload.containerId()) {
+                menu.acceptView(payload.view());
+            }
+        });
+    }
+
+    private static void handleMachineView(final MachineViewPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player().containerMenu instanceof MachineMenu menu
                     && menu.containerId == payload.containerId()) {
                 menu.acceptView(payload.view());
             }

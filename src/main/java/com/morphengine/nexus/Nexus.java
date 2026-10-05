@@ -6,6 +6,7 @@ import com.morphengine.nexus.registry.NexusCreativeTabs;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusItems;
 import com.morphengine.nexus.registry.NexusMenuTypes;
+import com.morphengine.nexus.registry.NexusRecipes;
 import com.morphengine.nexus.resource.ResourceTypes;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.neoforged.bus.api.IEventBus;
@@ -26,6 +27,8 @@ public final class Nexus {
         NexusDataComponents.COMPONENTS.register(modBus);
         NexusBlocks.BLOCKS.register(modBus);
         NexusItems.ITEMS.register(modBus);
+        NexusRecipes.TYPES.register(modBus);
+        NexusRecipes.SERIALIZERS.register(modBus);
         NexusBlockEntityTypes.BLOCK_ENTITY_TYPES.register(modBus);
         NexusMenuTypes.MENU_TYPES.register(modBus);
         NexusCreativeTabs.CREATIVE_TABS.register(modBus);

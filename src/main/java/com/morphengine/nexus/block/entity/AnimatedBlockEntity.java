@@ -29,7 +29,7 @@ public abstract class AnimatedBlockEntity extends BlockEntity implements GeoBloc
             final BlockEntityType<?> type, final BlockPos pos, final BlockState state,
             final Function<BlockState, RawAnimation> animationOf) {
         super(type, pos, state);
-        this.animation = new BlockAnimation(this, this::getBlockState, animationOf);
+        this.animation = new BlockAnimation(this, this::getBlockState, animationOf, () -> -1);
     }
 
     @Override

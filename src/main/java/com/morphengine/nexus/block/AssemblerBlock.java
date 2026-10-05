@@ -94,12 +94,14 @@ public final class AssemblerBlock extends NetworkDeviceBlock implements Turnable
     }
 
     /**
-     * The face takes no cable, but joins another Assembler it touches: Assemblers
-     * set against each other share the network whichever way they face.
+     * The face takes no cable, but joins another Assembler it touches, and a machine of the network it faces:
+     * Assemblers set against each other share the network whichever way they face, and a machine is part of the
+     * network like any other device.
      */
     @Override
     public boolean acceptsConnection(final BlockState state, final Direction side, final BlockState neighbour) {
-        return acceptsConnection(state, side) || neighbour.getBlock() instanceof AssemblerBlock;
+        return acceptsConnection(state, side) || neighbour.getBlock() instanceof AssemblerBlock
+                || neighbour.getBlock() instanceof MachineBlock;
     }
 
     @Override
