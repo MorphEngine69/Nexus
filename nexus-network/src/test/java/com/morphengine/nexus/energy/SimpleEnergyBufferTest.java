@@ -111,4 +111,42 @@ class SimpleEnergyBufferTest {
         assertThatThrownBy(() -> buffer.insert(-1, Action.EXECUTE)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> buffer.extract(-1, Action.EXECUTE)).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void resizeKeepsWhatTheBufferHolds() {
+        final SimpleEnergyBuffer buffer = new SimpleEnergyBuffer(100, 100, 100);
+        buffer.insert(80, Action.EXECUTE);
+
+        buffer.resize(1000, 50, 50);
+
+        assertThat(buffer.stored()).isEqualTo(80);
+        assertThat(buffer.capacity()).isEqualTo(1000);
+    }
+
+    @Test
+    void resizeAppliesTheNewRates() {
+        final SimpleEnergyBuffer buffer = new SimpleEnergyBuffer(1000, 100, 100);
+
+        buffer.resize(1000, 30, 20);
+
+        assertThat(buffer.insert(500, Action.EXECUTE)).isEqualTo(30);
+        assertThat(buffer.extract(500, Action.EXECUTE)).isEqualTo(20);
+    }
+
+    @Test
+    void resizeToASmallerCapacityCutsWhatIsStored() {
+        final SimpleEnergyBuffer buffer = new SimpleEnergyBuffer(1000, 1000, 1000);
+        buffer.insert(900, Action.EXECUTE);
+
+        buffer.resize(300, 1000, 1000);
+
+        assertThat(buffer.stored()).isEqualTo(300);
+    }
+
+    @Test
+    void resizeRejectsANonPositiveCapacity() {
+        final SimpleEnergyBuffer buffer = new SimpleEnergyBuffer(100, 100, 100);
+
+        assertThatThrownBy(() -> buffer.resize(0, 10, 10)).isInstanceOf(IllegalArgumentException.class);
+    }
 }

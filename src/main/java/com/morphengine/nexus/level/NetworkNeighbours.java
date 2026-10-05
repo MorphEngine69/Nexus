@@ -4,6 +4,7 @@ import com.morphengine.nexus.block.NetworkBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -29,5 +30,19 @@ public final class NetworkNeighbours {
         }
         final BlockPos beyond = pos.relative(side);
         return level.isLoaded(beyond) && level.getBlockState(beyond).getBlock() instanceof NetworkBlock;
+    }
+
+    /**
+     * Lets only a block of a network reach what a block entity offers: the energy of the Nexus goes in and out of the
+     * network only through a Puller or a Pusher, which keep to its rules, so a block of another mod gets nothing.
+     *
+     * @param side    the side of the block entity that is asked about; {@code null} when the asker names no side
+     * @param offered what the block entity gives a block of a network
+     * @return {@code offered} when a block of a network stands beyond {@code side}, otherwise {@code null}
+     */
+    public static <T> @Nullable T offeredBeyond(
+            final BlockEntity blockEntity, final @Nullable Direction side, final T offered) {
+        final Level level = blockEntity.getLevel();
+        return level != null && hasNetworkBlockBeyond(level, blockEntity.getBlockPos(), side) ? offered : null;
     }
 }

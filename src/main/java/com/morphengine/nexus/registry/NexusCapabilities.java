@@ -1,6 +1,7 @@
 package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.level.NetworkNeighbours;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -25,6 +26,6 @@ public final class NexusCapabilities {
         event.registerBlockEntity(
                 Capabilities.Energy.BLOCK,
                 NexusBlockEntityTypes.NEXUS.get(),
-                (nexus, side) -> nexus.energyHandler());
+                (nexus, side) -> NetworkNeighbours.offeredBeyond(nexus, side, nexus.energyHandler()));
     }
 }

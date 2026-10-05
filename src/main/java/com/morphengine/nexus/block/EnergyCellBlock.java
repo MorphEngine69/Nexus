@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
+import com.morphengine.nexus.registry.NexusBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -25,7 +26,7 @@ import org.jspecify.annotations.Nullable;
  * network's energy pool. Only blocks of a network reach its energy directly;
  * anything else goes through a Puller or a Pusher.
  */
-public final class EnergyCellBlock extends NetworkDeviceBlock {
+public final class EnergyCellBlock extends NetworkDeviceBlock implements TieredBlock {
 
     public static final MapCodec<EnergyCellBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                     EnergyCellTier.CODEC.fieldOf("tier").forGetter(EnergyCellBlock::tier),
@@ -50,6 +51,24 @@ public final class EnergyCellBlock extends NetworkDeviceBlock {
 
     public EnergyCellTier tier() {
         return tier;
+    }
+
+    @Override
+    public int rank() {
+        return tier.rank();
+    }
+
+    @Override
+    public @Nullable Block nextTier() {
+        return rank() < NexusBlocks.ENERGY_CELLS.size() ? NexusBlocks.ENERGY_CELLS.get(rank()).get() : null;
+    }
+
+    /**
+     * A cell turned into one of another tier keeps its block entity, and so all that it holds.
+     */
+    @Override
+    protected boolean shouldChangedStateKeepBlockEntity(final BlockState oldState) {
+        return oldState.getBlock() instanceof EnergyCellBlock;
     }
 
     /**

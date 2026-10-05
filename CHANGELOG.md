@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Tier upgrades. Three new items, the Advanced, Superior and Quantum Tier Upgrade,
+  raise an Energy Cell by one tier: sneak and right-click the cell with the upgrade
+  of the next tier. Tiers cannot be skipped, and everything the cell holds is kept:
+  its energy, upgrades, name, priority and sides.
+- Every Energy Cell has a panel of its sides, to the right of its window: the six
+  sides unfolded into squares, and a click moves a side through closed, input,
+  output and input and output. A side that is opened lets blocks of other mods,
+  such as the pipes of a mod of pipes, put energy in or take it out as its mode
+  says; the player answers for the energy that leaves that way.
 - Three more Energy Cells: Advanced, Superior and Quantum. Each holds and moves ten
   times what the one below does. All four tiers share a new look: a trim in the
   colour of the network runs along the top edges, over the corners and down the
@@ -271,6 +280,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The Nexus no longer hands the energy of the network to blocks of other mods,
+  and no longer takes it from them directly: it gives and takes energy only with
+  blocks of the network. Energy goes in and out of the network through a Puller
+  or a Pusher.
 - Energy Cells no longer hand their energy to blocks of other mods, and no longer
   take it from them directly. A pipe or a battery of another mod touching a cell
   gets nothing: energy goes in and out of the network through a Puller or a

@@ -74,8 +74,8 @@ public final class EnergyGameTests {
     private static final BlockPos CABLE = VAULT.east();
     private static final BlockPos DEVICE = CABLE.above();
     private static final BlockPos TARGET = DEVICE.east();
-    /** A cell away from the network, to see who reaches its energy. */
-    private static final BlockPos ISOLATED_CELL = new BlockPos(5, 1, 6);
+    /** A device away from the network, to see who reaches its energy. */
+    private static final BlockPos ISOLATED = new BlockPos(5, 1, 6);
     /** What a Coal Generator makes a tick without upgrades. */
     private static final long GENERATOR_RATE = 40;
     private static final TransferSettings ENERGY = TransferSettings.DEFAULT.withResource(TransferResource.ENERGY);
@@ -93,10 +93,18 @@ public final class EnergyGameTests {
             Map.entry("energy_cell_below_vault_fills_after_it", EnergyGameTests::lowPriorityCellFillsLast),
             Map.entry("speed_upgrades_make_generator_burn_faster", EnergyGameTests::fasterGenerator),
             Map.entry("energy_cell_tiers_hold_what_their_tier_says", EnergyGameTests::cellTiersHoldTheirCapacity),
-            Map.entry("energy_cell_gives_blocks_of_other_mods_nothing", EnergyGameTests::cellClosedToForeignBlocks),
-            Map.entry("energy_cell_opens_only_toward_a_network_block", EnergyGameTests::cellOpenTowardNetworkBlock),
+            Map.entry("energy_cell_gives_blocks_of_other_mods_nothing",
+                    helper -> closedToForeignBlocks(helper, cell())),
+            Map.entry("energy_cell_opens_only_toward_a_network_block",
+                    helper -> openTowardNetworkBlock(helper, cell())),
             Map.entry("energy_cell_follows_its_neighbour_for_blocks_that_asked_before",
-                    EnergyGameTests::cellFollowsItsNeighbour));
+                    helper -> followsItsNeighbour(helper, cell())),
+            Map.entry("nexus_gives_blocks_of_other_mods_nothing",
+                    helper -> closedToForeignBlocks(helper, nexusState())),
+            Map.entry("nexus_opens_only_toward_a_network_block",
+                    helper -> openTowardNetworkBlock(helper, nexusState())),
+            Map.entry("nexus_follows_its_neighbour_for_blocks_that_asked_before",
+                    helper -> followsItsNeighbour(helper, nexusState())));
 
     private EnergyGameTests() {
     }
@@ -352,49 +360,49 @@ public final class EnergyGameTests {
         helper.succeed();
     }
 
-    private static void cellClosedToForeignBlocks(final GameTestHelper helper) {
-        place(helper, ISOLATED_CELL, cell());
+    private static void closedToForeignBlocks(final GameTestHelper helper, final BlockState device) {
+        place(helper, ISOLATED, device);
         for (Direction side : Direction.values()) {
-            place(helper, ISOLATED_CELL.relative(side), Blocks.STONE.defaultBlockState());
+            place(helper, ISOLATED.relative(side), Blocks.STONE.defaultBlockState());
         }
 
         for (Direction side : Direction.values()) {
-            helper.assertTrue(energyAt(helper, ISOLATED_CELL, side) == null,
-                    Component.literal("a block of another mod reaches the cell from the " + side));
+            helper.assertTrue(energyAt(helper, ISOLATED, side) == null,
+                    Component.literal("a block of another mod reaches the device from the " + side));
         }
-        helper.assertTrue(energyAt(helper, ISOLATED_CELL, null) == null,
-                Component.literal("a request that names no side reaches the cell"));
+        helper.assertTrue(energyAt(helper, ISOLATED, null) == null,
+                Component.literal("a request that names no side reaches the device"));
         helper.succeed();
     }
 
-    private static void cellOpenTowardNetworkBlock(final GameTestHelper helper) {
-        place(helper, ISOLATED_CELL, cell());
+    private static void openTowardNetworkBlock(final GameTestHelper helper, final BlockState device) {
+        place(helper, ISOLATED, device);
         for (Direction side : Direction.values()) {
-            place(helper, ISOLATED_CELL.relative(side), Blocks.STONE.defaultBlockState());
+            place(helper, ISOLATED.relative(side), Blocks.STONE.defaultBlockState());
         }
-        place(helper, ISOLATED_CELL.north(), NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
+        place(helper, ISOLATED.north(), NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
 
         for (Direction side : Direction.values()) {
             final boolean expected = side == Direction.NORTH;
-            helper.assertTrue((energyAt(helper, ISOLATED_CELL, side) != null) == expected,
-                    Component.literal("the cell " + (expected ? "is closed to" : "is open to") + " the " + side));
+            helper.assertTrue((energyAt(helper, ISOLATED, side) != null) == expected,
+                    Component.literal("the device " + (expected ? "is closed to" : "is open to") + " the " + side));
         }
         helper.succeed();
     }
 
-    private static void cellFollowsItsNeighbour(final GameTestHelper helper) {
-        place(helper, ISOLATED_CELL, cell());
-        place(helper, ISOLATED_CELL.north(), NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
+    private static void followsItsNeighbour(final GameTestHelper helper, final BlockState device) {
+        place(helper, ISOLATED, device);
+        place(helper, ISOLATED.north(), NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
         final BlockCapabilityCache<EnergyHandler, Direction> asked = BlockCapabilityCache.create(
-                Capabilities.Energy.BLOCK, helper.getLevel(), helper.absolutePos(ISOLATED_CELL), Direction.NORTH);
+                Capabilities.Energy.BLOCK, helper.getLevel(), helper.absolutePos(ISOLATED), Direction.NORTH);
         helper.assertTrue(asked.getCapability() != null, Component.literal("closed to a block of a network"));
 
         helper.startSequence()
-                .thenExecute(() -> place(helper, ISOLATED_CELL.north(), Blocks.STONE.defaultBlockState()))
+                .thenExecute(() -> place(helper, ISOLATED.north(), Blocks.STONE.defaultBlockState()))
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertTrue(asked.getCapability() == null,
                         Component.literal("open to a block that is no longer of a network")))
-                .thenExecute(() -> place(helper, ISOLATED_CELL.north(),
+                .thenExecute(() -> place(helper, ISOLATED.north(),
                         NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState()))
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertTrue(asked.getCapability() != null,
@@ -413,6 +421,10 @@ public final class EnergyGameTests {
 
     private static ItemStack energyVaultCell() {
         return new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ENERGY).get(CellTier.ONE_K).get());
+    }
+
+    private static BlockState nexusState() {
+        return NexusBlocks.NEXUS.get().defaultBlockState();
     }
 
     private static BlockState cell() {
