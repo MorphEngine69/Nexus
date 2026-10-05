@@ -6,14 +6,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * The choice of the working sides of a block: a button standing just right of a panel, outside its frame, and the
@@ -23,7 +22,7 @@ import java.util.Map;
  * an arrow out for output, a diamond for both. What a click does goes to the server as a menu button. Whether the
  * window is open is only the screen's business and is not kept when it closes.
  */
-final class SideModePanel {
+final class SideModePanel<K extends Enum<K>> {
 
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_TOP = 18;
@@ -39,23 +38,18 @@ final class SideModePanel {
     private static final int INPUT_SIGN = 0xFF5FBF6B;
     private static final int OUTPUT_SIGN = 0xFFE59A4A;
     private static final int HEAD_ROWS = 4;
-    private static final int SHAFT_ROWS = 3;
+    private static final int SHAFT_ROWS = 4;
     private static final int SIGN_TOP = 4;
     private static final int SIGN_CENTRE = 9;
+    private static final int ARROW_TOP = (SQUARE - HEAD_ROWS - SHAFT_ROWS) / 2;
     private static final int ICON_SQUARE = 4;
     private static final int ICON_PITCH = 5;
     /** The icon is 14 pixels square, the button 18: two pixels of margin on every side, the frame included. */
     private static final int ICON_OFFSET = 2;
     /** The squares of the icon of the button: the cross that a cube unfolds into, a square short of the window's. */
     private static final int[][] ICON = {{1, 0}, {0, 1}, {1, 1}, {2, 1}, {1, 2}};
-    private static final Map<Direction, int[]> NET = new EnumMap<>(Map.of(
-            Direction.UP, new int[] {1, 0},
-            Direction.WEST, new int[] {0, 1},
-            Direction.NORTH, new int[] {1, 1},
-            Direction.EAST, new int[] {2, 1},
-            Direction.SOUTH, new int[] {3, 1},
-            Direction.DOWN, new int[] {1, 2}));
-
+    private final Map<K, int[]> net;
+    private final Function<K, String> nameOf;
     private final PanelBounds button;
     private final PanelBounds window;
     private final int nextButtonId;
@@ -64,10 +58,16 @@ final class SideModePanel {
 
     /**
      * @param panel            the panel; the button stands just right of it
+     * @param net              the cell of the cross for each side, {@code {column, row}}, see {@link SideLayouts}
+     * @param nameOf           the word the name of a side in the language files ends in
      * @param nextButtonId     the menu button id for the first side, going to the next mode; the other sides follow
      * @param previousButtonId the same, going to the previous mode
      */
-    SideModePanel(final PanelBounds panel, final int nextButtonId, final int previousButtonId) {
+    SideModePanel(
+            final PanelBounds panel, final Map<K, int[]> net, final Function<K, String> nameOf,
+            final int nextButtonId, final int previousButtonId) {
+        this.net = Map.copyOf(net);
+        this.nameOf = nameOf;
         this.button = new PanelBounds(panel.left() + panel.width() + GAP, panel.top() + BUTTON_TOP, BUTTON_SIZE,
                 BUTTON_SIZE);
         this.window = new PanelBounds(button.left() + BUTTON_SIZE + GAP, panel.top(),
@@ -79,13 +79,13 @@ final class SideModePanel {
 
     void draw(
             final GuiGraphicsExtractor graphics, final Font font, final PanelStyle style,
-            final SideConfig<Direction> modes, final int mouseX, final int mouseY) {
+            final SideConfig<K> modes, final int mouseX, final int mouseY) {
         drawButton(graphics, style, mouseX, mouseY);
         if (!open) {
             return;
         }
         style.drawFrame(graphics, font, window, Component.translatable("gui.nexus.sides"));
-        for (Direction side : NET.keySet()) {
+        for (K side : net.keySet()) {
             final PanelBounds square = square(side);
             final SideMode mode = modes.mode(side);
             graphics.fill(square.left(), square.top(), square.left() + SQUARE, square.top() + SQUARE,
@@ -108,7 +108,7 @@ final class SideModePanel {
         if (!open || !window.contains(x, y)) {
             return false;
         }
-        final @Nullable Direction side = sideAt(x, y);
+        final @Nullable K side = sideAt(x, y);
         if (side != null && minecraft.gameMode != null) {
             final int first = mouseButton == RIGHT_BUTTON ? previousButtonId : nextButtonId;
             minecraft.gameMode.handleInventoryButtonClick(containerId, first + side.ordinal());
@@ -117,18 +117,18 @@ final class SideModePanel {
     }
 
     void showTooltip(
-            final GuiGraphicsExtractor graphics, final Font font, final SideConfig<Direction> modes,
+            final GuiGraphicsExtractor graphics, final Font font, final SideConfig<K> modes,
             final int mouseX, final int mouseY) {
         if (button.contains(mouseX, mouseY)) {
             graphics.setComponentTooltipForNextFrame(font, List.of(Component.translatable("gui.nexus.sides"),
                     Component.translatable("gui.nexus.sides.hint").withStyle(ChatFormatting.GRAY)), mouseX, mouseY);
             return;
         }
-        final @Nullable Direction side = open ? sideAt(mouseX, mouseY) : null;
+        final @Nullable K side = open ? sideAt(mouseX, mouseY) : null;
         if (side != null) {
             graphics.setComponentTooltipForNextFrame(font, List.of(
                     Component.translatable("gui.nexus.side.tooltip", Component.translatable(
-                            "gui.nexus.side." + side.getName()), modeName(modes.mode(side))),
+                            "gui.nexus.side." + nameOf.apply(side)), modeName(modes.mode(side))),
                     Component.translatable("gui.nexus.side.hint").withStyle(ChatFormatting.GRAY)),
                     mouseX, mouseY);
         }
@@ -148,8 +148,8 @@ final class SideModePanel {
         }
     }
 
-    private @Nullable Direction sideAt(final double x, final double y) {
-        for (Direction side : NET.keySet()) {
+    private @Nullable K sideAt(final double x, final double y) {
+        for (K side : net.keySet()) {
             if (square(side).contains(x, y)) {
                 return side;
             }
@@ -157,8 +157,8 @@ final class SideModePanel {
         return null;
     }
 
-    private PanelBounds square(final Direction side) {
-        final int[] cell = NET.get(side);
+    private PanelBounds square(final K side) {
+        final int[] cell = net.get(side);
         return new PanelBounds(window.left() + MARGIN + cell[0] * PITCH,
                 window.top() + PanelStyle.HEADER_HEIGHT + MARGIN + cell[1] * PITCH, SQUARE, SQUARE);
     }
@@ -195,19 +195,19 @@ final class SideModePanel {
         final int middle = square.left() + SIGN_CENTRE;
         final int total = HEAD_ROWS + SHAFT_ROWS;
         for (int row = 0; row < total; row++) {
-            final int y = square.top() + SIGN_TOP + row;
+            final int y = square.top() + ARROW_TOP + row;
             final int fromHead = up ? row : total - 1 - row;
-            final int half = fromHead < HEAD_ROWS ? fromHead : 1;
-            graphics.fill(middle - half, y, middle + half + 1, y + 1, color);
+            final int half = fromHead < HEAD_ROWS ? fromHead + 1 : 1;
+            graphics.fill(middle - half, y, middle + half, y + 1, color);
         }
     }
 
     private static void drawDiamond(final GuiGraphicsExtractor graphics, final PanelBounds square, final int color) {
         final int middle = square.left() + SIGN_CENTRE;
-        for (int row = -HEAD_ROWS + 1; row < HEAD_ROWS; row++) {
-            final int half = HEAD_ROWS - 1 - Math.abs(row);
-            graphics.fill(middle - half, square.top() + SIGN_CENTRE + row, middle + half + 1,
-                    square.top() + SIGN_CENTRE + row + 1, color);
+        for (int row = 0; row < 2 * HEAD_ROWS; row++) {
+            final int half = row < HEAD_ROWS ? row + 1 : 2 * HEAD_ROWS - row;
+            graphics.fill(middle - half, square.top() + ARROW_TOP + row, middle + half,
+                    square.top() + ARROW_TOP + row + 1, color);
         }
     }
 }

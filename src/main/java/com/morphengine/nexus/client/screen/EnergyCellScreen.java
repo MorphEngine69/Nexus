@@ -5,6 +5,7 @@ import com.morphengine.nexus.menu.EnergyCellView;
 import com.morphengine.nexus.menu.NetworkBadge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -26,7 +27,7 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
 
     private final StatLine statLine = new StatLine();
     private PriorityRow priority;
-    private SideModePanel sides;
+    private SideModePanel<Direction> sides;
 
     public EnergyCellScreen(final EnergyCellMenu menu, final Inventory inventory, final Component title) {
         super(menu, inventory, title, IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -41,8 +42,9 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
         sides = createSideModePanel();
     }
 
-    private SideModePanel createSideModePanel() {
-        return new SideModePanel(panelBounds(), EnergyCellMenu.BUTTON_SIDE_NEXT, EnergyCellMenu.BUTTON_SIDE_PREVIOUS);
+    private SideModePanel<Direction> createSideModePanel() {
+        return new SideModePanel<>(panelBounds(), SideLayouts.CUBE, SideLayouts.cubeNames(),
+                EnergyCellMenu.BUTTON_SIDE_NEXT, EnergyCellMenu.BUTTON_SIDE_PREVIOUS);
     }
 
     private PriorityRow createPriorityRow() {

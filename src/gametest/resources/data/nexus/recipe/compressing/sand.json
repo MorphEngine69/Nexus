@@ -1,0 +1,7 @@
+{
+  "type": "nexus:compressing",
+  "ingredient": "minecraft:sand",
+  "result": {
+    "id": "minecraft:sandstone"
+  }
+}

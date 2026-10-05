@@ -120,7 +120,11 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
             search.draw(graphics, style, mouseX, mouseY);
         }
         if (grid != null) {
-            grid.show(view.update(getMenu().terminal().contents(), settings, search != null ? search.text() : ""));
+            final String query = search != null ? search.text() : "";
+            final TerminalContents contents = getMenu().terminal().contents();
+            grid.show(minecraft != null && minecraft.hasShiftDown()
+                    ? view.updateKeepingOrder(contents, settings, query)
+                    : view.update(contents, settings, query));
             grid.draw(graphics, font, style, mouseX, mouseY);
         }
         drawStatus(graphics);

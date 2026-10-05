@@ -25,6 +25,18 @@ public final class NexusCapabilities {
                 (generator, side) -> generator.energyHandler());
         event.registerBlockEntity(
                 Capabilities.Energy.BLOCK,
+                NexusBlockEntityTypes.MACHINE.get(),
+                (machine, side) -> machine.energyHandler());
+        event.registerBlockEntity(
+                Capabilities.Item.BLOCK,
+                NexusBlockEntityTypes.MACHINE.get(),
+                (machine, side) -> machine.itemHandler(side));
+        event.registerBlockEntity(
+                Capabilities.Fluid.BLOCK,
+                NexusBlockEntityTypes.MACHINE.get(),
+                (machine, side) -> machine.fluidHandler(side));
+        event.registerBlockEntity(
+                Capabilities.Energy.BLOCK,
                 NexusBlockEntityTypes.NEXUS.get(),
                 (nexus, side) -> NetworkNeighbours.offeredBeyond(nexus, side, nexus.energyHandler()));
     }

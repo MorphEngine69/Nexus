@@ -34,6 +34,8 @@ public final class NexusCreativeTabs {
                             output.accept(cell.get());
                         }
                         output.accept(NexusItems.COAL_GENERATOR.get());
+                        NexusItems.MACHINES.values().forEach(tiers -> tiers.forEach(
+                                machine -> output.accept(machine.get())));
                         output.accept(NexusItems.STORAGE_VAULT.get());
                         output.accept(NexusItems.TERMINAL.get());
                         output.accept(NexusItems.CRAFTING_TERMINAL.get());

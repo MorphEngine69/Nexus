@@ -32,6 +32,8 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> {
     private static final int LABEL_GAP = 11;
     private static final int INFO_LEFT = AssemblerMenu.BLUEPRINTS_LEFT + 3 * PanelStyle.SLOT_SIZE + 10;
     private static final int INFO_LINE = 12;
+    /** The name of the machine wraps before it reaches the Upgrade slots. */
+    private static final int INFO_WIDTH = AssemblerMenu.UPGRADES_LEFT - INFO_LEFT - 4;
     /** The number of tasks stands a blank line below the name of the machine. */
     private static final int TASKS_LINE = 3 * INFO_LINE;
 
@@ -95,7 +97,7 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> {
         final int top = topPos + AssemblerMenu.BLUEPRINTS_TOP;
         graphics.text(font, Component.translatable("gui.nexus.assembler.machine"), left, top, PanelStyle.TEXT_DIM,
                 false);
-        graphics.text(font, machineName(), left, top + INFO_LINE, PanelStyle.TEXT_LIGHT, false);
+        graphics.textWithWordWrap(font, machineName(), left, top + INFO_LINE, INFO_WIDTH, PanelStyle.TEXT_LIGHT);
         graphics.text(font, Component.translatable("gui.nexus.assembler.tasks", getMenu().taskCount()), left,
                 top + TASKS_LINE, PanelStyle.TEXT_DIM, false);
     }

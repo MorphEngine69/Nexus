@@ -1,0 +1,6 @@
+{
+  "type": "nexus:extracting",
+  "ingredient": "minecraft:ice",
+  "fluid": "minecraft:water",
+  "amount": 1000
+}

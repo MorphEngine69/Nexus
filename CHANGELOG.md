@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Six machines that run on FE, each in four tiers: the Energy Furnace, the Crusher,
+  the Pulverizer, the Compressor, the Alloy Smelter and the Extractor. A tier brings
+  a bigger energy buffer, more speed and, for most, more lines of input and output
+  slots (one, three, five and seven). Raise a machine on the spot with the tier
+  upgrades. A machine has a panel of its working sides, a choice of how its input is
+  shared out over the lines (one resource to a slot, or one spread over all), a
+  redstone mode and four slots for Speed Upgrades. It draws FE from its network,
+  takes it from any other source too and gives none away. The Energy Furnace smelts,
+  blasts and smokes by the recipes of the game. The Crusher, Pulverizer, Compressor,
+  Alloy Smelter (up to three inputs) and Extractor (a tank of fluid) read recipes of
+  their own, which a data pack or another mod can add; the mod ships none yet.
+- The Alloy Smelter shows what it works on: the items of its input slots ride the
+  rails to the mold, and the result grows there and leaves it as the recipe is
+  done.
+- A Stack Upgrade in an Assembler lets it hand a machine a whole stack of runs at once.
+- An Assembler reaches any machine of Nexus whatever its sides say, and joins the
+  network through the machine it faces.
 - Tier upgrades. Three new items, the Advanced, Superior and Quantum Tier Upgrade,
   raise an Energy Cell by one tier: sneak and right-click the cell with the upgrade
   of the next tier. Tiers cannot be skipped, and everything the cell holds is kept:
@@ -280,6 +297,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A terminal keeps the resources where they are while you hold Shift, so that you can
+  take stack after stack of one resource without it moving to its new place in the
+  sort; let go of Shift and the list falls into order.
 - The Nexus no longer hands the energy of the network to blocks of other mods,
   and no longer takes it from them directly: it gives and takes energy only with
   blocks of the network. Energy goes in and out of the network through a Puller

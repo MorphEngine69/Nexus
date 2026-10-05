@@ -66,7 +66,10 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implem
     public static final int UPGRADE_SLOTS = 4;
     /** Placeholder balance: up to four Speed Upgrades share one slot. */
     public static final UpgradeLimits UPGRADE_LIMITS =
-            new UpgradeLimits(Map.of(UpgradeTypes.SPEED, 4, UpgradeTypes.CHUNK_LOADER, 1));
+            new UpgradeLimits(Map.of(UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.CHUNK_LOADER, 1));
+
+    /** With a Stack Upgrade a task hands out up to a stack of runs at once instead of one. */
+    private static final int STACK_RUNS = 64;
 
     private static final int STATE_CHECK_INTERVAL_TICKS = 20;
     private static final String TAG_SETTINGS = "settings";
@@ -137,10 +140,12 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implem
 
     /**
      * @return runs the Assembler's tasks hand out per operation: one, and one
-     *         more for every Speed Upgrade
+     *         more for every Speed Upgrade, all of that a stack of times over with a Stack Upgrade; a task never
+     *         hands out more runs than it still has
      */
     private int dispatchesPerOperation() {
-        return 1 + upgrades.count(UpgradeTypes.SPEED);
+        final int perStack = upgrades.count(UpgradeTypes.STACK) > 0 ? STACK_RUNS : 1;
+        return (1 + upgrades.count(UpgradeTypes.SPEED)) * perStack;
     }
 
     @Override
