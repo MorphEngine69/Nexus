@@ -15,6 +15,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -68,8 +69,10 @@ public final class DeviceBlockItem extends BlockItem implements GeoItem {
      *                               against the back of its block is drawn in the middle
      * @param color                  the color of the texture, for a device that has a color of its own
      * @param animation              the pose of the model to show, the name of one of its animations
+     * @param hiddenBones            the bones of the model that the item does not show
      */
-    public record Look(String asset, float shiftTowardFrontPixels, DyeColor color, String animation) {
+    public record Look(
+            String asset, float shiftTowardFrontPixels, DyeColor color, String animation, List<String> hiddenBones) {
 
         private static final String STILL = "idle";
 
@@ -77,22 +80,27 @@ public final class DeviceBlockItem extends BlockItem implements GeoItem {
             Objects.requireNonNull(asset, "asset must not be null");
             Objects.requireNonNull(color, "color must not be null");
             Objects.requireNonNull(animation, "animation must not be null");
+            hiddenBones = List.copyOf(hiddenBones);
         }
 
         public static Look of(final String asset) {
-            return new Look(asset, 0, NetworkColoring.UNCONNECTED, STILL);
+            return new Look(asset, 0, NetworkColoring.UNCONNECTED, STILL, List.of());
         }
 
         public Look shifted(final float pixels) {
-            return new Look(asset, pixels, color, animation);
+            return new Look(asset, pixels, color, animation, hiddenBones);
         }
 
         public Look colored(final DyeColor newColor) {
-            return new Look(asset, shiftTowardFrontPixels, newColor, animation);
+            return new Look(asset, shiftTowardFrontPixels, newColor, animation, hiddenBones);
         }
 
         public Look posed(final String newAnimation) {
-            return new Look(asset, shiftTowardFrontPixels, color, newAnimation);
+            return new Look(asset, shiftTowardFrontPixels, color, newAnimation, hiddenBones);
+        }
+
+        public Look hiding(final List<String> bones) {
+            return new Look(asset, shiftTowardFrontPixels, color, animation, bones);
         }
     }
 }

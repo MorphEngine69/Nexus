@@ -7,6 +7,7 @@ import com.geckolib.renderer.base.RenderPassInfo;
 import com.morphengine.nexus.item.DeviceBlockItem;
 import net.minecraft.world.item.DyeColor;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -18,10 +19,12 @@ public final class DeviceItemRenderer extends GeoItemRenderer<DeviceBlockItem> {
     private static final float PIXELS_PER_BLOCK = 16F;
 
     private final float shiftTowardFront;
+    private final List<String> hiddenBones;
 
     public DeviceItemRenderer(final DeviceBlockItem.Look look) {
         super(modelOf(look.asset(), look.color()));
         this.shiftTowardFront = look.shiftTowardFrontPixels() / PIXELS_PER_BLOCK;
+        this.hiddenBones = look.hiddenBones();
         withRenderLayer(new GlowWhenLitLayer<>(this));
     }
 
@@ -49,6 +52,9 @@ public final class DeviceItemRenderer extends GeoItemRenderer<DeviceBlockItem> {
             final RenderPassInfo<GeoRenderState> renderPassInfo, final BoneSnapshots snapshots) {
         DeviceRenderData.showPorts(snapshots, 0);
         DeviceRenderData.showItemBones(snapshots);
+        for (String hidden : hiddenBones) {
+            snapshots.ifPresent(hidden, bone -> bone.skipRender(true));
+        }
         for (String segment : ChargeBar.segmentBones()) {
             snapshots.ifPresent(segment, bone -> bone.skipRender(true));
         }

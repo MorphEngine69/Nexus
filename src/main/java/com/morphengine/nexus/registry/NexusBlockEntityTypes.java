@@ -13,11 +13,14 @@ import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TerminalBlockEntity;
 import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public final class NexusBlockEntityTypes {
 
@@ -30,7 +33,8 @@ public final class NexusBlockEntityTypes {
 
     public static final Supplier<BlockEntityType<EnergyCellBlockEntity>> ENERGY_CELL = BLOCK_ENTITY_TYPES.register(
             "energy_cell",
-            () -> new BlockEntityType<>(EnergyCellBlockEntity::new, Set.of(NexusBlocks.BASIC_ENERGY_CELL.get())));
+            () -> new BlockEntityType<>(EnergyCellBlockEntity::new, NexusBlocks.ENERGY_CELLS.stream()
+                    .<Block>map(DeferredBlock::get).collect(Collectors.toUnmodifiableSet())));
 
     public static final Supplier<BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
             BLOCK_ENTITY_TYPES.register("coal_generator", () -> new BlockEntityType<>(

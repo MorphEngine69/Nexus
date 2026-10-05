@@ -24,6 +24,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 public final class NexusBlocks {
@@ -35,10 +36,21 @@ public final class NexusBlocks {
             NexusBlock::new,
             NexusBlocks::device);
 
-    public static final DeferredBlock<EnergyCellBlock> BASIC_ENERGY_CELL = BLOCKS.registerBlock(
-            "basic_energy_cell",
-            properties -> new EnergyCellBlock(EnergyCellTier.BASIC, properties),
-            NexusBlocks::device);
+    public static final DeferredBlock<EnergyCellBlock> BASIC_ENERGY_CELL =
+            energyCell("basic_energy_cell", EnergyCellTier.BASIC);
+
+    public static final DeferredBlock<EnergyCellBlock> ADVANCED_ENERGY_CELL =
+            energyCell("advanced_energy_cell", EnergyCellTier.ADVANCED);
+
+    public static final DeferredBlock<EnergyCellBlock> SUPERIOR_ENERGY_CELL =
+            energyCell("superior_energy_cell", EnergyCellTier.SUPERIOR);
+
+    public static final DeferredBlock<EnergyCellBlock> QUANTUM_ENERGY_CELL =
+            energyCell("quantum_energy_cell", EnergyCellTier.QUANTUM);
+
+    /** Every Energy Cell, the smallest first. */
+    public static final List<DeferredBlock<EnergyCellBlock>> ENERGY_CELLS = List.of(
+            BASIC_ENERGY_CELL, ADVANCED_ENERGY_CELL, SUPERIOR_ENERGY_CELL, QUANTUM_ENERGY_CELL);
 
     public static final DeferredBlock<CoalGeneratorBlock> COAL_GENERATOR = BLOCKS.registerBlock(
             "coal_generator",
@@ -125,6 +137,10 @@ public final class NexusBlocks {
      */
     public static String cableName(final DyeColor color) {
         return color == CableBlock.DEFAULT_COLOR ? "cable" : color.getSerializedName() + "_cable";
+    }
+
+    private static DeferredBlock<EnergyCellBlock> energyCell(final String name, final EnergyCellTier tier) {
+        return BLOCKS.registerBlock(name, properties -> new EnergyCellBlock(tier, properties), NexusBlocks::device);
     }
 
     private static Map<DyeColor, DeferredBlock<CableBlock>> registerCables() {

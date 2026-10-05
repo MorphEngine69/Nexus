@@ -3,6 +3,7 @@ package com.morphengine.nexus.registry;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.CableBlock;
 import com.morphengine.nexus.item.CellTier;
+import com.morphengine.nexus.item.DeviceBlockItem;
 import com.morphengine.nexus.item.VaultCellItem;
 import com.morphengine.nexus.upgrade.UpgradeItem;
 import net.minecraft.core.registries.Registries;
@@ -28,7 +29,9 @@ public final class NexusCreativeTabs {
                     .icon(() -> new ItemStack(NexusItems.NEXUS.get()))
                     .displayItems((parameters, output) -> {
                         output.accept(NexusItems.NEXUS.get());
-                        output.accept(NexusItems.BASIC_ENERGY_CELL.get());
+                        for (DeferredItem<DeviceBlockItem> cell : NexusItems.ENERGY_CELLS) {
+                            output.accept(cell.get());
+                        }
                         output.accept(NexusItems.COAL_GENERATOR.get());
                         output.accept(NexusItems.STORAGE_VAULT.get());
                         output.accept(NexusItems.TERMINAL.get());
