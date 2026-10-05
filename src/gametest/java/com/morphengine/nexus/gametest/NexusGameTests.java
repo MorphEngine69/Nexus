@@ -34,10 +34,8 @@ import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.Map;
@@ -151,7 +149,7 @@ public final class NexusGameTests {
                 .thenWaitUntil(() -> assertStatistics(helper, 1, CELL_CAPACITY))
                 .thenExecute(() -> {
                     try (Transaction transaction = Transaction.openRoot()) {
-                        final int accepted = energyHandler(helper, cellPos).insert(500, transaction);
+                        final int accepted = TestEnergy.handler(helper, cellPos).insert(500, transaction);
                         helper.assertTrue(accepted == 500, Component.literal("cell accepted " + accepted + " of 500"));
                         transaction.commit();
                     }
@@ -170,7 +168,7 @@ public final class NexusGameTests {
         helper.startSequence()
                 .thenExecute(() -> {
                     try (Transaction transaction = Transaction.openRoot()) {
-                        energyHandler(helper, cellPos).insert(500, transaction);
+                        TestEnergy.handler(helper, cellPos).insert(500, transaction);
                     }
                     final long stored = cellEntity(helper, cellPos).energyBuffer().stored();
                     helper.assertTrue(stored == 0, Component.literal("aborted insert left " + stored + " FE"));
@@ -302,7 +300,7 @@ public final class NexusGameTests {
                 .thenExecute(() -> assertPowered(helper, cablePos, false))
                 .thenExecute(() -> {
                     try (Transaction transaction = Transaction.openRoot()) {
-                        energyHandler(helper, NEXUS.east(2)).insert(500, transaction);
+                        TestEnergy.handler(helper, NEXUS.east(2)).insert(500, transaction);
                         transaction.commit();
                     }
                 })
@@ -363,15 +361,6 @@ public final class NexusGameTests {
 
     private static NexusBlockEntity nexus(final GameTestHelper helper) {
         return helper.getBlockEntity(NEXUS, NexusBlockEntity.class);
-    }
-
-    private static EnergyHandler energyHandler(final GameTestHelper helper, final BlockPos relative) {
-        final EnergyHandler handler = helper.getLevel()
-                .getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(relative), Direction.WEST);
-        if (handler == null) {
-            throw helper.assertionException(relative, Component.literal("no energy handler"));
-        }
-        return handler;
     }
 
     private static void assertStatistics(final GameTestHelper helper, final int devices, final long capacity) {

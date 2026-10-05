@@ -37,14 +37,17 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -71,6 +74,8 @@ public final class EnergyGameTests {
     private static final BlockPos CABLE = VAULT.east();
     private static final BlockPos DEVICE = CABLE.above();
     private static final BlockPos TARGET = DEVICE.east();
+    /** A cell away from the network, to see who reaches its energy. */
+    private static final BlockPos ISOLATED_CELL = new BlockPos(5, 1, 6);
     /** What a Coal Generator makes a tick without upgrades. */
     private static final long GENERATOR_RATE = 40;
     private static final TransferSettings ENERGY = TransferSettings.DEFAULT.withResource(TransferResource.ENERGY);
@@ -87,7 +92,11 @@ public final class EnergyGameTests {
             Map.entry("network_drains_storage_before_energy_cells", EnergyGameTests::drainsStorageFirst),
             Map.entry("energy_cell_below_vault_fills_after_it", EnergyGameTests::lowPriorityCellFillsLast),
             Map.entry("speed_upgrades_make_generator_burn_faster", EnergyGameTests::fasterGenerator),
-            Map.entry("energy_cell_tiers_hold_what_their_tier_says", EnergyGameTests::cellTiersHoldTheirCapacity));
+            Map.entry("energy_cell_tiers_hold_what_their_tier_says", EnergyGameTests::cellTiersHoldTheirCapacity),
+            Map.entry("energy_cell_gives_blocks_of_other_mods_nothing", EnergyGameTests::cellClosedToForeignBlocks),
+            Map.entry("energy_cell_opens_only_toward_a_network_block", EnergyGameTests::cellOpenTowardNetworkBlock),
+            Map.entry("energy_cell_follows_its_neighbour_for_blocks_that_asked_before",
+                    EnergyGameTests::cellFollowsItsNeighbour));
 
     private EnergyGameTests() {
     }
@@ -291,7 +300,7 @@ public final class EnergyGameTests {
 
     private static void charge(final GameTestHelper helper, final BlockPos pos) {
         try (Transaction transaction = Transaction.openRoot()) {
-            final int accepted = handler(helper, pos).insert(CHARGE, transaction);
+            final int accepted = TestEnergy.handler(helper, pos).insert(CHARGE, transaction);
             assertAmount(helper, accepted, CHARGE, "FE charged into " + pos);
             transaction.commit();
         }
@@ -310,16 +319,7 @@ public final class EnergyGameTests {
     }
 
     private static EnergyHandler nexusHandler(final GameTestHelper helper) {
-        return handler(helper, NEXUS);
-    }
-
-    private static EnergyHandler handler(final GameTestHelper helper, final BlockPos pos) {
-        final EnergyHandler handler = helper.getLevel()
-                .getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), Direction.WEST);
-        if (handler == null) {
-            throw helper.assertionException(pos, Component.literal("no energy handler"));
-        }
-        return handler;
+        return TestEnergy.handler(helper, NEXUS);
     }
 
     private static void assertAmount(final GameTestHelper helper, final long actual, final long expected,
@@ -350,6 +350,61 @@ public final class EnergyGameTests {
             previous = capacity;
         }
         helper.succeed();
+    }
+
+    private static void cellClosedToForeignBlocks(final GameTestHelper helper) {
+        place(helper, ISOLATED_CELL, cell());
+        for (Direction side : Direction.values()) {
+            place(helper, ISOLATED_CELL.relative(side), Blocks.STONE.defaultBlockState());
+        }
+
+        for (Direction side : Direction.values()) {
+            helper.assertTrue(energyAt(helper, ISOLATED_CELL, side) == null,
+                    Component.literal("a block of another mod reaches the cell from the " + side));
+        }
+        helper.assertTrue(energyAt(helper, ISOLATED_CELL, null) == null,
+                Component.literal("a request that names no side reaches the cell"));
+        helper.succeed();
+    }
+
+    private static void cellOpenTowardNetworkBlock(final GameTestHelper helper) {
+        place(helper, ISOLATED_CELL, cell());
+        for (Direction side : Direction.values()) {
+            place(helper, ISOLATED_CELL.relative(side), Blocks.STONE.defaultBlockState());
+        }
+        place(helper, ISOLATED_CELL.north(), NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
+
+        for (Direction side : Direction.values()) {
+            final boolean expected = side == Direction.NORTH;
+            helper.assertTrue((energyAt(helper, ISOLATED_CELL, side) != null) == expected,
+                    Component.literal("the cell " + (expected ? "is closed to" : "is open to") + " the " + side));
+        }
+        helper.succeed();
+    }
+
+    private static void cellFollowsItsNeighbour(final GameTestHelper helper) {
+        place(helper, ISOLATED_CELL, cell());
+        place(helper, ISOLATED_CELL.north(), NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
+        final BlockCapabilityCache<EnergyHandler, Direction> asked = BlockCapabilityCache.create(
+                Capabilities.Energy.BLOCK, helper.getLevel(), helper.absolutePos(ISOLATED_CELL), Direction.NORTH);
+        helper.assertTrue(asked.getCapability() != null, Component.literal("closed to a block of a network"));
+
+        helper.startSequence()
+                .thenExecute(() -> place(helper, ISOLATED_CELL.north(), Blocks.STONE.defaultBlockState()))
+                .thenIdle(1)
+                .thenExecute(() -> helper.assertTrue(asked.getCapability() == null,
+                        Component.literal("open to a block that is no longer of a network")))
+                .thenExecute(() -> place(helper, ISOLATED_CELL.north(),
+                        NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState()))
+                .thenIdle(1)
+                .thenExecute(() -> helper.assertTrue(asked.getCapability() != null,
+                        Component.literal("closed to a block of a network that came back")))
+                .thenSucceed();
+    }
+
+    private static @Nullable EnergyHandler energyAt(
+            final GameTestHelper helper, final BlockPos pos, final @Nullable Direction side) {
+        return helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), side);
     }
 
     private static TransferDeviceBlockEntity deviceEntity(final GameTestHelper helper, final BlockPos pos) {

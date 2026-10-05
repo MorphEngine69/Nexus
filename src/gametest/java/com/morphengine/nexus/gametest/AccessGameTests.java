@@ -54,12 +54,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.Map;
 import java.util.UUID;
@@ -300,7 +297,7 @@ public final class AccessGameTests {
     private static void buildNetwork(final GameTestHelper helper) {
         place(helper, NEXUS, NexusBlocks.NEXUS.get().defaultBlockState());
         place(helper, CELL, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
-        charge(helper, CELL);
+        TestEnergy.charge(helper, CELL, 10_000);
         place(helper, VAULT, NexusBlocks.STORAGE_VAULT.get().defaultBlockState()
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
         helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class).cells()
@@ -357,16 +354,6 @@ public final class AccessGameTests {
     private static void placeFrom(final GameTestHelper helper, final BlockPos pos, final ItemEntity drop) {
         helper.setBlock(pos, NexusBlocks.NEXUS.get());
         nexusAt(helper, pos).applyComponentsFromItemStack(drop.getItem());
-    }
-
-    private static void charge(final GameTestHelper helper, final BlockPos pos) {
-        final EnergyHandler handler = helper.getLevel()
-                .getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), Direction.WEST);
-        helper.assertTrue(handler != null, Component.literal("no energy cell at " + pos));
-        try (Transaction transaction = Transaction.openRoot()) {
-            handler.insert(10_000, transaction);
-            transaction.commit();
-        }
     }
 
     private static NetworkSecurity security(final GameTestHelper helper) {

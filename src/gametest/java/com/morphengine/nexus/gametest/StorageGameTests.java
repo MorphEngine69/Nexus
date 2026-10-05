@@ -58,11 +58,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.List;
 import java.util.Map;
@@ -223,7 +220,7 @@ public final class StorageGameTests {
         helper.startSequence()
                 .thenIdle(25)
                 .thenExecute(() -> assertLamp(helper, vaultPos, VaultLamp.OFF))
-                .thenExecute(() -> charge(helper, cellPos))
+                .thenExecute(() -> TestEnergy.charge(helper, cellPos, 10_000))
                 .thenWaitUntil(() -> assertLamp(helper, vaultPos, VaultLamp.GREEN))
                 .thenExecute(() -> {
                     final VaultLamp empty = vaultEntity(helper, vaultPos).lampAt(1);
@@ -240,7 +237,7 @@ public final class StorageGameTests {
         vaultEntity(helper, vaultPos).cells().setItem(0, cell(CellTier.ONE_K));
 
         helper.startSequence()
-                .thenExecute(() -> charge(helper, cellPos))
+                .thenExecute(() -> TestEnergy.charge(helper, cellPos, 10_000))
                 .thenWaitUntil(() -> assertLamp(helper, vaultPos, VaultLamp.GREEN))
                 .thenExecute(() -> assertBusy(helper, vaultPos, false))
                 .thenExecute(() -> assertAmount(helper,
@@ -259,7 +256,7 @@ public final class StorageGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> assertStatus(helper, terminalPos, TerminalStatus.NO_ENERGY))
-                .thenExecute(() -> charge(helper, cellPos))
+                .thenExecute(() -> TestEnergy.charge(helper, cellPos, 10_000))
                 .thenWaitUntil(() -> {
                     assertStatus(helper, terminalPos, TerminalStatus.ONLINE);
                     helper.assertTrue(helper.getBlockState(terminalPos).getValue(TerminalBlock.POWERED),
@@ -331,20 +328,6 @@ public final class StorageGameTests {
     private static void assertStatus(final GameTestHelper helper, final BlockPos pos, final TerminalStatus expected) {
         final TerminalStatus status = helper.getBlockEntity(pos, TerminalBlockEntity.class).status();
         helper.assertTrue(status == expected, Component.literal("terminal " + status + ", expected " + expected));
-    }
-
-    /**
-     * Charges the energy cell at {@code pos}, if there is one.
-     */
-    private static void charge(final GameTestHelper helper, final BlockPos pos) {
-        final EnergyHandler handler = helper.getLevel()
-                .getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), Direction.WEST);
-        if (handler != null) {
-            try (Transaction transaction = Transaction.openRoot()) {
-                handler.insert(10_000, transaction);
-                transaction.commit();
-            }
-        }
     }
 
     private static ItemKey stone() {

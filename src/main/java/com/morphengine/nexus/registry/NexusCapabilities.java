@@ -17,7 +17,7 @@ public final class NexusCapabilities {
         event.registerBlockEntity(
                 Capabilities.Energy.BLOCK,
                 NexusBlockEntityTypes.ENERGY_CELL.get(),
-                (cell, side) -> cell.energyHandler());
+                (cell, side) -> cell.energyHandlerBeyond(side));
         event.registerBlockEntity(
                 Capabilities.Energy.BLOCK,
                 NexusBlockEntityTypes.COAL_GENERATOR.get(),

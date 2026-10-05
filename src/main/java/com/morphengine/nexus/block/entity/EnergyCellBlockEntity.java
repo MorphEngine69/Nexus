@@ -7,9 +7,11 @@ import com.morphengine.nexus.energy.ChargeMeter;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.level.EnergyContributor;
 import com.morphengine.nexus.level.NetworkController;
+import com.morphengine.nexus.level.NetworkNeighbours;
 import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -20,6 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An Energy Cell: an FE buffer that joins the energy pool of its network at
@@ -114,11 +117,25 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
     }
 
     /**
-     * @return the handler other mods use to push FE in and pull FE out, on any side
+     * @return the handler of the cell for the network: the pool of the network moves FE through the buffer, and a
+     *         device of the network gets this handler through {@link #energyHandlerBeyond}
      */
     @Override
     public EnergyHandler energyHandler() {
         return handler;
+    }
+
+    /**
+     * What the cell shows a block that asks for its energy from {@code side}. Only a block of a network may push FE
+     * in or pull FE out; a block of another mod, such as the pipe of a mod of pipes, gets nothing, so that FE leaves
+     * and enters the cell only through a Puller or a Pusher, which keep to the rules of the network. The answer
+     * follows what stands there now, so {@link EnergyCellBlock} drops what blocks were told when a neighbour changes.
+     *
+     * @param side the side of the cell that is asked about; {@code null} when the asker names no side
+     * @return the handler for a block of a network beyond {@code side}; {@code null} otherwise
+     */
+    public @Nullable EnergyHandler energyHandlerBeyond(final @Nullable Direction side) {
+        return level != null && NetworkNeighbours.hasNetworkBlockBeyond(level, worldPosition, side) ? handler : null;
     }
 
     public Container upgrades() {
