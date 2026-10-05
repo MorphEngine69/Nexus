@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
  * front, which faces the player who placed it and takes no cable. A meter on
  * each drawer tells how full its cell is and swells while the cell works.
  */
-public final class StorageVaultBlock extends NetworkDeviceBlock {
+public final class StorageVaultBlock extends NetworkDeviceBlock implements Turnable {
 
     public static final MapCodec<StorageVaultBlock> CODEC = simpleCodec(StorageVaultBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
@@ -76,6 +76,11 @@ public final class StorageVaultBlock extends NetworkDeviceBlock {
     @Override
     public boolean acceptsConnection(final BlockState state, final Direction side) {
         return side != state.getValue(FACING);
+    }
+
+    @Override
+    public EnumProperty<Direction> facingProperty() {
+        return FACING;
     }
 
     @Override

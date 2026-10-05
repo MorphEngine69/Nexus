@@ -325,5 +325,9 @@
   "gui.nexus.access.role.guest.description": "Schaut nur: öffnet Panels und Terminals",
   "gui.nexus.access.role.blocked": "Gesperrt",
   "gui.nexus.access.role.blocked.description": "Gar nichts",
-  "gui.nexus.access.result.offline": "Dieser Spieler ist nicht auf dem Server"
+  "gui.nexus.access.result.offline": "Dieser Spieler ist nicht auf dem Server",
+  "item.nexus.wrench": "Schraubenschlüssel",
+  "tooltip.nexus.wrench.turn": "Rechtsklick: Netzwerkblock drehen",
+  "tooltip.nexus.wrench.front": "Linksklick: Vorderseite zur getroffenen Seite ausrichten",
+  "tooltip.nexus.wrench.dismantle": "Schleichen + Rechtsklick: Block ins Inventar abbauen"
 }

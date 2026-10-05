@@ -30,7 +30,7 @@ import org.jspecify.annotations.Nullable;
  * it and takes no cable; it glows while the network has energy, and shows a row
  * with a bar of progress for each of the first tasks.
  */
-public final class CraftingMonitorBlock extends NetworkDeviceBlock {
+public final class CraftingMonitorBlock extends NetworkDeviceBlock implements Turnable {
 
     public static final MapCodec<CraftingMonitorBlock> CODEC = simpleCodec(CraftingMonitorBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
@@ -87,6 +87,11 @@ public final class CraftingMonitorBlock extends NetworkDeviceBlock {
     @Override
     public boolean acceptsConnection(final BlockState state, final Direction side) {
         return side != state.getValue(FACING);
+    }
+
+    @Override
+    public EnumProperty<Direction> facingProperty() {
+        return FACING;
     }
 
     @Override

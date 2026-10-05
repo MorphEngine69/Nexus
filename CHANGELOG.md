@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The Wrench. A right click turns a device of the network round its sides, in a
+  fixed order, and a cable that ends up at its front is let go. A left click
+  sets the front of a device to the side you struck. A sneaking right click
+  takes any block of the network down at once: it goes into your inventory
+  together with its upgrades, cells, name and network, and falls beside the
+  block if there is no room. Turning needs permission to configure the
+  network, and you can always turn and take down your own devices.
 - Networks have owners and access rules. The player who places a Nexus owns its
   network; the new Access tab of the Nexus panel lists who else may use it.
   Members are added from the players online and get one of the roles Admin,

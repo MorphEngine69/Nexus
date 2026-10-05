@@ -31,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * its face touches, taking the outputs back from it where that side allows.
  * Placed against a block, it faces that block; the face takes no cable.
  */
-public final class AssemblerBlock extends NetworkDeviceBlock {
+public final class AssemblerBlock extends NetworkDeviceBlock implements Turnable {
 
     public static final MapCodec<AssemblerBlock> CODEC = simpleCodec(AssemblerBlock::new);
     /** The face that touches the machine it works with. */
@@ -100,6 +100,11 @@ public final class AssemblerBlock extends NetworkDeviceBlock {
     @Override
     public boolean acceptsConnection(final BlockState state, final Direction side, final BlockState neighbour) {
         return acceptsConnection(state, side) || neighbour.getBlock() instanceof AssemblerBlock;
+    }
+
+    @Override
+    public EnumProperty<Direction> facingProperty() {
+        return FACING;
     }
 
     @Override

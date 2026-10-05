@@ -325,5 +325,9 @@
   "gui.nexus.access.role.guest.description": "Only looks: opens panels and terminals",
   "gui.nexus.access.role.blocked": "Blocked",
   "gui.nexus.access.role.blocked.description": "Nothing at all",
-  "gui.nexus.access.result.offline": "That player is not on the server"
+  "gui.nexus.access.result.offline": "That player is not on the server",
+  "item.nexus.wrench": "Wrench",
+  "tooltip.nexus.wrench.turn": "Right-click: turn a block of the network",
+  "tooltip.nexus.wrench.front": "Left-click: set the front to the side you strike",
+  "tooltip.nexus.wrench.dismantle": "Sneak + right-click: take the block down into your inventory"
 }

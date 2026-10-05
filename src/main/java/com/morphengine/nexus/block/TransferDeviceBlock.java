@@ -39,7 +39,7 @@ import java.util.Map;
  * stands on its own, without a cable, and joins the network once one reaches
  * it. Placed against a block, it faces that block.
  */
-public final class TransferDeviceBlock extends NetworkDeviceBlock {
+public final class TransferDeviceBlock extends NetworkDeviceBlock implements Turnable {
 
     public static final MapCodec<TransferDeviceBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                     TransferKind.CODEC.fieldOf("kind").forGetter(TransferDeviceBlock::kind),
@@ -112,6 +112,11 @@ public final class TransferDeviceBlock extends NetworkDeviceBlock {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TransferDeviceBlockEntity device) {
             device.receiveSignal(level.hasNeighborSignal(pos));
         }
+    }
+
+    @Override
+    public EnumProperty<Direction> facingProperty() {
+        return FACING;
     }
 
     @Override

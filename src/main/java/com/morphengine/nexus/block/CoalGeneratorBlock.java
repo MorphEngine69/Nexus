@@ -35,7 +35,7 @@ import org.jspecify.annotations.Nullable;
  * FE for its network and for neighbouring blocks. Its front, the firebox, faces
  * the player who placed it, glows while it produces and takes no cable.
  */
-public final class CoalGeneratorBlock extends NetworkDeviceBlock {
+public final class CoalGeneratorBlock extends NetworkDeviceBlock implements Turnable {
 
     public static final MapCodec<CoalGeneratorBlock> CODEC = simpleCodec(CoalGeneratorBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
@@ -91,6 +91,11 @@ public final class CoalGeneratorBlock extends NetworkDeviceBlock {
     @Override
     public boolean acceptsConnection(final BlockState state, final Direction side) {
         return side != state.getValue(FACING);
+    }
+
+    @Override
+    public EnumProperty<Direction> facingProperty() {
+        return FACING;
     }
 
     @Override

@@ -325,5 +325,9 @@
   "gui.nexus.access.role.guest.description": "Solo mira: abre paneles y terminales",
   "gui.nexus.access.role.blocked": "Bloqueado",
   "gui.nexus.access.role.blocked.description": "Nada en absoluto",
-  "gui.nexus.access.result.offline": "Ese jugador no está en el servidor"
+  "gui.nexus.access.result.offline": "Ese jugador no está en el servidor",
+  "item.nexus.wrench": "Llave inglesa",
+  "tooltip.nexus.wrench.turn": "Clic derecho: girar un bloque de la red",
+  "tooltip.nexus.wrench.front": "Clic izquierdo: orientar el frente hacia el lado golpeado",
+  "tooltip.nexus.wrench.dismantle": "Agacharse + clic derecho: recoger el bloque en el inventario"
 }

@@ -9,6 +9,7 @@ import com.morphengine.nexus.item.DeviceBlockItem;
 import com.morphengine.nexus.item.NetworkCardItem;
 import com.morphengine.nexus.item.NexusTerminalItem;
 import com.morphengine.nexus.item.VaultCellItem;
+import com.morphengine.nexus.item.WrenchItem;
 import com.morphengine.nexus.upgrade.NexusUpgradeType;
 import com.morphengine.nexus.upgrade.UpgradeItem;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
@@ -71,6 +72,9 @@ public final class NexusItems {
 
     public static final DeferredItem<NexusTerminalItem> NEXUS_TERMINAL =
             ITEMS.registerItem("nexus_terminal", properties -> new NexusTerminalItem(properties.stacksTo(1)));
+
+    public static final DeferredItem<WrenchItem> WRENCH =
+            ITEMS.registerItem("wrench", properties -> new WrenchItem(properties.stacksTo(1)));
 
     public static final Map<DyeColor, DeferredItem<DeviceBlockItem>> CABLES = registerCables();
 
