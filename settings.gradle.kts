@@ -21,6 +21,7 @@ include(
     "nexus-energy-api",
     "nexus-transport-api",
     "nexus-upgrade-api",
+    "nexus-machine-api",
     "nexus-automation-api",
     "nexus-network-api",
     "nexus-network",
