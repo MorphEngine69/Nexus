@@ -55,11 +55,8 @@ import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.List;
 import java.util.Map;
@@ -321,7 +318,7 @@ public final class AutocraftingGameTests {
                                      final ResourceAmount contents) {
         place(helper, NEXUS, NexusBlocks.NEXUS.get().defaultBlockState());
         place(helper, CELL, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
-        charge(helper, CELL);
+        TestEnergy.charge(helper, CELL, Integer.MAX_VALUE);
         place(helper, VAULT, NexusBlocks.STORAGE_VAULT.get().defaultBlockState()
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
         final ItemStack cell = new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get());
@@ -330,16 +327,6 @@ public final class AutocraftingGameTests {
         place(helper, CABLE, NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
         place(helper, ASSEMBLER, NexusBlocks.ASSEMBLER.get().defaultBlockState()
                 .setValue(AssemblerBlock.FACING, assemblerFacing));
-    }
-
-    private static void charge(final GameTestHelper helper, final BlockPos pos) {
-        final EnergyHandler handler = helper.getLevel()
-                .getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), Direction.WEST);
-        helper.assertTrue(handler != null, Component.literal("no energy cell at " + pos));
-        try (Transaction transaction = Transaction.openRoot()) {
-            handler.insert(Integer.MAX_VALUE, transaction);
-            transaction.commit();
-        }
     }
 
     private static ResourceAmount stored(final Item item, final long count) {

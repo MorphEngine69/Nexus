@@ -271,6 +271,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Energy Cells no longer hand their energy to blocks of other mods, and no longer
+  take it from them directly. A pipe or a battery of another mod touching a cell
+  gets nothing: energy goes in and out of the network through a Puller or a
+  Pusher, which keep to the rules of the network. Blocks of the network next to
+  a cell work as before.
 - Placers and Removers place and break blocks as the player who owns them, so
   land protection treats their work as that player's.
 - Cables can no longer be moved by pistons.

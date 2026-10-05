@@ -65,12 +65,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.List;
 import java.util.Map;
@@ -759,14 +756,8 @@ public final class TransferGameTests {
         final BlockPos cell = new BlockPos(5, 3, 5);
         place(helper, cell, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
         helper.assertBlockProperty(cell, EnergyCellBlock.CHARGE, 0);
-        final EnergyHandler handler = helper.getLevel()
-                .getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(cell), Direction.WEST);
-        helper.assertTrue(handler != null, Component.literal("no energy cell at " + cell));
         for (int step = 0; step < SIXTY_PERCENT_STEPS; step++) {
-            try (Transaction transaction = Transaction.openRoot()) {
-                handler.insert((int) EnergyCellTier.BASIC.maxTransfer(), transaction);
-                transaction.commit();
-            }
+            TestEnergy.charge(helper, cell, (int) EnergyCellTier.BASIC.maxTransfer());
         }
 
         helper.startSequence()
@@ -777,22 +768,12 @@ public final class TransferGameTests {
     private static void buildNetwork(final GameTestHelper helper) {
         place(helper, NEXUS, NexusBlocks.NEXUS.get().defaultBlockState());
         place(helper, CELL, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
-        charge(helper, CELL);
+        TestEnergy.charge(helper, CELL, 10_000);
         place(helper, VAULT, NexusBlocks.STORAGE_VAULT.get().defaultBlockState()
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
         helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class).cells()
                 .setItem(0, new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get()));
         place(helper, CABLE, cable());
-    }
-
-    private static void charge(final GameTestHelper helper, final BlockPos pos) {
-        final EnergyHandler handler = helper.getLevel()
-                .getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), Direction.WEST);
-        helper.assertTrue(handler != null, Component.literal("no energy cell at " + pos));
-        try (Transaction transaction = Transaction.openRoot()) {
-            handler.insert(10_000, transaction);
-            transaction.commit();
-        }
     }
 
     private static void assertInserted(final GameTestHelper helper, final ItemKey resource, final long amount) {

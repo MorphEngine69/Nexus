@@ -17,11 +17,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.redstone.Orientation;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Energy Cell: a battery that joins the network and adds its buffer to the
- * network's energy pool. Accepts and gives FE on every side.
+ * network's energy pool. Only blocks of a network reach its energy directly;
+ * anything else goes through a Puller or a Pusher.
  */
 public final class EnergyCellBlock extends NetworkDeviceBlock {
 
@@ -55,6 +57,20 @@ public final class EnergyCellBlock extends NetworkDeviceBlock {
      */
     public static RawAnimation animationOf(final BlockState state) {
         return IDLE;
+    }
+
+    /**
+     * Who may reach the energy of the cell depends on what stands against it, so what other blocks have cached of
+     * the cell is dropped whenever a neighbour changes.
+     */
+    @Override
+    protected void neighborChanged(
+            final BlockState state, final Level level, final BlockPos pos, final Block block,
+            final @Nullable Orientation orientation, final boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+        if (!level.isClientSide()) {
+            level.invalidateCapabilities(pos);
+        }
     }
 
     @Override
