@@ -5,6 +5,7 @@ import com.mojang.serialization.JsonOps;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.storage.CellSpec;
+import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
@@ -85,7 +86,8 @@ public final class EnergyGameTests {
             Map.entry("device_saved_without_resource_takes_its_filters", EnergyGameTests::savedSettingsInferResource),
             Map.entry("network_drains_storage_before_energy_cells", EnergyGameTests::drainsStorageFirst),
             Map.entry("energy_cell_below_vault_fills_after_it", EnergyGameTests::lowPriorityCellFillsLast),
-            Map.entry("speed_upgrades_make_generator_burn_faster", EnergyGameTests::fasterGenerator));
+            Map.entry("speed_upgrades_make_generator_burn_faster", EnergyGameTests::fasterGenerator),
+            Map.entry("energy_cell_tiers_hold_what_their_tier_says", EnergyGameTests::cellTiersHoldTheirCapacity));
 
     private EnergyGameTests() {
     }
@@ -331,6 +333,23 @@ public final class EnergyGameTests {
 
     private static StorageVaultBlockEntity vault(final GameTestHelper helper) {
         return helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class);
+    }
+
+    private static void cellTiersHoldTheirCapacity(final GameTestHelper helper) {
+        long previous = 0;
+        for (int index = 0; index < NexusBlocks.ENERGY_CELLS.size(); index++) {
+            final EnergyCellBlock block = NexusBlocks.ENERGY_CELLS.get(index).get();
+            final BlockPos pos = new BlockPos(1 + index, 1, 6);
+            place(helper, pos, block.defaultBlockState());
+
+            final EnergyCellTier tier = block.tier();
+            final long capacity = helper.getBlockEntity(pos, EnergyCellBlockEntity.class).energyBuffer().capacity();
+            helper.assertValueEqual(capacity, tier.capacity(), Component.literal("capacity of the cell at " + pos));
+            helper.assertValueEqual(tier.rank(), index + 1, Component.literal("rank of the cell at " + pos));
+            helper.assertTrue(capacity > previous, Component.literal("a tier holds more than the one below it"));
+            previous = capacity;
+        }
+        helper.succeed();
     }
 
     private static TransferDeviceBlockEntity deviceEntity(final GameTestHelper helper, final BlockPos pos) {

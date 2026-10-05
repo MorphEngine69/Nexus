@@ -2,6 +2,9 @@ package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.CableBlock;
+import com.morphengine.nexus.block.EnergyCellBlock;
+import com.morphengine.nexus.block.EnergyCellMarks;
+import com.morphengine.nexus.block.EnergyCellTier;
 import com.morphengine.nexus.item.BlueprintItem;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
@@ -31,7 +34,20 @@ public final class NexusItems {
     public static final DeferredItem<DeviceBlockItem> NEXUS = deviceItem(NexusBlocks.NEXUS);
 
     public static final DeferredItem<DeviceBlockItem> BASIC_ENERGY_CELL =
-            deviceItem(NexusBlocks.BASIC_ENERGY_CELL, "energy_cell");
+            energyCellItem(NexusBlocks.BASIC_ENERGY_CELL, EnergyCellTier.BASIC);
+
+    public static final DeferredItem<DeviceBlockItem> ADVANCED_ENERGY_CELL =
+            energyCellItem(NexusBlocks.ADVANCED_ENERGY_CELL, EnergyCellTier.ADVANCED);
+
+    public static final DeferredItem<DeviceBlockItem> SUPERIOR_ENERGY_CELL =
+            energyCellItem(NexusBlocks.SUPERIOR_ENERGY_CELL, EnergyCellTier.SUPERIOR);
+
+    public static final DeferredItem<DeviceBlockItem> QUANTUM_ENERGY_CELL =
+            energyCellItem(NexusBlocks.QUANTUM_ENERGY_CELL, EnergyCellTier.QUANTUM);
+
+    /** Every Energy Cell, the smallest first. */
+    public static final List<DeferredItem<DeviceBlockItem>> ENERGY_CELLS = List.of(
+            BASIC_ENERGY_CELL, ADVANCED_ENERGY_CELL, SUPERIOR_ENERGY_CELL, QUANTUM_ENERGY_CELL);
 
     public static final DeferredItem<DeviceBlockItem> COAL_GENERATOR = deviceItem(
             NexusBlocks.COAL_GENERATOR, DeviceBlockItem.Look.of("coal_generator").posed("burning"));
@@ -99,6 +115,7 @@ public final class NexusItems {
     /** A terminal panel stands against the back of its block; as an item it is moved to the middle. */
     private static final float PANEL_ITEM_SHIFT_PIXELS = 7;
     private static final String CABLE_ASSET = "cable";
+    private static final String ENERGY_CELL_ASSET = "energy_cell";
 
     private NexusItems() {
     }
@@ -156,6 +173,15 @@ public final class NexusItems {
             final DeferredBlock<?> block, final DeviceBlockItem.Look look) {
         return ITEMS.registerItem(block.getId().getPath(), properties -> new DeviceBlockItem(
                 block.get(), properties.useBlockDescriptionPrefix(), look));
+    }
+
+    /**
+     * The model of the cell is the same for every tier; the item shows only the marks of its own.
+     */
+    private static DeferredItem<DeviceBlockItem> energyCellItem(
+            final DeferredBlock<EnergyCellBlock> block, final EnergyCellTier tier) {
+        return deviceItem(block, DeviceBlockItem.Look.of(ENERGY_CELL_ASSET)
+                .hiding(EnergyCellMarks.bonesOfOtherRanks(tier.rank())));
     }
 
     private static DeferredItem<DeviceBlockItem> panelItem(final DeferredBlock<?> block) {

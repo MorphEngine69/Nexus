@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Three more Energy Cells: Advanced, Superior and Quantum. Each holds and moves ten
+  times what the one below does. All four tiers share a new look: a trim in the
+  colour of the network runs along the top edges, over the corners and down the
+  vertical edges, and the squares under the battery tell the tier, from one on a
+  Basic to four on a Quantum.
 - The Wrench. A right click turns a device of the network round its sides, in a
   fixed order, and a cable that ends up at its front is let go. A left click
   sets the front of a device to the side you struck. A sneaking right click
