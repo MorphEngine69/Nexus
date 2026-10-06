@@ -180,8 +180,8 @@
   "tooltip.nexus.upgrade.silk_touch": "Der Zerstörer baut Blöcke mit Behutsamkeit ab. Hat Vorrang vor Glück.",
   "tooltip.nexus.upgrade.autocrafting": "Ein Exporter oder Platzierer bestellt eine Herstellung, wenn dem Netzwerk etwas ausgeht.",
   "tooltip.nexus.upgrade.chunk_loader": "Hält den Chunk geladen, in dem das Gerät steht, auch ohne Spieler in der Nähe. Eins pro Gerät.",
-  "gui.nexus.chunk_loader.on": "Chunk %s, %s bleibt geladen",
-  "gui.nexus.chunk_loader.off": "Chunk wird nicht geladen gehalten",
+  "gui.nexus.chunk_loader.on": "Chunk-Lader-Upgrade: Chunk %s, %s bleibt geladen",
+  "gui.nexus.chunk_loader.off": "Chunk-Lader-Upgrade: hält diesen Chunk geladen",
   "tooltip.nexus.upgrade.in_development": "In Entwicklung",
   "block.nexus.assembler": "Assembler",
   "block.nexus.crafting_monitor": "Crafting-Monitor",
@@ -272,7 +272,6 @@
   "gui.nexus.transmitter.unreachable": "Empfänger nicht erreichbar",
   "gui.nexus.transmitter.receiver": "Nach %s, %s, %s",
   "gui.nexus.link.range": "Reichweite: %s Blöcke",
-  "gui.nexus.link.hint": "Reichweitenverbesserungen reichen weiter",
   "gui.nexus.access.tab.network": "Netzwerk",
   "gui.nexus.access.tab.access": "Zugriff",
   "gui.nexus.access.loading": "Zugriff wird geladen...",
@@ -512,5 +511,7 @@
   "gui.nexus.external.access.read_write": "Netz lagert ein und entnimmt",
   "gui.nexus.external.access.read_write.hint": "Das Netz zeigt, was der Block enthält, entnimmt es und legt Ressourcen hinein.",
   "gui.nexus.external.access.read_only": "Netz entnimmt nur",
-  "gui.nexus.external.access.read_only.hint": "Das Netz zeigt, was der Block enthält, und entnimmt es, legt aber nie etwas hinein."
+  "gui.nexus.external.access.read_only.hint": "Das Netz zeigt, was der Block enthält, und entnimmt es, legt aber nie etwas hinein.",
+  "gui.nexus.chunk_loader.on.short": "Chunk %s, %s bleibt geladen",
+  "gui.nexus.chunk_loader.off.short": "Chunk-Lader-Upgrade (optional)"
 }

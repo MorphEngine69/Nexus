@@ -180,8 +180,8 @@
   "tooltip.nexus.upgrade.silk_touch": "Разрушитель ломает блоки с шелковым касанием. Важнее удачи.",
   "tooltip.nexus.upgrade.autocrafting": "Экспортер или установщик заказывает крафт, когда в сети кончается ресурс.",
   "tooltip.nexus.upgrade.chunk_loader": "Держит загруженным чанк, в котором стоит устройство, даже когда рядом нет игроков. Одно на устройство.",
-  "gui.nexus.chunk_loader.on": "Чанк %s, %s остаётся загруженным",
-  "gui.nexus.chunk_loader.off": "Чанк не удерживается",
+  "gui.nexus.chunk_loader.on": "Улучшение прогрузки чанка: чанк %s, %s загружен",
+  "gui.nexus.chunk_loader.off": "Улучшение прогрузки чанка: держит этот чанк загруженным",
   "tooltip.nexus.upgrade.in_development": "В разработке",
   "block.nexus.assembler": "Сборщик",
   "block.nexus.crafting_monitor": "Монитор крафта",
@@ -272,7 +272,6 @@
   "gui.nexus.transmitter.unreachable": "Приёмник недоступен",
   "gui.nexus.transmitter.receiver": "К %s, %s, %s",
   "gui.nexus.link.range": "Дальность: %s блоков",
-  "gui.nexus.link.hint": "Улучшения дальности — дальше",
   "gui.nexus.access.tab.network": "Сеть",
   "gui.nexus.access.tab.access": "Доступ",
   "gui.nexus.access.loading": "Загрузка доступа...",
@@ -512,5 +511,7 @@
   "gui.nexus.external.access.read_write": "Сеть кладёт и берёт",
   "gui.nexus.external.access.read_write.hint": "Сеть видит содержимое блока, забирает его и кладёт в него ресурсы.",
   "gui.nexus.external.access.read_only": "Сеть только берёт",
-  "gui.nexus.external.access.read_only.hint": "Сеть видит содержимое блока и забирает его, но ничего в него не кладёт."
+  "gui.nexus.external.access.read_only.hint": "Сеть видит содержимое блока и забирает его, но ничего в него не кладёт.",
+  "gui.nexus.chunk_loader.on.short": "Чанк %s, %s остаётся загруженным",
+  "gui.nexus.chunk_loader.off.short": "Улучшение прогрузки чанка (по желанию)"
 }

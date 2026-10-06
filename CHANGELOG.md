@@ -407,6 +407,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The texts beside the upgrade slots of the Nexus Link, the Network Transmitter and the Network Receiver stay
+  inside the frame and stand level with their slot, and the line beside the Chunk Loader Upgrade slot names the
+  upgrade and says what it does, or that it is optional.
 - Assemblers set against each other now always share the network, whichever
   way they face. Before, an Assembler whose face touched another Assembler
   stayed out of the network unless it had a cable of its own.

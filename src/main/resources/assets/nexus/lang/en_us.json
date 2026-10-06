@@ -180,8 +180,8 @@
   "tooltip.nexus.upgrade.silk_touch": "The Remover breaks blocks with Silk Touch. Takes precedence over Fortune.",
   "tooltip.nexus.upgrade.autocrafting": "A Pusher or Placer orders a craft when the network runs out.",
   "tooltip.nexus.upgrade.chunk_loader": "Keeps the chunk the device stands in loaded, with no player near. One per device.",
-  "gui.nexus.chunk_loader.on": "Chunk %s, %s stays loaded",
-  "gui.nexus.chunk_loader.off": "Chunk is not kept loaded",
+  "gui.nexus.chunk_loader.on": "Chunk Loader Upgrade: chunk %s, %s stays loaded",
+  "gui.nexus.chunk_loader.off": "Chunk Loader Upgrade: keeps this chunk loaded",
   "tooltip.nexus.upgrade.in_development": "In development",
   "block.nexus.assembler": "Assembler",
   "block.nexus.crafting_monitor": "Crafting Monitor",
@@ -272,7 +272,6 @@
   "gui.nexus.transmitter.unreachable": "Receiver not reachable",
   "gui.nexus.transmitter.receiver": "To %s, %s, %s",
   "gui.nexus.link.range": "Range: %s blocks",
-  "gui.nexus.link.hint": "Range Upgrades reach farther",
   "gui.nexus.access.tab.network": "Network",
   "gui.nexus.access.tab.access": "Access",
   "gui.nexus.access.loading": "Loading access...",
@@ -512,5 +511,7 @@
   "gui.nexus.external.access.read_write": "Network stores and takes",
   "gui.nexus.external.access.read_write.hint": "The network lists what the block holds, takes it out and puts resources in.",
   "gui.nexus.external.access.read_only": "Network only takes",
-  "gui.nexus.external.access.read_only.hint": "The network lists what the block holds and takes it out, but never puts anything in."
+  "gui.nexus.external.access.read_only.hint": "The network lists what the block holds and takes it out, but never puts anything in.",
+  "gui.nexus.chunk_loader.on.short": "Chunk %s, %s stays loaded",
+  "gui.nexus.chunk_loader.off.short": "Chunk Loader Upgrade (optional)"
 }

@@ -180,8 +180,8 @@
   "tooltip.nexus.upgrade.silk_touch": "El destructor rompe bloques con toque de seda. Tiene prioridad sobre la fortuna.",
   "tooltip.nexus.upgrade.autocrafting": "Un exportador o colocador encarga un crafteo cuando a la red se le acaba.",
   "tooltip.nexus.upgrade.chunk_loader": "Mantiene cargado el chunk donde está el dispositivo, aunque no haya jugadores cerca. Una por dispositivo.",
-  "gui.nexus.chunk_loader.on": "El chunk %s, %s sigue cargado",
-  "gui.nexus.chunk_loader.off": "El chunk no se mantiene cargado",
+  "gui.nexus.chunk_loader.on": "Mejora de carga de chunk: el chunk %s, %s sigue cargado",
+  "gui.nexus.chunk_loader.off": "Mejora de carga de chunk: mantiene este chunk cargado",
   "tooltip.nexus.upgrade.in_development": "En desarrollo",
   "block.nexus.assembler": "Ensamblador",
   "block.nexus.crafting_monitor": "Monitor de crafteo",
@@ -272,7 +272,6 @@
   "gui.nexus.transmitter.unreachable": "Receptor inalcanzable",
   "gui.nexus.transmitter.receiver": "A %s, %s, %s",
   "gui.nexus.link.range": "Alcance: %s bloques",
-  "gui.nexus.link.hint": "Las mejoras de alcance llegan más lejos",
   "gui.nexus.access.tab.network": "Red",
   "gui.nexus.access.tab.access": "Acceso",
   "gui.nexus.access.loading": "Cargando acceso...",
@@ -512,5 +511,7 @@
   "gui.nexus.external.access.read_write": "La red guarda y toma",
   "gui.nexus.external.access.read_write.hint": "La red muestra lo que contiene el bloque, lo saca y le añade recursos.",
   "gui.nexus.external.access.read_only": "La red solo toma",
-  "gui.nexus.external.access.read_only.hint": "La red muestra lo que contiene el bloque y lo saca, pero nunca añade nada."
+  "gui.nexus.external.access.read_only.hint": "La red muestra lo que contiene el bloque y lo saca, pero nunca añade nada.",
+  "gui.nexus.chunk_loader.on.short": "El chunk %s, %s sigue cargado",
+  "gui.nexus.chunk_loader.off.short": "Mejora de carga de chunk (opcional)"
 }
