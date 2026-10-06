@@ -507,5 +507,10 @@
   "item.nexus.efficiency_upgrade": "Mejora de eficiencia",
   "item.nexus.buffer_upgrade": "Mejora de búfer",
   "tooltip.nexus.upgrade.efficiency": "Las máquinas gastan menos FE en su trabajo, los generadores sacan más FE del mismo combustible, y Puller, Pusher, Placer y Remover mueven el doble cada vez (la mejora de pila mueve más). Una por dispositivo.",
-  "tooltip.nexus.upgrade.buffer": "Duplica el búfer de energía de una máquina o generador y el depósito de un Extractor o de un generador de fluidos. Una por dispositivo."
+  "tooltip.nexus.upgrade.buffer": "Duplica el búfer de energía de una máquina o generador y el depósito de un Extractor o de un generador de fluidos. Una por dispositivo.",
+  "block.nexus.external_vault": "Almacén externo",
+  "gui.nexus.external.access.read_write": "La red guarda y toma",
+  "gui.nexus.external.access.read_write.hint": "La red muestra lo que contiene el bloque, lo saca y le añade recursos.",
+  "gui.nexus.external.access.read_only": "La red solo toma",
+  "gui.nexus.external.access.read_only.hint": "La red muestra lo que contiene el bloque y lo saca, pero nunca añade nada."
 }

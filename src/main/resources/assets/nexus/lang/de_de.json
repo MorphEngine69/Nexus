@@ -507,5 +507,10 @@
   "item.nexus.efficiency_upgrade": "Effizienz-Upgrade",
   "item.nexus.buffer_upgrade": "Puffer-Upgrade",
   "tooltip.nexus.upgrade.efficiency": "Maschinen brauchen weniger FE für ihre Arbeit, Generatoren holen mehr FE aus demselben Brennstoff, Puller, Pusher, Placer und Remover bewegen doppelt so viel auf einmal (das Stack-Upgrade mehr). Eines pro Gerät.",
-  "tooltip.nexus.upgrade.buffer": "Verdoppelt den Energiepuffer einer Maschine oder eines Generators und den Tank eines Extractors oder Flüssigkeitsgenerators. Eines pro Gerät."
+  "tooltip.nexus.upgrade.buffer": "Verdoppelt den Energiepuffer einer Maschine oder eines Generators und den Tank eines Extractors oder Flüssigkeitsgenerators. Eines pro Gerät.",
+  "block.nexus.external_vault": "Externes Lager",
+  "gui.nexus.external.access.read_write": "Netz lagert ein und entnimmt",
+  "gui.nexus.external.access.read_write.hint": "Das Netz zeigt, was der Block enthält, entnimmt es und legt Ressourcen hinein.",
+  "gui.nexus.external.access.read_only": "Netz entnimmt nur",
+  "gui.nexus.external.access.read_only.hint": "Das Netz zeigt, was der Block enthält, und entnimmt es, legt aber nie etwas hinein."
 }

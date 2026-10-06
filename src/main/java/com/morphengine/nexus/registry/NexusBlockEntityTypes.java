@@ -4,6 +4,7 @@ import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.entity.AssemblerBlockEntity;
 import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
+import com.morphengine.nexus.block.entity.ExternalVaultBlockEntity;
 import com.morphengine.nexus.block.entity.GeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.MachineBlockEntity;
 import com.morphengine.nexus.block.entity.NetworkReceiverBlockEntity;
@@ -69,6 +70,10 @@ public final class NexusBlockEntityTypes {
             BLOCK_ENTITY_TYPES.register("transfer_device", () -> new BlockEntityType<>(
                     TransferDeviceBlockEntity::new, Set.of(NexusBlocks.PULLER.get(), NexusBlocks.PUSHER.get(),
                             NexusBlocks.PLACER.get(), NexusBlocks.REMOVER.get())));
+
+    public static final Supplier<BlockEntityType<ExternalVaultBlockEntity>> EXTERNAL_VAULT =
+            BLOCK_ENTITY_TYPES.register("external_vault", () -> new BlockEntityType<>(
+                    ExternalVaultBlockEntity::new, Set.of(NexusBlocks.EXTERNAL_VAULT.get())));
 
     public static final Supplier<BlockEntityType<AssemblerBlockEntity>> ASSEMBLER =
             BLOCK_ENTITY_TYPES.register("assembler", () -> new BlockEntityType<>(

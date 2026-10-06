@@ -83,6 +83,29 @@ public final class NetworkStorage implements Storage {
     }
 
     /**
+     * Counts a change in a source that did not go through this storage, such as a hopper emptying a chest that is
+     * a source, and tells the listeners. A loss larger than what the totals hold is cut down to it.
+     *
+     * @param delta units gained, or lost when negative
+     * @return whether the storage is a source, and so the change was counted
+     */
+    public boolean sourceChanged(final Storage source, final ResourceKey resource, final long delta) {
+        Objects.requireNonNull(resource, "resource must not be null");
+        if (indexOf(source) < 0) {
+            return false;
+        }
+        if (delta > 0) {
+            notifyListeners(resource, totals.add(resource, delta));
+        } else if (delta < 0) {
+            final long lost = Math.min(-delta, totals.amountOf(resource));
+            if (lost > 0) {
+                notifyListeners(resource, totals.remove(resource, lost));
+            }
+        }
+        return true;
+    }
+
+    /**
      * Moves a source to another priority without touching the totals.
      *
      * @return whether the storage is a source
@@ -175,7 +198,10 @@ public final class NetworkStorage implements Storage {
         if (!gate.permits(actor, Permission.INSERT)) {
             return 0;
         }
-        final long claimed = intercept(resource, amount, action);
+        long claimed = 0;
+        for (int i = 0; i < interceptors.size() && claimed < amount; i++) {
+            claimed += interceptors.get(i).intercept(resource, amount - claimed, action);
+        }
         final long offered = amount - claimed;
         long remaining = offered;
         int start = 0;
@@ -193,14 +219,6 @@ public final class NetworkStorage implements Storage {
             }
         }
         return claimed + inserted;
-    }
-
-    private long intercept(final ResourceKey resource, final long amount, final Action action) {
-        long claimed = 0;
-        for (int i = 0; i < interceptors.size() && claimed < amount; i++) {
-            claimed += interceptors.get(i).intercept(resource, amount - claimed, action);
-        }
-        return claimed;
     }
 
     @Override

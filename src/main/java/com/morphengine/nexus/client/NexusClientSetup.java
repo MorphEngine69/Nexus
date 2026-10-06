@@ -2,6 +2,7 @@ package com.morphengine.nexus.client;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.AssemblerBlock;
+import com.morphengine.nexus.block.ExternalVaultBlock;
 import com.morphengine.nexus.block.TerminalBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
 import com.morphengine.nexus.block.WirelessBlock;
@@ -19,6 +20,7 @@ import com.morphengine.nexus.client.render.StorageVaultRenderer;
 import com.morphengine.nexus.client.screen.AssemblerScreen;
 import com.morphengine.nexus.client.screen.CraftingMonitorScreen;
 import com.morphengine.nexus.client.screen.EnergyCellScreen;
+import com.morphengine.nexus.client.screen.ExternalVaultScreen;
 import com.morphengine.nexus.client.screen.GeneratorScreen;
 import com.morphengine.nexus.client.screen.MachineScreen;
 import com.morphengine.nexus.client.screen.NetworkReceiverScreen;
@@ -55,6 +57,7 @@ import java.util.function.Predicate;
 @EventBusSubscriber(modid = Nexus.MOD_ID, value = Dist.CLIENT)
 public final class NexusClientSetup {
 
+    private static final String EXTERNAL_VAULT_ASSET = "external_vault";
     private static final Predicate<BlockState> WIRELESS_WORKS = state -> state.getValue(WirelessBlock.ACTIVE);
 
     private NexusClientSetup() {
@@ -71,6 +74,7 @@ public final class NexusClientSetup {
         event.register(NexusMenuTypes.TERMINAL.get(), TerminalScreen<TerminalMenu>::new);
         event.register(NexusMenuTypes.CRAFTING_TERMINAL.get(), TerminalScreen<CraftingTerminalMenu>::new);
         event.register(NexusMenuTypes.TRANSFER_DEVICE.get(), TransferDeviceScreen::new);
+        event.register(NexusMenuTypes.EXTERNAL_VAULT.get(), ExternalVaultScreen::new);
         event.register(NexusMenuTypes.ASSEMBLER.get(), AssemblerScreen::new);
         event.register(NexusMenuTypes.CRAFTING_MONITOR.get(), CraftingMonitorScreen::new);
         event.register(NexusMenuTypes.BLUEPRINT_TERMINAL.get(), TerminalScreen<BlueprintTerminalMenu>::new);
@@ -102,6 +106,9 @@ public final class NexusClientSetup {
         event.registerBlockEntityRenderer(NexusBlockEntityTypes.TRANSFER_DEVICE.get(),
                 context -> new KindDeviceRenderer<>(context, device -> device.kind().getSerializedName(),
                         TransferKind.PLACER.getSerializedName(), state -> state.getValue(TransferDeviceBlock.POWERED)));
+        event.registerBlockEntityRenderer(NexusBlockEntityTypes.EXTERNAL_VAULT.get(),
+                context -> new KindDeviceRenderer<>(context, vault -> EXTERNAL_VAULT_ASSET, EXTERNAL_VAULT_ASSET,
+                        state -> state.getValue(ExternalVaultBlock.POWERED)));
         event.registerBlockEntityRenderer(NexusBlockEntityTypes.TERMINAL.get(),
                 context -> new KindDeviceRenderer<>(context, terminal -> terminal.kind().getSerializedName(),
                         TerminalKind.TERMINAL.getSerializedName(), state -> state.getValue(TerminalBlock.POWERED)));

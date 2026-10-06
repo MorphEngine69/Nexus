@@ -1,12 +1,14 @@
 package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.external.ExternalVaultSettings;
 import com.morphengine.nexus.menu.AssemblerMenu;
 import com.morphengine.nexus.menu.BlockTerminalBinding;
 import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.CraftingMonitorMenu;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.EnergyCellMenu;
+import com.morphengine.nexus.menu.ExternalVaultMenu;
 import com.morphengine.nexus.menu.GeneratorMenu;
 import com.morphengine.nexus.menu.MachineMenu;
 import com.morphengine.nexus.menu.NetworkReceiverMenu;
@@ -89,6 +91,12 @@ public final class NexusMenuTypes {
                     (containerId, inventory, buffer) -> new TransferDeviceMenu(containerId, inventory,
                             buffer.readBlockPos(), buffer.readEnum(TransferKind.class),
                             TransferSettings.STREAM_CODEC.decode(buffer))));
+
+    public static final Supplier<MenuType<ExternalVaultMenu>> EXTERNAL_VAULT = MENU_TYPES.register(
+            "external_vault",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) -> new ExternalVaultMenu(containerId, inventory,
+                            buffer.readBlockPos(), ExternalVaultSettings.STREAM_CODEC.decode(buffer))));
 
     public static final Supplier<MenuType<AssemblerMenu>> ASSEMBLER = MENU_TYPES.register(
             "assembler",
