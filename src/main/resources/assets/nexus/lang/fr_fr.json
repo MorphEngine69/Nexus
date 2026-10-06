@@ -180,8 +180,8 @@
   "tooltip.nexus.upgrade.silk_touch": "Le destructeur casse les blocs avec toucher de soie. Prime sur la fortune.",
   "tooltip.nexus.upgrade.autocrafting": "Un exportateur ou un poseur commande une fabrication quand le réseau vient à manquer.",
   "tooltip.nexus.upgrade.chunk_loader": "Garde chargé le chunk où se trouve l'appareil, même sans joueur à proximité. Une par appareil.",
-  "gui.nexus.chunk_loader.on": "Le chunk %s, %s reste chargé",
-  "gui.nexus.chunk_loader.off": "Le chunk n'est pas gardé chargé",
+  "gui.nexus.chunk_loader.on": "Amélioration de chargement de chunk : le chunk %s, %s reste chargé",
+  "gui.nexus.chunk_loader.off": "Amélioration de chargement de chunk : garde ce chunk chargé",
   "tooltip.nexus.upgrade.in_development": "En développement",
   "block.nexus.assembler": "Assembleur",
   "block.nexus.crafting_monitor": "Moniteur de fabrication",
@@ -272,7 +272,6 @@
   "gui.nexus.transmitter.unreachable": "Récepteur injoignable",
   "gui.nexus.transmitter.receiver": "Vers %s, %s, %s",
   "gui.nexus.link.range": "Portée : %s blocs",
-  "gui.nexus.link.hint": "Les améliorations de portée vont plus loin",
   "gui.nexus.access.tab.network": "Réseau",
   "gui.nexus.access.tab.access": "Accès",
   "gui.nexus.access.loading": "Chargement de l'accès...",
@@ -512,5 +511,7 @@
   "gui.nexus.external.access.read_write": "Le réseau stocke et prend",
   "gui.nexus.external.access.read_write.hint": "Le réseau affiche le contenu du bloc, le retire et y place des ressources.",
   "gui.nexus.external.access.read_only": "Le réseau prend seulement",
-  "gui.nexus.external.access.read_only.hint": "Le réseau affiche le contenu du bloc et le retire, mais n'y place jamais rien."
+  "gui.nexus.external.access.read_only.hint": "Le réseau affiche le contenu du bloc et le retire, mais n'y place jamais rien.",
+  "gui.nexus.chunk_loader.on.short": "Le chunk %s, %s reste chargé",
+  "gui.nexus.chunk_loader.off.short": "Amélioration de chargement de chunk (facultatif)"
 }

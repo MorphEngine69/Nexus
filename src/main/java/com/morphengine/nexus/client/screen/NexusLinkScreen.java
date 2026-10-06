@@ -16,7 +16,6 @@ public final class NexusLinkScreen extends PanelScreen<NexusLinkMenu> {
     private static final int IMAGE_WIDTH = 200;
     private static final int IMAGE_HEIGHT = NexusLinkMenu.INVENTORY_TOP + 84;
     private static final int TEXT_LEFT = NexusLinkMenu.UPGRADE_SLOT_X + PanelStyle.SLOT_SIZE + 6;
-    private static final int LINE_HEIGHT = 11;
     private static final int LABEL_GAP = 11;
     private static final int NOTE_GAP = 8;
 
@@ -38,10 +37,8 @@ public final class NexusLinkScreen extends PanelScreen<NexusLinkMenu> {
         }
         final int x = leftPos + TEXT_LEFT;
         final int y = topPos + NexusLinkMenu.UPGRADE_SLOT_Y;
-        graphics.text(font, Component.translatable("gui.nexus.link.range", getMenu().range()), x, y,
-                PanelStyle.TEXT_LIGHT, false);
-        graphics.text(font, Component.translatable("gui.nexus.link.hint"), x, y + LINE_HEIGHT,
-                PanelStyle.TEXT_DIM, false);
+        graphics.text(font, Component.translatable("gui.nexus.link.range", getMenu().range()), x,
+                y - 1 + (PanelStyle.SLOT_SIZE - font.lineHeight) / 2, PanelStyle.TEXT_LIGHT, false);
         ChunkLoaderNote.draw(graphics, font, x, y + NexusLinkMenu.UPGRADE_ROW_HEIGHT, imageWidth - TEXT_LEFT - NOTE_GAP,
                 getMenu().pos(), getMenu().holdsChunkLoader());
         graphics.text(font, playerInventoryTitle, leftPos + NexusLinkMenu.INVENTORY_LEFT,
