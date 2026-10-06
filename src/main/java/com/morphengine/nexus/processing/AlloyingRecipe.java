@@ -60,6 +60,13 @@ public final class AlloyingRecipe implements Recipe<AlloyInput> {
     }
 
     /**
+     * @return a stack of what one run of the recipe makes
+     */
+    public ItemStack resultStack() {
+        return result.create();
+    }
+
+    /**
      * @return for each ingredient, in order, the stack that meets it with the count the recipe uses; empty when the
      *         input does not hold enough for every ingredient, each in an item of its own
      */
@@ -126,7 +133,7 @@ public final class AlloyingRecipe implements Recipe<AlloyInput> {
 
     @Override
     public PlacementInfo placementInfo() {
-        return PlacementInfo.NOT_PLACEABLE;
+        return PlacementInfo.create(ingredients.stream().map(AlloyIngredient::ingredient).toList());
     }
 
     @Override

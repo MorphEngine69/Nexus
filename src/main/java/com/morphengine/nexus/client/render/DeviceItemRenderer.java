@@ -30,8 +30,8 @@ public final class DeviceItemRenderer extends GeoItemRenderer<DeviceBlockItem> {
     }
 
     private static DeviceGeoModel<DeviceBlockItem> modelOf(final DeviceBlockItem.Look look) {
-        final String textureName = look.color().getName().toLowerCase(Locale.ROOT);
-        final String slotTextureName = look.slotColor().getName().toLowerCase(Locale.ROOT);
+        final String textureName = look.color().getName().toLowerCase(Locale.ROOT) + look.textureSuffix();
+        final String slotTextureName = look.slotColor().getName().toLowerCase(Locale.ROOT) + look.textureSuffix();
         return new DeviceGeoModel<>(look.asset()) {
             @Override
             protected String textureName(final GeoRenderState renderState) {

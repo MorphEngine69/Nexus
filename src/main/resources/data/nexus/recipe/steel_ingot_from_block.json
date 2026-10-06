@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "nexus:steel_block"
+  ],
+  "result": {
+    "id": "nexus:steel_ingot",
+    "count": 9
+  },
+  "group": "steel_ingot"
+}

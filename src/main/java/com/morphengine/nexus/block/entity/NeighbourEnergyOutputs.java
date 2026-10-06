@@ -33,16 +33,17 @@ final class NeighbourEnergyOutputs {
     }
 
     /**
+     * @param openSides the sides to push into, one bit for each, at the place of the ordinal of the direction
      * @return whether any energy left the buffer
      */
-    boolean push(final ServerLevel level, final BlockPos pos, final EnergyBuffer buffer) {
+    boolean push(final ServerLevel level, final BlockPos pos, final EnergyBuffer buffer, final int openSides) {
         if (buffer.stored() == 0) {
             return false;
         }
         boolean pushed = false;
         final List<BlockCapabilityCache<EnergyHandler, Direction>> neighbours = outputs(level, pos);
         for (int i = 0; i < neighbours.size(); i++) {
-            final EnergyHandler target = neighbours.get(i).getCapability();
+            final EnergyHandler target = (openSides >> i & 1) != 0 ? neighbours.get(i).getCapability() : null;
             if (target != null) {
                 pushed |= pushTo(target, buffer);
             }

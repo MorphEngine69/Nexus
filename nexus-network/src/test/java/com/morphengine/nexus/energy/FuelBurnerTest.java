@@ -31,6 +31,24 @@ class FuelBurnerTest {
     }
 
     @Test
+    void efficiencyUpgradesMakeTheSameFuelGiveMore() {
+        final FuelBurner plain = new FuelBurner(40);
+        plain.ignite(5);
+        burner.setEfficiencyUpgrades(EfficiencyUpgrades.MAX_UPGRADES);
+        burner.ignite(5);
+
+        long plainTotal = 0;
+        long boostedTotal = 0;
+        for (int i = 0; i < 5; i++) {
+            plainTotal += plain.tick(new SimpleEnergyBuffer(1000, 1000, 1000));
+            boostedTotal += burner.tick(buffer);
+        }
+
+        assertThat(boostedTotal).isGreaterThan(plainTotal);
+        assertThat(boostedTotal).isEqualTo(EfficiencyUpgrades.yielded(plainTotal, EfficiencyUpgrades.MAX_UPGRADES));
+    }
+
+    @Test
     void fullBufferPausesBurningWithoutWastingFuel() {
         buffer.insert(980, Action.EXECUTE);
         burner.ignite(10);

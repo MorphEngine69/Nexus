@@ -4,16 +4,18 @@ import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.api.network.NetworkStatistics;
 import com.morphengine.nexus.block.CableBlock;
-import com.morphengine.nexus.block.CoalGeneratorBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
+import com.morphengine.nexus.block.GeneratorBlock;
 import com.morphengine.nexus.block.NetworkColoring;
 import com.morphengine.nexus.block.NetworkDeviceBlock;
 import com.morphengine.nexus.block.NexusBlock;
 import com.morphengine.nexus.block.NexusStatus;
-import com.morphengine.nexus.block.entity.CoalGeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
+import com.morphengine.nexus.block.entity.GeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
+import com.morphengine.nexus.generator.GeneratorKind;
 import com.morphengine.nexus.menu.NetworkBadge;
+import com.morphengine.nexus.processing.MachinePhase;
 import com.morphengine.nexus.registry.NexusBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -197,15 +199,16 @@ public final class NexusGameTests {
     private static void coalGeneratorChargesCell(final GameTestHelper helper) {
         final BlockPos generatorPos = new BlockPos(3, 1, 3);
         final BlockPos cellPos = generatorPos.east();
-        place(helper, generatorPos, NexusBlocks.COAL_GENERATOR.get().defaultBlockState());
+        place(helper, generatorPos, NexusBlocks.GENERATORS.get(GeneratorKind.COAL).get().defaultBlockState());
         place(helper, cellPos, cell());
 
         helper.startSequence()
-                .thenExecute(() -> helper.getBlockEntity(generatorPos, CoalGeneratorBlockEntity.class)
-                        .fuel().setItem(0, new ItemStack(Items.CHARCOAL, 2)))
+                .thenExecute(() -> helper.getBlockEntity(generatorPos, GeneratorBlockEntity.class)
+                        .input().setItem(0, new ItemStack(Items.CHARCOAL, 2)))
                 .thenWaitUntil(() -> {
                     final long stored = cellEntity(helper, cellPos).energyBuffer().stored();
-                    final boolean lit = helper.getBlockState(generatorPos).getValue(CoalGeneratorBlock.LIT);
+                    final boolean lit =
+                            helper.getBlockState(generatorPos).getValue(GeneratorBlock.PHASE) == MachinePhase.ACTIVE;
                     helper.assertTrue(stored > 0 && lit,
                             Component.literal("cell holds " + stored + " FE, generator lit=" + lit));
                 })
@@ -250,8 +253,8 @@ public final class NexusGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> assertStatistics(helper, 2, CELL_CAPACITY))
-                .thenExecute(() -> helper.getBlockEntity(generatorPos, CoalGeneratorBlockEntity.class)
-                        .fuel().setItem(0, new ItemStack(Items.CHARCOAL, 1)))
+                .thenExecute(() -> helper.getBlockEntity(generatorPos, GeneratorBlockEntity.class)
+                        .input().setItem(0, new ItemStack(Items.CHARCOAL, 1)))
                 .thenWaitUntil(() -> {
                     final long stored = cellEntity(helper, cellPos).energyBuffer().stored();
                     helper.assertTrue(stored > 0, Component.literal("cell away from the generator holds no FE"));
@@ -323,7 +326,8 @@ public final class NexusGameTests {
     }
 
     private static BlockState generator(final Direction facing) {
-        return NexusBlocks.COAL_GENERATOR.get().defaultBlockState().setValue(CoalGeneratorBlock.FACING, facing);
+        return NexusBlocks.GENERATORS.get(GeneratorKind.COAL).get().defaultBlockState()
+                .setValue(GeneratorBlock.FACING, facing);
     }
 
     private static void assertNetworkColor(final GameTestHelper helper, final BlockPos pos, final DyeColor expected) {

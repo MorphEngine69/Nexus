@@ -81,7 +81,7 @@ public record ExtractingRecipe(Recipe.CommonInfo commonInfo, Ingredient ingredie
 
     @Override
     public PlacementInfo placementInfo() {
-        return PlacementInfo.NOT_PLACEABLE;
+        return PlacementInfo.create(ingredient);
     }
 
     @Override

@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "experience": 2.0,
+  "group": "hellsteel_ingot",
+  "ingredient": "nexus:raw_hellsteel",
+  "result": {
+    "id": "nexus:hellsteel_ingot"
+  }
+}

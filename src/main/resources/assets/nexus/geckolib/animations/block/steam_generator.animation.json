@@ -1,0 +1,126 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "idle": {
+      "loop": true,
+      "animation_length": 1,
+      "bones": {
+        "needle": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                -55
+              ]
+            }
+          }
+        }
+      }
+    },
+    "online": {
+      "loop": true,
+      "animation_length": 3,
+      "bones": {
+        "needle": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                -30
+              ]
+            },
+            "0.6": {
+              "vector": [
+                0,
+                0,
+                -26
+              ],
+              "easing": "easeInOutSine"
+            },
+            "1.4": {
+              "vector": [
+                0,
+                0,
+                -33
+              ],
+              "easing": "easeInOutSine"
+            },
+            "2.2": {
+              "vector": [
+                0,
+                0,
+                -27
+              ],
+              "easing": "easeInOutSine"
+            },
+            "3.0": {
+              "vector": [
+                0,
+                0,
+                -30
+              ],
+              "easing": "easeInOutSine"
+            }
+          }
+        }
+      }
+    },
+    "active": {
+      "loop": true,
+      "animation_length": 2.4,
+      "bones": {
+        "needle": {
+          "rotation": {
+            "0.0": {
+              "vector": [
+                0,
+                0,
+                -20
+              ]
+            },
+            "0.6": {
+              "vector": [
+                0,
+                0,
+                40
+              ],
+              "easing": "easeInOutSine"
+            },
+            "1.2": {
+              "vector": [
+                0,
+                0,
+                8
+              ],
+              "easing": "easeInOutSine"
+            },
+            "1.8": {
+              "vector": [
+                0,
+                0,
+                44
+              ],
+              "easing": "easeInOutSine"
+            },
+            "2.4": {
+              "vector": [
+                0,
+                0,
+                -20
+              ],
+              "easing": "easeInOutSine"
+            }
+          }
+        }
+      }
+    },
+    "item": {
+      "loop": true,
+      "animation_length": 1,
+      "bones": {}
+    }
+  },
+  "geckolib_format_version": 2
+}

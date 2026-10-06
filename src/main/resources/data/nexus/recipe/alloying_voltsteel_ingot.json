@@ -1,0 +1,17 @@
+{
+  "type": "nexus:alloying",
+  "ingredients": [
+    {
+      "ingredient": "nexus:steel_ingot"
+    },
+    {
+      "ingredient": "nexus:hellsteel_ingot"
+    },
+    {
+      "ingredient": "minecraft:blaze_powder"
+    }
+  ],
+  "result": {
+    "id": "nexus:voltsteel_ingot"
+  }
+}

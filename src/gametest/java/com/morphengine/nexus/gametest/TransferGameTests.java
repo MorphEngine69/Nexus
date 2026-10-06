@@ -9,9 +9,9 @@ import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.transport.RedstoneMode;
 import com.morphengine.nexus.block.AssemblerBlock;
-import com.morphengine.nexus.block.CoalGeneratorBlock;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
+import com.morphengine.nexus.block.GeneratorBlock;
 import com.morphengine.nexus.block.NetworkColoring;
 import com.morphengine.nexus.block.NetworkDeviceBlock;
 import com.morphengine.nexus.block.SideConnections;
@@ -21,6 +21,7 @@ import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
 import com.morphengine.nexus.filter.FilterSlots;
+import com.morphengine.nexus.generator.GeneratorKind;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.level.NetworkComponentTypes;
@@ -742,7 +743,8 @@ public final class TransferGameTests {
         }
         for (Direction facing : Direction.Plane.HORIZONTAL) {
             place(helper, centre,
-                    NexusBlocks.COAL_GENERATOR.get().defaultBlockState().setValue(CoalGeneratorBlock.FACING, facing));
+                    NexusBlocks.GENERATORS.get(GeneratorKind.COAL).get().defaultBlockState()
+                            .setValue(GeneratorBlock.FACING, facing));
             for (Direction side : Direction.values()) {
                 final boolean attached = SideConnections.isAttached(helper.getBlockState(centre), side);
                 helper.assertTrue(attached == (side != facing), Component.literal("Coal Generator facing " + facing

@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:glow_berries",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

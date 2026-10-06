@@ -1,0 +1,8 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "nexus:raw_hellsteel",
+  "result": {
+    "id": "nexus:hellsteel_dust",
+    "count": 2
+  }
+}

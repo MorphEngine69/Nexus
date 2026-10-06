@@ -243,21 +243,22 @@ public enum TransferKind implements StringRepresentable {
     private static final class Limits {
 
         /**
-         * A Puller or Pusher: up to four Speed Upgrades, a Stack, a Regulator,
-         * an Autocrafting and a Chunk Loader Upgrade, and up to three Capacity
-         * Upgrades.
+         * A Puller or Pusher: up to four Speed Upgrades, a Stack, an Efficiency, a
+         * Regulator, an Autocrafting and a Chunk Loader Upgrade, and up to three
+         * Capacity Upgrades.
          */
         static final UpgradeLimits STORAGE_DEVICE = new UpgradeLimits(Map.of(
                 UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.REGULATOR, 1, UpgradeTypes.CAPACITY, 3,
-                UpgradeTypes.AUTOCRAFTING, 1, UpgradeTypes.CHUNK_LOADER, 1));
+                UpgradeTypes.AUTOCRAFTING, 1, UpgradeTypes.CHUNK_LOADER, 1, UpgradeTypes.EFFICIENCY, 1));
         /** A Placer keeps no stock in the world, so it takes no Regulator. */
         static final UpgradeLimits PLACER = new UpgradeLimits(Map.of(
                 UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.CAPACITY, 3, UpgradeTypes.AUTOCRAFTING, 1,
-                UpgradeTypes.CHUNK_LOADER, 1));
+                UpgradeTypes.CHUNK_LOADER, 1, UpgradeTypes.EFFICIENCY, 1));
         /** A Remover breaks with Fortune of up to level three, or with Silk Touch. */
         static final UpgradeLimits REMOVER = new UpgradeLimits(Map.of(
                 UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.CAPACITY, 3, UpgradeTypes.FORTUNE, 3,
-                UpgradeTypes.SILK_TOUCH, 1, UpgradeTypes.CHUNK_LOADER, 1));
+                UpgradeTypes.SILK_TOUCH, 1, UpgradeTypes.CHUNK_LOADER, 1,
+                UpgradeTypes.EFFICIENCY, 1));
 
         private Limits() {
         }

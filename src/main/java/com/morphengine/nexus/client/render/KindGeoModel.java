@@ -14,7 +14,7 @@ import java.util.function.Function;
  * The model of a device that comes in several kinds, one block entity type for all of them: its model, animations and
  * texture, which follows the color of the network, are those of the kind it is.
  */
-final class KindGeoModel<T extends GeoAnimatable> extends GeoModel<T> {
+class KindGeoModel<T extends GeoAnimatable> extends GeoModel<T> {
 
     static final DataTicket<String> ASSET = DataTicket.create("kind_asset", String.class);
 
@@ -36,9 +36,17 @@ final class KindGeoModel<T extends GeoAnimatable> extends GeoModel<T> {
     }
 
     @Override
-    public Identifier getTextureResource(final GeoRenderState renderState) {
+    public final Identifier getTextureResource(final GeoRenderState renderState) {
         return Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "textures/geo/" + assetIn(renderState)
-                + "/" + DeviceRenderData.colorOf(renderState).getName() + ".png");
+                + "/" + textureName(renderState) + ".png");
+    }
+
+    /**
+     * @return the file name, without extension, of the texture to draw now: the color of the network, unless a
+     *         subclass adds to it
+     */
+    protected String textureName(final GeoRenderState renderState) {
+        return DeviceRenderData.colorOf(renderState).getName();
     }
 
     @Override

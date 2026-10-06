@@ -6,6 +6,7 @@ import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellMarks;
 import com.morphengine.nexus.block.EnergyCellTier;
 import com.morphengine.nexus.block.MachineBlock;
+import com.morphengine.nexus.generator.GeneratorKind;
 import com.morphengine.nexus.item.BlueprintItem;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
@@ -54,8 +55,8 @@ public final class NexusItems {
     public static final List<DeferredItem<DeviceBlockItem>> ENERGY_CELLS = List.of(
             BASIC_ENERGY_CELL, ADVANCED_ENERGY_CELL, SUPERIOR_ENERGY_CELL, QUANTUM_ENERGY_CELL);
 
-    public static final DeferredItem<DeviceBlockItem> COAL_GENERATOR = deviceItem(
-            NexusBlocks.COAL_GENERATOR, DeviceBlockItem.Look.of("coal_generator").posed("burning"));
+    /** The items of the generators of every kind. */
+    public static final Map<GeneratorKind, DeferredItem<DeviceBlockItem>> GENERATORS = generatorItems();
 
     /** The items of the machines of every kind, the lowest tier first. */
     public static final Map<MachineKind, List<DeferredItem<DeviceBlockItem>>> MACHINES = machineItems();
@@ -119,6 +120,8 @@ public final class NexusItems {
     public static final DeferredItem<UpgradeItem> STACK_UPGRADE = registerUpgrade(UpgradeTypes.STACK);
     public static final DeferredItem<UpgradeItem> REGULATOR_UPGRADE = registerUpgrade(UpgradeTypes.REGULATOR);
     public static final DeferredItem<UpgradeItem> CAPACITY_UPGRADE = registerUpgrade(UpgradeTypes.CAPACITY);
+    public static final DeferredItem<UpgradeItem> EFFICIENCY_UPGRADE = registerUpgrade(UpgradeTypes.EFFICIENCY);
+    public static final DeferredItem<UpgradeItem> BUFFER_UPGRADE = registerUpgrade(UpgradeTypes.BUFFER);
     public static final DeferredItem<UpgradeItem> RANGE_UPGRADE = registerUpgrade(UpgradeTypes.RANGE);
     public static final DeferredItem<UpgradeItem> FORTUNE_UPGRADE = registerUpgrade(UpgradeTypes.FORTUNE);
     public static final DeferredItem<UpgradeItem> SILK_TOUCH_UPGRADE = registerUpgrade(UpgradeTypes.SILK_TOUCH);
@@ -127,8 +130,8 @@ public final class NexusItems {
 
     /** Every upgrade, those that work first. */
     public static final List<DeferredItem<UpgradeItem>> UPGRADES = List.of(SPEED_UPGRADE, STACK_UPGRADE,
-            REGULATOR_UPGRADE, CAPACITY_UPGRADE, RANGE_UPGRADE, FORTUNE_UPGRADE, SILK_TOUCH_UPGRADE,
-            AUTOCRAFTING_UPGRADE, CHUNK_LOADER_UPGRADE);
+            REGULATOR_UPGRADE, CAPACITY_UPGRADE, EFFICIENCY_UPGRADE, BUFFER_UPGRADE, RANGE_UPGRADE, FORTUNE_UPGRADE,
+            SILK_TOUCH_UPGRADE, AUTOCRAFTING_UPGRADE, CHUNK_LOADER_UPGRADE);
 
     /** The still pose of the model that the item of a machine stands in: lit as if at work, nothing moving. */
     private static final String ITEM_POSE = "item";
@@ -227,6 +230,20 @@ public final class NexusItems {
             machines.put(kind, List.copyOf(tiers));
         }
         return Collections.unmodifiableMap(machines);
+    }
+
+    /**
+     * The model of a generator is lit as if at work; one whose fire is painted on its texture shows the texture
+     * of work.
+     */
+    private static Map<GeneratorKind, DeferredItem<DeviceBlockItem>> generatorItems() {
+        final Map<GeneratorKind, DeferredItem<DeviceBlockItem>> generators = new EnumMap<>(GeneratorKind.class);
+        for (GeneratorKind kind : GeneratorKind.values()) {
+            final DeviceBlockItem.Look look = DeviceBlockItem.Look.of(kind.id()).posed(ITEM_POSE);
+            generators.put(kind, deviceItem(NexusBlocks.GENERATORS.get(kind),
+                    kind.hasPhaseTextures() ? look.withTextureSuffix("_active") : look));
+        }
+        return Collections.unmodifiableMap(generators);
     }
 
     private static DeferredItem<DeviceBlockItem> panelItem(final DeferredBlock<?> block) {

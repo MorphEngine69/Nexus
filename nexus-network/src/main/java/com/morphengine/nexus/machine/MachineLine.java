@@ -57,8 +57,22 @@ public final class MachineLine {
      * @return what the line did
      */
     public MachineActivity tick(final EnergyBuffer energy, final int speedPercent) {
+        return tick(energy, speedPercent, (int) PERCENT);
+    }
+
+    /**
+     * Works for one game tick, paying a share of the price of the work.
+     *
+     * @param speedPercent see {@link #tick(EnergyBuffer, int)}
+     * @param costPercent  the share of the FE of the recipe the line pays, in percent, positive
+     * @return what the line did
+     */
+    public MachineActivity tick(final EnergyBuffer energy, final int speedPercent, final int costPercent) {
         if (speedPercent <= 0) {
             throw new IllegalArgumentException("speedPercent must be positive: " + speedPercent);
+        }
+        if (costPercent <= 0) {
+            throw new IllegalArgumentException("costPercent must be positive: " + costPercent);
         }
         if (running == null) {
             final Optional<MachineRecipe> found = findRecipe();
@@ -73,7 +87,7 @@ public final class MachineLine {
             cancel();
             return MachineActivity.IDLE;
         }
-        return work(energy, speedPercent);
+        return work(energy, speedPercent, costPercent);
     }
 
     public boolean isRunning() {
@@ -156,11 +170,13 @@ public final class MachineLine {
         progress = 0;
     }
 
-    private MachineActivity work(final EnergyBuffer energy, final int speedPercent) {
+    private MachineActivity work(final EnergyBuffer energy, final int speedPercent, final int costPercent) {
         final MachineRecipe recipe = Objects.requireNonNull(running);
         final long total = totalOf(recipe);
         if (progress < total) {
-            final long cost = Math.ceilDiv(SaturatedMath.multiply(recipe.energyPerTick(), speedPercent), PERCENT);
+            final long cost = Math.ceilDiv(
+                    SaturatedMath.multiply(SaturatedMath.multiply(recipe.energyPerTick(), speedPercent), costPercent),
+                    PERCENT * PERCENT);
             if (energy.extract(cost, Action.SIMULATE) < cost) {
                 return MachineActivity.WAITING_FOR_ENERGY;
             }

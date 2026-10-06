@@ -4,6 +4,8 @@ import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.machine.MachineRecipe;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.block.MachineBlock;
+import com.morphengine.nexus.energy.BufferUpgrades;
+import com.morphengine.nexus.energy.EfficiencyUpgrades;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.SideStorage;
@@ -64,7 +66,9 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implemen
 
     public static final int UPGRADE_SLOTS = 4;
     public static final UpgradeLimits UPGRADE_LIMITS =
-            new UpgradeLimits(Map.of(UpgradeTypes.SPEED, MachineSpeed.MAX_SPEED_UPGRADES));
+            new UpgradeLimits(Map.of(UpgradeTypes.SPEED, MachineSpeed.MAX_SPEED_UPGRADES,
+                    UpgradeTypes.EFFICIENCY, EfficiencyUpgrades.MAX_UPGRADES,
+                    UpgradeTypes.BUFFER, BufferUpgrades.MAX_UPGRADES));
 
     /** Work stops for a moment between two jobs and the model should not flicker, so it stays active that long. */
     private static final int ACTIVE_LINGER_TICKS = 10;
@@ -85,7 +89,10 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implemen
     private final MachineItems items;
     private final @Nullable MachineTank tank;
     private final UpgradeContainer upgrades =
-            new UpgradeContainer(UPGRADE_SLOTS, UPGRADE_LIMITS, this::upgradesChanged);
+            new UpgradeContainer(UPGRADE_SLOTS, UPGRADE_LIMITS, () -> {
+                applyUpgrades();
+                setChanged();
+            });
     private final EnergyHandler energyHandler;
     private MachinePhase phase = MachinePhase.OFF;
     private int lingerTicks;
@@ -96,7 +103,7 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implemen
         final MachineBlock block = (MachineBlock) state.getBlock();
         this.kind = block.kind();
         this.tank = kind.output() == MachineOutput.FLUID
-                ? new MachineTank(() -> machine().tier().bufferCapacity(), this::setChanged) : null;
+                ? new MachineTank(() -> machine().bufferCapacity(), this::setChanged) : null;
         this.machine = new Machine(block.tier(), kind.shape(), this::findRecipe,
                 tank != null ? tank.slotsOver(slots) : slots);
         this.items = new MachineItems(slots, machine.inventory(), this::accepts, this::setChanged);
@@ -217,9 +224,10 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implemen
                 && kind.recipes().usesItem(serverLevel, new ItemKey(resource));
     }
 
-    private void upgradesChanged() {
+    private void applyUpgrades() {
         machine.setSpeedUpgrades(upgrades.count(UpgradeTypes.SPEED));
-        setChanged();
+        machine.setEfficiencyUpgrades(upgrades.count(UpgradeTypes.EFFICIENCY));
+        machine.setBufferUpgrades(upgrades.count(UpgradeTypes.BUFFER));
     }
 
     private void tick(final ServerLevel serverLevel, final BlockPos pos, final BlockState state) {
@@ -349,7 +357,7 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implemen
         machine.inventory().setMode(modes[Math.clamp(input.getIntOr(TAG_MODE, 0), 0, modes.length - 1)]);
         restoreSides(input.getIntOr(TAG_SIDES, -1));
         ContainerHelper.loadAllItems(input.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
-        machine.setSpeedUpgrades(upgrades.count(UpgradeTypes.SPEED));
+        applyUpgrades();
     }
 
     /**

@@ -12,6 +12,17 @@ public final class MachineSides {
     }
 
     /**
+     * @return both on every side, for a device that took anything from any side before its sides could be chosen
+     */
+    public static SideConfig<MachineSide> allOpen() {
+        SideConfig<MachineSide> open = SideConfig.closed(MachineSide.class);
+        for (MachineSide side : MachineSide.values()) {
+            open = open.with(side, SideMode.BOTH);
+        }
+        return open;
+    }
+
+    /**
      * @return input from the top, the front and the left, output to the bottom and the right, both at the back
      */
     public static SideConfig<MachineSide> defaults() {

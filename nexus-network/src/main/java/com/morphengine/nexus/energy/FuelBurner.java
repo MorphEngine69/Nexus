@@ -14,6 +14,7 @@ public final class FuelBurner {
 
     private final long energyPerTick;
     private int speed = 1;
+    private int efficiencyUpgrades;
     private int burnTicksLeft;
     private int burnTicksTotal;
 
@@ -42,10 +43,19 @@ public final class FuelBurner {
     }
 
     /**
-     * @return FE produced in a game tick of burning at the current speed
+     * @param upgrades Efficiency Upgrades, from zero to {@link EfficiencyUpgrades#MAX_UPGRADES}: the same fuel
+     *                 gives more FE
+     */
+    public void setEfficiencyUpgrades(final int upgrades) {
+        EfficiencyUpgrades.yielded(0, upgrades);
+        this.efficiencyUpgrades = upgrades;
+    }
+
+    /**
+     * @return FE produced in a game tick of burning at the current speed and efficiency
      */
     public long outputPerTick() {
-        return energyPerTick * speed;
+        return energyOf(speed);
     }
 
     public boolean isBurning() {
@@ -98,7 +108,11 @@ public final class FuelBurner {
         }
         final int burnt = Math.min(speed, burnTicksLeft);
         burnTicksLeft -= burnt;
-        return buffer.insert(energyPerTick * burnt, Action.EXECUTE);
+        return buffer.insert(energyOf(burnt), Action.EXECUTE);
+    }
+
+    private long energyOf(final int burntTicks) {
+        return EfficiencyUpgrades.yielded(energyPerTick * burntTicks, efficiencyUpgrades);
     }
 
     /**

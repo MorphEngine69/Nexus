@@ -1,0 +1,8 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:raw_copper",
+  "result": {
+    "id": "nexus:copper_dust",
+    "count": 2
+  }
+}

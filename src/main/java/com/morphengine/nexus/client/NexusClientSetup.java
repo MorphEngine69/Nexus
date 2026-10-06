@@ -2,7 +2,6 @@ package com.morphengine.nexus.client;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.AssemblerBlock;
-import com.morphengine.nexus.block.CoalGeneratorBlock;
 import com.morphengine.nexus.block.TerminalBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
 import com.morphengine.nexus.block.WirelessBlock;
@@ -12,14 +11,15 @@ import com.morphengine.nexus.client.render.DeviceGeoModel;
 import com.morphengine.nexus.client.render.DeviceRenderer;
 import com.morphengine.nexus.client.render.EnergyCellRenderer;
 import com.morphengine.nexus.client.render.FacedDeviceRenderer;
+import com.morphengine.nexus.client.render.GeneratorRenderer;
 import com.morphengine.nexus.client.render.KindDeviceRenderer;
 import com.morphengine.nexus.client.render.MachineRenderer;
 import com.morphengine.nexus.client.render.NexusRenderer;
 import com.morphengine.nexus.client.render.StorageVaultRenderer;
 import com.morphengine.nexus.client.screen.AssemblerScreen;
-import com.morphengine.nexus.client.screen.CoalGeneratorScreen;
 import com.morphengine.nexus.client.screen.CraftingMonitorScreen;
 import com.morphengine.nexus.client.screen.EnergyCellScreen;
+import com.morphengine.nexus.client.screen.GeneratorScreen;
 import com.morphengine.nexus.client.screen.MachineScreen;
 import com.morphengine.nexus.client.screen.NetworkReceiverScreen;
 import com.morphengine.nexus.client.screen.NetworkTransmitterScreen;
@@ -33,15 +33,20 @@ import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.TerminalMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
+import com.morphengine.nexus.registry.NexusFluids;
 import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.transfer.TransferKind;
+import net.minecraft.client.renderer.block.FluidModel;
+import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
+import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 import java.util.List;
@@ -59,7 +64,7 @@ public final class NexusClientSetup {
     static void registerScreens(final RegisterMenuScreensEvent event) {
         event.register(NexusMenuTypes.NEXUS.get(), NexusScreen::new);
         event.register(NexusMenuTypes.ENERGY_CELL.get(), EnergyCellScreen::new);
-        event.register(NexusMenuTypes.COAL_GENERATOR.get(), CoalGeneratorScreen::new);
+        event.register(NexusMenuTypes.GENERATOR.get(), GeneratorScreen::new);
         event.register(NexusMenuTypes.MACHINE.get(), MachineScreen::new);
         event.register(NexusMenuTypes.STORAGE_VAULT.get(), StorageVaultScreen::new);
         event.register(NexusMenuTypes.VAULT_CELL.get(), VaultCellScreen::new);
@@ -83,6 +88,14 @@ public final class NexusClientSetup {
     }
 
     @SubscribeEvent
+    static void registerFluidModels(final RegisterFluidModelsEvent event) {
+        final Material still = new Material(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "block/biofuel_still"));
+        final Material flowing = new Material(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "block/biofuel_flow"));
+        event.register(new FluidModel.Unbaked(still, flowing, null, null), NexusFluids.BIOFUEL.get(),
+                NexusFluids.BIOFUEL_FLOWING.get());
+    }
+
+    @SubscribeEvent
     static void registerRenderers(final EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(NexusBlockEntityTypes.NEXUS.get(), NexusRenderer::new);
         event.registerBlockEntityRenderer(NexusBlockEntityTypes.MACHINE.get(), MachineRenderer::new);
@@ -102,10 +115,7 @@ public final class NexusClientSetup {
                 context -> new FacedDeviceRenderer<>(context, new DeviceGeoModel<>("assembler"),
                         state -> state.getValue(AssemblerBlock.POWERED), AssemblerBlock.FACING, List.of(),
                         List.of()));
-        event.registerBlockEntityRenderer(NexusBlockEntityTypes.COAL_GENERATOR.get(),
-                context -> new FacedDeviceRenderer<>(context, new DeviceGeoModel<>("coal_generator"),
-                        state -> state.getValue(CoalGeneratorBlock.LIT), CoalGeneratorBlock.FACING,
-                        List.of("fins", "flue"), List.of("fire")));
+        event.registerBlockEntityRenderer(NexusBlockEntityTypes.GENERATOR.get(), GeneratorRenderer::new);
         event.registerBlockEntityRenderer(NexusBlockEntityTypes.CRAFTING_MONITOR.get(), CraftingMonitorRenderer::new);
         event.registerBlockEntityRenderer(NexusBlockEntityTypes.ENERGY_CELL.get(), EnergyCellRenderer::new);
         event.registerBlockEntityRenderer(NexusBlockEntityTypes.STORAGE_VAULT.get(), StorageVaultRenderer::new);

@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "experience": 1.0,
+  "group": "cobalt_ingot",
+  "ingredient": "nexus:cobalt_dust",
+  "result": {
+    "id": "nexus:cobalt_ingot"
+  }
+}

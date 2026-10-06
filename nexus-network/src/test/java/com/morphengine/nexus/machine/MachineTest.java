@@ -2,6 +2,8 @@ package com.morphengine.nexus.machine;
 
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.resource.ResourceAmount;
+import com.morphengine.nexus.energy.BufferUpgrades;
+import com.morphengine.nexus.energy.EfficiencyUpgrades;
 import com.morphengine.nexus.transport.SideMode;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +46,52 @@ class MachineTest {
 
         assertThat(ticks).isLessThan(STONE_TICKS);
         assertThat(ticks).isEqualTo((int) Math.ceil(STONE_TICKS * 100.0 / MachineTier.BASIC.speedPercent()));
+    }
+
+    private long energySpentOnOneStone(final Machine worker) {
+        worker.energy().insert(MachineTier.BASIC.maxInsert(), Action.EXECUTE);
+        worker.inventory().insert(STONE, 1, Action.EXECUTE, NOBODY);
+        while (worker.inventory().output(0).isEmpty()) {
+            worker.tick();
+        }
+        return worker.energy().totalExtracted();
+    }
+
+    @Test
+    void efficiencyUpgradesMakeTheWorkCheaper() {
+        final Machine thrifty = new Machine(MachineTier.BASIC, MachineTestRecipes.ALL,
+                new PlainMachineSlots(resource -> LIMIT));
+        thrifty.setEfficiencyUpgrades(EfficiencyUpgrades.MAX_UPGRADES);
+
+        assertThat(energySpentOnOneStone(thrifty)).isLessThan(energySpentOnOneStone(machine));
+    }
+
+    @Test
+    void bufferUpgradesEnlargeTheBufferAndKeepWhatItHolds() {
+        charge(100);
+
+        machine.setBufferUpgrades(BufferUpgrades.MAX_UPGRADES);
+
+        assertThat(machine.energy().capacity()).isEqualTo(MachineTier.BASIC.bufferCapacity() * 2);
+        assertThat(machine.bufferCapacity()).isEqualTo(machine.energy().capacity());
+        assertThat(machine.energy().stored()).isEqualTo(100);
+    }
+
+    @Test
+    void aTierUpgradeKeepsTheBufferUpgrades() {
+        machine.setBufferUpgrades(1);
+
+        machine.upgradeTo(MachineTier.ADVANCED);
+
+        assertThat(machine.energy().capacity()).isEqualTo(MachineTier.ADVANCED.bufferCapacity() * 2);
+    }
+
+    @Test
+    void moreEfficiencyOrBufferUpgradesThanTheLimitAreRefused() {
+        assertThatThrownBy(() -> machine.setEfficiencyUpgrades(EfficiencyUpgrades.MAX_UPGRADES + 1))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> machine.setBufferUpgrades(BufferUpgrades.MAX_UPGRADES + 1))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

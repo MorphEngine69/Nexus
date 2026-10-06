@@ -1,0 +1,7 @@
+{
+  "type": "nexus:compressing",
+  "ingredient": "minecraft:iron_ingot",
+  "result": {
+    "id": "nexus:iron_plate"
+  }
+}

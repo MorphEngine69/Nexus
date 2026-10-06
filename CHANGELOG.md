@@ -9,6 +9,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Four metals found in the ground: Steel, Cobalt, Mithril and Hellsteel. Steel is
+  mined in the places iron is, Cobalt where gold is, Mithril where diamond is and
+  Hellsteel in the Nether, a little more often than ancient debris. Each has raw
+  metal, an ingot, a nugget, a plate, a dust, a block, a pickaxe, an axe, a shovel,
+  a hoe, a sword and a full set of armor. Steel is as fast as iron and a little
+  sturdier, Cobalt is as fast as diamond and lasts longer, Mithril is almost as good as
+  netherite, and Hellsteel is better than netherite and does not burn in lava. A tool
+  or armor is mended with an ingot of its own metal. Raw metal and ore smelt in any
+  furnace; the Crusher turns raw metal into two dusts, the Pulverizer an ingot into a
+  dust and the Compressor an ingot into a plate. Iron, gold and copper get dusts and
+  plates too, and dust smelts into an ingot.
+- Nexus Ore in stone and deepslate, a deep and rare ore that drops a Nexus Crystal.
+- Parts for crafting: Core, Upgrade Blank, Machine Casing, Battery, Screen, Antenna,
+  Cell Housing, a Cell Part for each size of Vault Cell, the ingots of the alloys
+  Voltsteel, Lumen and Aether, and the bio resources Polymer and Biomass.
+- Biofuel, a fluid that fills a bucket and can be placed in the world. It spreads like
+  lava and is as slow to wade through, but it does not hurt and you do not drown in it.
+  The Crusher grinds plants, saplings, leaves, logs, crops and the like into Biomass,
+  and the Extractor presses Biomass into biofuel.
+- Four more generators beside the Coal Generator: the Lava Generator, the Steam
+  Generator (water and lava), the Biofuel Generator and the Nether Star Generator. A
+  generator of a fluid has a tank for each fluid it needs: pour a bucket in with a
+  right-click, put it in the slot of the panel (the fluid goes to the tank and the empty
+  bucket stays to be taken) or let a pipe fill it. Each has its own look, with fire, lava or
+  steam at work, and its own particles.
+  A generator has a panel of its sides, like a machine's: each side takes fuel in (items and
+  fluids), gives FE out, does both or is closed. Pipes and hoppers can put coal in.
+- Efficiency and Buffer Upgrades, one to a device. Efficiency makes a machine pay less
+  FE, a generator get more FE from its fuel, and a Puller, Pusher, Placer or Remover move
+  twice as much at a time. Buffer doubles the energy buffer of a machine or generator
+  and the tank of an Extractor or a fluid generator. The generators and machines have
+  four slots for upgrades.
+- The Nexus Crystal in the hand turns slowly and glows.
+- JEI and REI show the recipes of the Crusher, Pulverizer, Compressor, Alloy Smelter
+  and Extractor, with the machines of every tier as the stations, and the Crafting
+  Terminal beside the crafting table.
+- The creative tab is in order: the Nexus and cables, terminals, storage, power,
+  machines, automation, upgrades, parts, metals, other materials, tools and armor.
 - Six machines that run on FE, each in four tiers: the Energy Furnace, the Crusher,
   the Pulverizer, the Compressor, the Alloy Smelter and the Extractor. A tier brings
   a bigger energy buffer, more speed and, for most, more lines of input and output
@@ -19,7 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   takes it from any other source too and gives none away. The Energy Furnace smelts,
   blasts and smokes by the recipes of the game. The Crusher, Pulverizer, Compressor,
   Alloy Smelter (up to three inputs) and Extractor (a tank of fluid) read recipes of
-  their own, which a data pack or another mod can add; the mod ships none yet.
+  their own, which a data pack or another mod can add. The mod ships recipes for the
+  metals, for plants into Biomass and Biomass into biofuel, and for the three alloys.
 - The Alloy Smelter shows what it works on: the items of its input slots ride the
   rails to the mold, and the result grows there and leaves it as the recipe is
   done.
@@ -296,6 +335,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   before.
 
 ### Changed
+
+- The energy bar of the machines, the generators and the Energy Cell is the same thin
+  bar, with the numbers written under it.
+- The panels of the generators put the slot, the fuel gauges, the energy bar and the
+  upgrades in one row.
+- The Nexus counts the machines of Nexus among the machines connected.
 
 - A terminal keeps the resources where they are while you hold Shift, so that you can
   take stack after stack of one resource without it moving to its new place in the

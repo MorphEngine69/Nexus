@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:sugar_cane",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "values": [
+    "nexus:cobalt_ore",
+    "nexus:deepslate_cobalt_ore",
+    "nexus:cobalt_block",
+    "nexus:mithril_ore",
+    "nexus:deepslate_mithril_ore",
+    "nexus:mithril_block",
+    "nexus:nexus_ore",
+    "nexus:deepslate_nexus_ore"
+  ]
+}

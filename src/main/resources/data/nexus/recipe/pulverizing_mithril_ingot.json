@@ -1,0 +1,7 @@
+{
+  "type": "nexus:pulverizing",
+  "ingredient": "nexus:mithril_ingot",
+  "result": {
+    "id": "nexus:mithril_dust"
+  }
+}

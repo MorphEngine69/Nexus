@@ -1,0 +1,6 @@
+{
+  "type": "nexus:extracting",
+  "ingredient": "nexus:biomass",
+  "fluid": "nexus:biofuel",
+  "amount": 80
+}

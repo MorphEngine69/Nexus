@@ -4,6 +4,8 @@ import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.machine.MachineRecipes;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Actor;
+import com.morphengine.nexus.energy.BufferUpgrades;
+import com.morphengine.nexus.energy.EfficiencyUpgrades;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.transport.SideConfig;
 import com.morphengine.nexus.transport.SideMode;
@@ -27,6 +29,8 @@ public final class Machine {
     private final List<MachineLine> lines = new ArrayList<>();
     private MachineTier tier;
     private int speedUpgrades;
+    private int efficiencyUpgrades;
+    private int bufferUpgrades;
     private SideConfig<MachineSide> sides = MachineSides.defaults();
     private MachineActivity activity = MachineActivity.IDLE;
 
@@ -67,8 +71,8 @@ public final class Machine {
             throw new IllegalArgumentException("tier " + higher.rank() + " is not above tier " + tier.rank());
         }
         inventory.grow(shape.linesOf(higher));
-        energy.resize(higher.bufferCapacity(), higher.maxInsert(), higher.bufferCapacity());
         tier = higher;
+        resizeBuffer();
         addLines();
     }
 
@@ -110,6 +114,44 @@ public final class Machine {
         return MachineSpeed.percent(tier, speedUpgrades);
     }
 
+    public int efficiencyUpgrades() {
+        return efficiencyUpgrades;
+    }
+
+    /**
+     * @param count Efficiency Upgrades in the machine, from zero to {@link EfficiencyUpgrades#MAX_UPGRADES}
+     */
+    public void setEfficiencyUpgrades(final int count) {
+        EfficiencyUpgrades.costPercent(count);
+        efficiencyUpgrades = count;
+    }
+
+    public int bufferUpgrades() {
+        return bufferUpgrades;
+    }
+
+    /**
+     * Gives the buffer the size that the Buffer Upgrades make it; what it holds stays, up to the new size.
+     *
+     * @param count Buffer Upgrades in the machine, from zero to {@link BufferUpgrades#MAX_UPGRADES}
+     */
+    public void setBufferUpgrades(final int count) {
+        BufferUpgrades.scaled(0, count);
+        bufferUpgrades = count;
+        resizeBuffer();
+    }
+
+    /**
+     * @return FE the buffer holds, and millibuckets the tank of a fluid machine holds, with the Buffer Upgrades
+     */
+    public long bufferCapacity() {
+        return BufferUpgrades.scaled(tier.bufferCapacity(), bufferUpgrades);
+    }
+
+    private void resizeBuffer() {
+        energy.resize(bufferCapacity(), tier.maxInsert(), bufferCapacity());
+    }
+
     /**
      * Works for one game tick: every line does what it can with the FE in the buffer, one after another.
      *
@@ -117,9 +159,10 @@ public final class Machine {
      */
     public MachineActivity tick() {
         final int speed = speedPercent();
+        final int cost = EfficiencyUpgrades.costPercent(efficiencyUpgrades);
         MachineActivity result = MachineActivity.IDLE;
         for (MachineLine line : lines) {
-            result = result.or(line.tick(energy, speed));
+            result = result.or(line.tick(energy, speed, cost));
         }
         activity = result;
         return result;
