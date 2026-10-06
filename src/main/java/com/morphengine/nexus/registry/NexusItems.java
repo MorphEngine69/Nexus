@@ -67,6 +67,8 @@ public final class NexusItems {
 
     public static final DeferredItem<DeviceBlockItem> CRAFTING_TERMINAL = panelItem(NexusBlocks.CRAFTING_TERMINAL);
 
+    public static final DeferredItem<DeviceBlockItem> EXTERNAL_VAULT = deviceItem(NexusBlocks.EXTERNAL_VAULT);
+
     public static final DeferredItem<DeviceBlockItem> PULLER = deviceItem(NexusBlocks.PULLER);
 
     public static final DeferredItem<DeviceBlockItem> PUSHER = deviceItem(NexusBlocks.PUSHER);

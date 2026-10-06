@@ -507,5 +507,10 @@
   "item.nexus.efficiency_upgrade": "Улучшение «Эффективность»",
   "item.nexus.buffer_upgrade": "Улучшение «Буфер»",
   "tooltip.nexus.upgrade.efficiency": "Машины тратят меньше FE на работу, генераторы получают больше FE из того же топлива, Puller, Pusher, Placer и Remover переносят вдвое больше за раз (Stack Upgrade переносит ещё больше). Одно на устройство.",
-  "tooltip.nexus.upgrade.buffer": "Удваивает энергетический буфер машины или генератора и бак Extractor или жидкостного генератора. Одно на устройство."
+  "tooltip.nexus.upgrade.buffer": "Удваивает энергетический буфер машины или генератора и бак Extractor или жидкостного генератора. Одно на устройство.",
+  "block.nexus.external_vault": "Внешнее хранилище",
+  "gui.nexus.external.access.read_write": "Сеть кладёт и берёт",
+  "gui.nexus.external.access.read_write.hint": "Сеть видит содержимое блока, забирает его и кладёт в него ресурсы.",
+  "gui.nexus.external.access.read_only": "Сеть только берёт",
+  "gui.nexus.external.access.read_only.hint": "Сеть видит содержимое блока и забирает его, но ничего в него не кладёт."
 }

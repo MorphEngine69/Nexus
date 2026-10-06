@@ -87,6 +87,7 @@ public final class NexusCreativeTabs {
 
     private static void storage(final CreativeModeTab.Output output) {
         output.accept(NexusItems.STORAGE_VAULT.get());
+        output.accept(NexusItems.EXTERNAL_VAULT.get());
         for (Map<CellTier, DeferredItem<VaultCellItem>> tiers : NexusItems.VAULT_CELLS.values()) {
             for (DeferredItem<VaultCellItem> cell : tiers.values()) {
                 output.accept(cell.get());

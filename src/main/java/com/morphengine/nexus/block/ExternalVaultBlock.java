@@ -1,11 +1,9 @@
 package com.morphengine.nexus.block;
 
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.api.network.DeviceRole;
-import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
+import com.morphengine.nexus.block.entity.ExternalVaultBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
-import com.morphengine.nexus.transfer.TransferKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -24,45 +22,32 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
-
 /**
- * A Puller or Pusher: a head on the face that touches the block it works with,
- * and a cable arm reaching out to every network block on its other sides, lit
- * while the network has energy. It
- * stands on its own, without a cable, and joins the network once one reaches
- * it. Placed against a block, it faces that block.
+ * External Vault: a head on the face that touches a chest, a drawer or any other block that holds items or fluids,
+ * which the network then uses as storage of its own, and a cable arm reaching out to every network block on its
+ * other sides, lit while the network has energy. It stands on its own, without a cable, and joins the network once
+ * one reaches it. Placed against a block, it faces that block.
  */
-public final class TransferDeviceBlock extends NetworkDeviceBlock implements Turnable {
+public final class ExternalVaultBlock extends NetworkDeviceBlock implements Turnable {
 
-    public static final MapCodec<TransferDeviceBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    TransferKind.CODEC.fieldOf("kind").forGetter(TransferDeviceBlock::kind),
-                    propertiesCodec())
-            .apply(instance, TransferDeviceBlock::new));
+    public static final MapCodec<ExternalVaultBlock> CODEC = simpleCodec(ExternalVaultBlock::new);
 
-    /** The face that touches the block the device works with; it takes no cable. */
+    /** The face that touches the block the vault works with; it takes no cable. */
     public static final EnumProperty<Direction> FACING = DirectionalBlock.FACING;
     /** The network has energy: the cable arms glow. Set only by the server. */
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
-    private final TransferKind kind;
-
-    public TransferDeviceBlock(final TransferKind kind, final BlockBehaviour.Properties properties) {
+    public ExternalVaultBlock(final BlockBehaviour.Properties properties) {
         super(properties);
-        this.kind = kind;
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(POWERED, false));
     }
 
-    public TransferKind kind() {
-        return kind;
-    }
-
     @Override
-    protected MapCodec<TransferDeviceBlock> codec() {
+    protected MapCodec<ExternalVaultBlock> codec() {
         return CODEC;
     }
 
@@ -79,7 +64,7 @@ public final class TransferDeviceBlock extends NetworkDeviceBlock implements Tur
 
     @Override
     public DeviceRole role() {
-        return kind.role();
+        return DeviceRole.STORAGE;
     }
 
     @Override
@@ -99,16 +84,6 @@ public final class TransferDeviceBlock extends NetworkDeviceBlock implements Tur
     }
 
     @Override
-    protected void neighborChanged(
-            final BlockState state, final Level level, final BlockPos pos, final Block block,
-            final @Nullable Orientation orientation, final boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TransferDeviceBlockEntity device) {
-            device.receiveSignal(level.hasNeighborSignal(pos));
-        }
-    }
-
-    @Override
     public EnumProperty<Direction> facingProperty() {
         return FACING;
     }
@@ -125,7 +100,7 @@ public final class TransferDeviceBlock extends NetworkDeviceBlock implements Tur
 
     @Override
     public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
-        return new TransferDeviceBlockEntity(pos, state);
+        return new ExternalVaultBlockEntity(pos, state);
     }
 
     @Override
@@ -133,7 +108,7 @@ public final class TransferDeviceBlock extends NetworkDeviceBlock implements Tur
             final Level level, final BlockState state, final BlockEntityType<T> type) {
         return level.isClientSide()
                 ? null
-                : createTickerHelper(type, NexusBlockEntityTypes.TRANSFER_DEVICE.get(),
-                        TransferDeviceBlockEntity::serverTick);
+                : createTickerHelper(type, NexusBlockEntityTypes.EXTERNAL_VAULT.get(),
+                        ExternalVaultBlockEntity::serverTick);
     }
 }

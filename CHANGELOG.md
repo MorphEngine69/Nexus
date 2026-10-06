@@ -36,6 +36,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   steam at work, and its own particles.
   A generator has a panel of its sides, like a machine's: each side takes fuel in (items and
   fluids), gives FE out, does both or is closed. Pipes and hoppers can put coal in.
+- External Vault: put it against a chest, a drawer, a backpack or any other block that holds items or
+  fluids, and the network uses that block as storage of its own. Its items show in the terminals, the
+  Puller, the Pusher and the Assembler take from it, an order for crafting counts what lies in it, and the
+  network puts resources into it as it does into a cell. Set its priority (what ranks higher is filled
+  first and emptied last, so the chest can come before the cells or after them), a filter of the
+  items and fluids it may use, as a whitelist or a blacklist, and whether the network may also put
+  resources in or only take them out. Changes made to the block by hoppers or by hand reach the
+  network within a second. Devices and crafting move only so much through it in a tick, which up to four Speed
+  Upgrades raise; a player at a terminal is not held back. Four upgrade slots also take a Chunk Loader Upgrade,
+  which keeps the chunk loaded so the block is read with nobody near, and up to three Capacity Upgrades, nine
+  more filter slots each. It does not attach to a block of a network.
 - Efficiency and Buffer Upgrades, one to a device. Efficiency makes a machine pay less
   FE, a generator get more FE from its fuel, and a Puller, Pusher, Placer or Remover move
   twice as much at a time. Buffer doubles the energy buffer of a machine or generator

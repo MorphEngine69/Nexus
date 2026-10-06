@@ -507,5 +507,10 @@
   "item.nexus.efficiency_upgrade": "Amélioration d'efficacité",
   "item.nexus.buffer_upgrade": "Amélioration de tampon",
   "tooltip.nexus.upgrade.efficiency": "Les machines dépensent moins de FE pour leur travail, les générateurs tirent plus de FE du même combustible, et Puller, Pusher, Placer et Remover déplacent deux fois plus à la fois (l'amélioration de pile en déplace plus). Une par appareil.",
-  "tooltip.nexus.upgrade.buffer": "Double le tampon d'énergie d'une machine ou d'un générateur, et le réservoir d'un Extractor ou d'un générateur à fluide. Une par appareil."
+  "tooltip.nexus.upgrade.buffer": "Double le tampon d'énergie d'une machine ou d'un générateur, et le réservoir d'un Extractor ou d'un générateur à fluide. Une par appareil.",
+  "block.nexus.external_vault": "Coffre externe",
+  "gui.nexus.external.access.read_write": "Le réseau stocke et prend",
+  "gui.nexus.external.access.read_write.hint": "Le réseau affiche le contenu du bloc, le retire et y place des ressources.",
+  "gui.nexus.external.access.read_only": "Le réseau prend seulement",
+  "gui.nexus.external.access.read_only.hint": "Le réseau affiche le contenu du bloc et le retire, mais n'y place jamais rien."
 }

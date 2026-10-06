@@ -3,6 +3,7 @@ package com.morphengine.nexus.client.integration.jei;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.client.integration.MachineRecipes;
 import com.morphengine.nexus.client.screen.AssemblerScreen;
+import com.morphengine.nexus.client.screen.ExternalVaultScreen;
 import com.morphengine.nexus.client.screen.TerminalScreen;
 import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import com.morphengine.nexus.client.screen.VaultCellScreen;
@@ -114,6 +115,7 @@ public final class NexusJeiPlugin implements IModPlugin {
         });
         registration.addGhostIngredientHandler(VaultCellScreen.class, new FilterGhostHandler<>());
         registration.addGhostIngredientHandler(TransferDeviceScreen.class, new FilterGhostHandler<>());
+        registration.addGhostIngredientHandler(ExternalVaultScreen.class, new FilterGhostHandler<>());
         registration.addGhostIngredientHandler(terminalScreens(), new FilterGhostHandler<>());
         registration.addGuiContainerHandler(AssemblerScreen.class, new IGuiContainerHandler<>() {
             @Override

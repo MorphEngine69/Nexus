@@ -6,6 +6,7 @@ import com.morphengine.nexus.block.CableBlock;
 import com.morphengine.nexus.block.CraftingMonitorBlock;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
+import com.morphengine.nexus.block.ExternalVaultBlock;
 import com.morphengine.nexus.block.GeneratorBlock;
 import com.morphengine.nexus.block.MachineBlock;
 import com.morphengine.nexus.block.NexusBlock;
@@ -97,6 +98,11 @@ public final class NexusBlocks {
     public static final DeferredBlock<TransferDeviceBlock> REMOVER = BLOCKS.registerBlock(
             "remover",
             properties -> new TransferDeviceBlock(TransferKind.REMOVER, properties),
+            NexusBlocks::device);
+
+    public static final DeferredBlock<ExternalVaultBlock> EXTERNAL_VAULT = BLOCKS.registerBlock(
+            "external_vault",
+            ExternalVaultBlock::new,
             NexusBlocks::device);
 
     public static final DeferredBlock<AssemblerBlock> ASSEMBLER = BLOCKS.registerBlock(

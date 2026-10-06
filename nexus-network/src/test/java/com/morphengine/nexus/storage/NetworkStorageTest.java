@@ -396,4 +396,34 @@ class NetworkStorageTest {
     private static CellStorage cellWith(final ResourceKey resource, final long amount) {
         return new CellStorage(ITEMS, new CellSpec(1024, 8, 4, 8), List.of(new ResourceAmount(resource, amount)));
     }
+
+    @Test
+    void aChangeInsideASourceIsCountedAndHeard() {
+        final CellStorage chest = cellWith(STONE, 10);
+        network.addSource(chest, 0);
+        network.addListener(listener);
+
+        assertThat(network.sourceChanged(chest, STONE, 5)).isTrue();
+        assertThat(network.sourceChanged(chest, STONE, -3)).isTrue();
+
+        assertThat(network.amountOf(STONE)).isEqualTo(12);
+        assertThat(heard).containsExactly(STONE + "=15", STONE + "=12");
+    }
+
+    @Test
+    void aChangeInsideSomethingThatIsNotASourceChangesNothing() {
+        assertThat(network.sourceChanged(cellWith(STONE, 10), STONE, 5)).isFalse();
+
+        assertThat(network.amountOf(STONE)).isZero();
+    }
+
+    @Test
+    void aLossLargerThanTheTotalsIsCutDownToThem() {
+        final CellStorage chest = cellWith(STONE, 10);
+        network.addSource(chest, 0);
+
+        network.sourceChanged(chest, STONE, -50);
+
+        assertThat(network.amountOf(STONE)).isZero();
+    }
 }

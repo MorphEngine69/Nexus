@@ -507,5 +507,10 @@
   "item.nexus.efficiency_upgrade": "Efficiency Upgrade",
   "item.nexus.buffer_upgrade": "Buffer Upgrade",
   "tooltip.nexus.upgrade.efficiency": "Machines pay less FE for their work, generators get more FE out of the same fuel, Pullers, Pushers, Placers and Removers move twice as much at a time (a Stack Upgrade moves more). One per device.",
-  "tooltip.nexus.upgrade.buffer": "Doubles the energy buffer of a machine or generator, and the tank of an Extractor or a fluid generator. One per device."
+  "tooltip.nexus.upgrade.buffer": "Doubles the energy buffer of a machine or generator, and the tank of an Extractor or a fluid generator. One per device.",
+  "block.nexus.external_vault": "External Vault",
+  "gui.nexus.external.access.read_write": "Network stores and takes",
+  "gui.nexus.external.access.read_write.hint": "The network lists what the block holds, takes it out and puts resources in.",
+  "gui.nexus.external.access.read_only": "Network only takes",
+  "gui.nexus.external.access.read_only.hint": "The network lists what the block holds and takes it out, but never puts anything in."
 }

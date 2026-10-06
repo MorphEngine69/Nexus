@@ -19,7 +19,10 @@ public enum FilterKinds {
     /** Lists nothing: a filter that is fixed, such as that of a device moving energy. */
     NONE(false, false),
     ITEMS(true, false),
-    FLUIDS(false, true);
+    FLUIDS(false, true),
+
+    /** Lists items and fluids both, as a block that holds both does. */
+    ITEMS_AND_FLUIDS(true, true);
 
     private final boolean listsItems;
     private final boolean listsFluids;
