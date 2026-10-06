@@ -1,0 +1,8 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "nexus:raw_cobalt",
+  "result": {
+    "id": "nexus:cobalt_dust",
+    "count": 2
+  }
+}

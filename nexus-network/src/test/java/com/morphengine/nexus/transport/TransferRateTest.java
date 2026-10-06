@@ -34,6 +34,12 @@ class TransferRateTest {
     }
 
     @Test
+    void efficiencyUpgradeMovesMoreButLessThanAStack() {
+        assertThat(TransferRate.of(0, 0, 1).multiplier()).isEqualTo(TransferRate.EFFICIENCY_MULTIPLIER);
+        assertThat(TransferRate.of(0, 1, 1).multiplier()).isEqualTo(TransferRate.STACK_MULTIPLIER);
+    }
+
+    @Test
     void speedAndStackCombine() {
         assertThat(TransferRate.of(2, 1)).isEqualTo(new TransferRate(6, 64));
     }

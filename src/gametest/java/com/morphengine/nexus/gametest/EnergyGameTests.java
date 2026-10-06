@@ -9,11 +9,12 @@ import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
-import com.morphengine.nexus.block.entity.CoalGeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
+import com.morphengine.nexus.block.entity.GeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
+import com.morphengine.nexus.generator.GeneratorKind;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.level.NetworkComponentTypes;
@@ -239,9 +240,9 @@ public final class EnergyGameTests {
     }
 
     private static void fasterGenerator(final GameTestHelper helper) {
-        place(helper, NEXUS, NexusBlocks.COAL_GENERATOR.get().defaultBlockState());
-        final CoalGeneratorBlockEntity generator = helper.getBlockEntity(NEXUS, CoalGeneratorBlockEntity.class);
-        generator.fuel().setItem(0, new ItemStack(Items.COAL));
+        place(helper, NEXUS, NexusBlocks.GENERATORS.get(GeneratorKind.COAL).get().defaultBlockState());
+        final GeneratorBlockEntity generator = helper.getBlockEntity(NEXUS, GeneratorBlockEntity.class);
+        generator.input().setItem(0, new ItemStack(Items.COAL));
         generator.upgrades().setItem(0, new ItemStack(NexusItems.SPEED_UPGRADE.get(), 2));
 
         helper.startSequence()

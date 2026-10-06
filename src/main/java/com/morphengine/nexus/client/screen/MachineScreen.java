@@ -8,6 +8,7 @@ import com.morphengine.nexus.menu.MachineView;
 import com.morphengine.nexus.menu.NetworkBadge;
 import com.morphengine.nexus.menu.TankView;
 import com.morphengine.nexus.processing.ItemStackSlots;
+import com.morphengine.nexus.resource.FluidKey;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -27,7 +28,6 @@ import java.util.Locale;
 public final class MachineScreen extends PanelScreen<MachineMenu> {
 
     private static final int BAR_TOP = 32;
-    private static final int BAR_HEIGHT = 8;
     private static final int LABEL_GAP = 11;
     private static final int PERCENT = 100;
     private static final int ARROW_LENGTH = 22;
@@ -37,6 +37,9 @@ public final class MachineScreen extends PanelScreen<MachineMenu> {
     private static final int STATUS_GAP = 3;
     private static final int TANK_WIDTH = 120;
     private static final int TANK_HEIGHT = 10;
+    /** A tank with anything in it shows at least this much, however big the tank is. */
+    private static final int MIN_FILL = 3;
+    private static final int FLUID_TILE = 16;
 
     private final float[] shown = new float[ItemStackSlots.MAX_LINES];
     private InputModeButton modeButton;
@@ -113,14 +116,10 @@ public final class MachineScreen extends PanelScreen<MachineMenu> {
         final int x = leftPos + PanelStyle.PADDING;
         final int y = topPos + BAR_TOP;
         final int width = MachineMenu.IMAGE_WIDTH - 2 * PanelStyle.PADDING;
-        graphics.fill(x, y, x + width, y + BAR_HEIGHT, style.track());
-        final int filled = view.capacity() > 0 ? (int) ((width - 2) * view.stored() / view.capacity()) : 0;
-        if (filled > 0) {
-            graphics.fill(x + 1, y + 1, x + 1 + filled, y + BAR_HEIGHT - 1, style.accent());
-        }
-        graphics.outline(x, y, width, BAR_HEIGHT, style.border());
+        final ChargeBar bar = ChargeBar.at(x, y, width);
+        bar.draw(graphics, style, view.stored(), view.capacity());
         final String label = EnergyFormat.amount(view.stored()) + " / " + EnergyFormat.amount(view.capacity()) + " FE";
-        graphics.text(font, label, x, y + BAR_HEIGHT + STATUS_GAP, PanelStyle.TEXT_LIGHT, false);
+        bar.label(graphics, font, label);
     }
 
     /**
@@ -151,9 +150,10 @@ public final class MachineScreen extends PanelScreen<MachineMenu> {
         final int x = leftPos + MachineMenu.outputX(0, 1, 1) - (TANK_WIDTH - PanelStyle.SLOT_SIZE) / 2;
         final int y = topPos + MachineMenu.LINES_TOP + MachineMenu.OUTPUT_OFFSET;
         graphics.fill(x, y, x + TANK_WIDTH, y + TANK_HEIGHT, style.track());
-        final int filled = tank.capacity() > 0 ? (int) ((TANK_WIDTH - 2) * tank.amount() / tank.capacity()) : 0;
-        if (filled > 0) {
-            graphics.fill(x + 1, y + 1, x + 1 + filled, y + TANK_HEIGHT - 1, style.accent());
+        final int filled = tank.amount() > 0
+                ? Math.max(MIN_FILL, (int) ((TANK_WIDTH - 2) * tank.amount() / tank.capacity())) : 0;
+        if (filled > 0 && tank.fluid() != null) {
+            drawFluid(graphics, tank.fluid(), x + 1, y + 1, filled, TANK_HEIGHT - 2);
         }
         graphics.outline(x, y, TANK_WIDTH, TANK_HEIGHT, style.border());
         final Component fluid = tank.fluid() != null ? tank.fluid().name()
@@ -164,8 +164,22 @@ public final class MachineScreen extends PanelScreen<MachineMenu> {
                 PanelStyle.TEXT_LIGHT, false);
     }
 
+    /**
+     * The still texture of the fluid, tiled over the filled part of the bar, as the tanks of the generators show it.
+     */
+    private static void drawFluid(
+            final GuiGraphicsExtractor graphics, final FluidKey fluid, final int left, final int top, final int width,
+            final int height) {
+        final ResourceIcon icon = ResourceRenderers.icon(fluid);
+        graphics.enableScissor(left, top, left + width, top + height);
+        for (int tileX = left; tileX < left + width; tileX += FLUID_TILE) {
+            icon.draw(graphics, tileX, top + (height - FLUID_TILE) / 2);
+        }
+        graphics.disableScissor();
+    }
+
     private void drawStatus(final GuiGraphicsExtractor graphics, final MachineView view) {
-        final int y = topPos + BAR_TOP + BAR_HEIGHT + STATUS_GAP;
+        final int y = topPos + BAR_TOP + ChargeBar.HEIGHT + STATUS_GAP;
         final Component status = Component.translatable("gui.nexus.machine.status."
                 + view.activity().name().toLowerCase(Locale.ROOT));
         graphics.text(font, status, leftPos + PanelStyle.PADDING, y + font.lineHeight + STATUS_GAP,

@@ -1,0 +1,8 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:raw_iron",
+  "result": {
+    "id": "nexus:iron_dust",
+    "count": 2
+  }
+}

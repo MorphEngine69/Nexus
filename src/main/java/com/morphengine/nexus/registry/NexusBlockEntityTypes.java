@@ -2,9 +2,9 @@ package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.entity.AssemblerBlockEntity;
-import com.morphengine.nexus.block.entity.CoalGeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
+import com.morphengine.nexus.block.entity.GeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.MachineBlockEntity;
 import com.morphengine.nexus.block.entity.NetworkReceiverBlockEntity;
 import com.morphengine.nexus.block.entity.NetworkTransmitterBlockEntity;
@@ -45,9 +45,14 @@ public final class NexusBlockEntityTypes {
                     .flatMap(List::stream).<Block>map(DeferredBlock::get)
                     .collect(Collectors.toUnmodifiableSet())));
 
-    public static final Supplier<BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
-            BLOCK_ENTITY_TYPES.register("coal_generator", () -> new BlockEntityType<>(
-                    CoalGeneratorBlockEntity::new, Set.of(NexusBlocks.COAL_GENERATOR.get())));
+    /**
+     * Every generator of every kind. Its id is that of the first generator, so that the Coal Generators in saved
+     * worlds keep their fuel and energy.
+     */
+    public static final Supplier<BlockEntityType<GeneratorBlockEntity>> GENERATOR = BLOCK_ENTITY_TYPES.register(
+            "coal_generator",
+            () -> new BlockEntityType<>(GeneratorBlockEntity::new, NexusBlocks.GENERATORS.values().stream()
+                    .<Block>map(DeferredBlock::get).collect(Collectors.toUnmodifiableSet())));
 
     public static final Supplier<BlockEntityType<StorageVaultBlockEntity>> STORAGE_VAULT =
             BLOCK_ENTITY_TYPES.register("storage_vault", () -> new BlockEntityType<>(

@@ -1,0 +1,7 @@
+{
+  "type": "nexus:compressing",
+  "ingredient": "nexus:mithril_ingot",
+  "result": {
+    "id": "nexus:mithril_plate"
+  }
+}

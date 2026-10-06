@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "#minecraft:flowers",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

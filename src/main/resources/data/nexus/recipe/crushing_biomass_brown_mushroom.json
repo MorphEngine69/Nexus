@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:brown_mushroom",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

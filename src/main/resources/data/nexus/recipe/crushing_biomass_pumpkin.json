@@ -1,0 +1,8 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:pumpkin",
+  "result": {
+    "id": "nexus:biomass",
+    "count": 2
+  }
+}

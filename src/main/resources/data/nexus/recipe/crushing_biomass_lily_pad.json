@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:lily_pad",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

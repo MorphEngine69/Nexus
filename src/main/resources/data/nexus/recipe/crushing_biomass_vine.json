@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:vine",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

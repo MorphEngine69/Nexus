@@ -1,0 +1,8 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:raw_gold",
+  "result": {
+    "id": "nexus:gold_dust",
+    "count": 2
+  }
+}

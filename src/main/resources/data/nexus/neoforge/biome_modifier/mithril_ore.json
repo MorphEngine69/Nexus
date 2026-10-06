@@ -1,0 +1,11 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": [
+    "nexus:ore_mithril",
+    "nexus:ore_mithril_medium",
+    "nexus:ore_mithril_large",
+    "nexus:ore_mithril_buried"
+  ],
+  "step": "underground_ores"
+}

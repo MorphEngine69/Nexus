@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "#minecraft:villager_plantable_seeds",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

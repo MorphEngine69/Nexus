@@ -5,9 +5,9 @@ import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.Renamable;
-import com.morphengine.nexus.menu.CoalGeneratorMenu;
 import com.morphengine.nexus.menu.DevicePanel;
 import com.morphengine.nexus.menu.EnergyCellMenu;
+import com.morphengine.nexus.menu.GeneratorMenu;
 import com.morphengine.nexus.menu.MachineMenu;
 import com.morphengine.nexus.menu.NexusMenu;
 import net.minecraft.core.BlockPos;
@@ -45,7 +45,7 @@ public final class NexusPayloadHandlers {
                 NexusPayloadHandlers::handleStatistics);
         registrar.playToClient(
                 EnergyCellViewPayload.TYPE, EnergyCellViewPayload.STREAM_CODEC, NexusPayloadHandlers::handleCellView);
-        registrar.playToClient(CoalGeneratorViewPayload.TYPE, CoalGeneratorViewPayload.STREAM_CODEC,
+        registrar.playToClient(GeneratorViewPayload.TYPE, GeneratorViewPayload.STREAM_CODEC,
                 NexusPayloadHandlers::handleGeneratorView);
         registrar.playToClient(MachineViewPayload.TYPE, MachineViewPayload.STREAM_CODEC,
                 NexusPayloadHandlers::handleMachineView);
@@ -126,9 +126,9 @@ public final class NexusPayloadHandlers {
         });
     }
 
-    private static void handleGeneratorView(final CoalGeneratorViewPayload payload, final IPayloadContext context) {
+    private static void handleGeneratorView(final GeneratorViewPayload payload, final IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (context.player().containerMenu instanceof CoalGeneratorMenu menu
+            if (context.player().containerMenu instanceof GeneratorMenu menu
                     && menu.containerId == payload.containerId()) {
                 menu.acceptView(payload.view());
             }

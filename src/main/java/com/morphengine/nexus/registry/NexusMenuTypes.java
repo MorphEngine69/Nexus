@@ -4,10 +4,10 @@ import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.menu.AssemblerMenu;
 import com.morphengine.nexus.menu.BlockTerminalBinding;
 import com.morphengine.nexus.menu.BlueprintTerminalMenu;
-import com.morphengine.nexus.menu.CoalGeneratorMenu;
 import com.morphengine.nexus.menu.CraftingMonitorMenu;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.EnergyCellMenu;
+import com.morphengine.nexus.menu.GeneratorMenu;
 import com.morphengine.nexus.menu.MachineMenu;
 import com.morphengine.nexus.menu.NetworkReceiverMenu;
 import com.morphengine.nexus.menu.NetworkTransmitterMenu;
@@ -53,11 +53,11 @@ public final class NexusMenuTypes {
                     (containerId, inventory, buffer) ->
                             new MachineMenu(containerId, inventory, buffer.readBlockPos())));
 
-    public static final Supplier<MenuType<CoalGeneratorMenu>> COAL_GENERATOR = MENU_TYPES.register(
-            "coal_generator",
+    public static final Supplier<MenuType<GeneratorMenu>> GENERATOR = MENU_TYPES.register(
+            "generator",
             () -> IMenuTypeExtension.create(
                     (containerId, inventory, buffer) ->
-                            new CoalGeneratorMenu(containerId, inventory, buffer.readBlockPos())));
+                            new GeneratorMenu(containerId, inventory, buffer.readBlockPos())));
 
     public static final Supplier<MenuType<StorageVaultMenu>> STORAGE_VAULT = MENU_TYPES.register(
             "storage_vault",

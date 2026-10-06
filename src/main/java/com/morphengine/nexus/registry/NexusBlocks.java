@@ -3,10 +3,10 @@ package com.morphengine.nexus.registry;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.AssemblerBlock;
 import com.morphengine.nexus.block.CableBlock;
-import com.morphengine.nexus.block.CoalGeneratorBlock;
 import com.morphengine.nexus.block.CraftingMonitorBlock;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
+import com.morphengine.nexus.block.GeneratorBlock;
 import com.morphengine.nexus.block.MachineBlock;
 import com.morphengine.nexus.block.NexusBlock;
 import com.morphengine.nexus.block.StorageVaultBlock;
@@ -14,6 +14,7 @@ import com.morphengine.nexus.block.TerminalBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
 import com.morphengine.nexus.block.WirelessBlock;
 import com.morphengine.nexus.block.WirelessKind;
+import com.morphengine.nexus.generator.GeneratorKind;
 import com.morphengine.nexus.machine.MachineTier;
 import com.morphengine.nexus.processing.MachineKind;
 import com.morphengine.nexus.processing.MachinePhase;
@@ -57,10 +58,8 @@ public final class NexusBlocks {
     public static final List<DeferredBlock<EnergyCellBlock>> ENERGY_CELLS = List.of(
             BASIC_ENERGY_CELL, ADVANCED_ENERGY_CELL, SUPERIOR_ENERGY_CELL, QUANTUM_ENERGY_CELL);
 
-    public static final DeferredBlock<CoalGeneratorBlock> COAL_GENERATOR = BLOCKS.registerBlock(
-            "coal_generator",
-            CoalGeneratorBlock::new,
-            NexusBlocks::generator);
+    /** The generators of every kind. */
+    public static final Map<GeneratorKind, DeferredBlock<GeneratorBlock>> GENERATORS = registerGenerators();
 
     /** The machines of every kind, the lowest tier first. */
     public static final Map<MachineKind, List<DeferredBlock<MachineBlock>>> MACHINES = registerMachines();
@@ -135,7 +134,6 @@ public final class NexusBlocks {
     private static final float DEVICE_HARDNESS = 3.5F;
     private static final float DEVICE_BLAST_RESISTANCE = 6.0F;
     private static final float CABLE_HARDNESS = 0.35F;
-    private static final int LIT_GENERATOR_LIGHT = 13;
     private static final int ACTIVE_MACHINE_LIGHT = 9;
 
     private NexusBlocks() {
@@ -195,7 +193,21 @@ public final class NexusBlocks {
                 state -> state.getValue(MachineBlock.PHASE) == MachinePhase.ACTIVE ? ACTIVE_MACHINE_LIGHT : 0);
     }
 
-    private static BlockBehaviour.Properties generator(final BlockBehaviour.Properties properties) {
-        return device(properties).lightLevel(state -> state.getValue(CoalGeneratorBlock.LIT) ? LIT_GENERATOR_LIGHT : 0);
+    /**
+     * The light is worked out from the kind, not from the block: the block does not exist yet when its states are made.
+     */
+    private static BlockBehaviour.Properties generator(
+            final GeneratorKind kind, final BlockBehaviour.Properties properties) {
+        return device(properties).lightLevel(
+                state -> state.getValue(GeneratorBlock.PHASE) == MachinePhase.ACTIVE ? kind.workLight() : 0);
+    }
+
+    private static Map<GeneratorKind, DeferredBlock<GeneratorBlock>> registerGenerators() {
+        final Map<GeneratorKind, DeferredBlock<GeneratorBlock>> generators = new EnumMap<>(GeneratorKind.class);
+        for (GeneratorKind kind : GeneratorKind.values()) {
+            generators.put(kind, BLOCKS.registerBlock(kind.id(),
+                    properties -> new GeneratorBlock(kind, properties), properties -> generator(kind, properties)));
+        }
+        return Collections.unmodifiableMap(generators);
     }
 }

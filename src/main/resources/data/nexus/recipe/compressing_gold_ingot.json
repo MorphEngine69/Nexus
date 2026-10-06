@@ -1,0 +1,7 @@
+{
+  "type": "nexus:compressing",
+  "ingredient": "minecraft:gold_ingot",
+  "result": {
+    "id": "nexus:gold_plate"
+  }
+}

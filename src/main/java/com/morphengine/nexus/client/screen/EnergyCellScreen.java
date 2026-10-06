@@ -19,9 +19,7 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
     private static final int IMAGE_WIDTH = 236;
     private static final int IMAGE_HEIGHT = EnergyCellMenu.INVENTORY_TOP + 84;
     private static final int LABEL_GAP = 11;
-    private static final int BAR_HEIGHT = 16;
     private static final int GAP = 8;
-    private static final int PERCENT = 100;
     private static final int PRIORITY_TOP = 32;
     private static final int BAR_TOP = 52;
 
@@ -68,10 +66,10 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
         sides.draw(graphics, font, style, getMenu().sideModes(), mouseX, mouseY);
 
         int y = topPos + BAR_TOP;
-        drawChargeBar(graphics, style, view,
-                new PanelBounds(x, y, EnergyCellMenu.UPGRADES_LEFT - PanelStyle.PADDING * 2, BAR_HEIGHT));
+        ChargeBar.at(x, y, EnergyCellMenu.UPGRADES_LEFT - PanelStyle.PADDING * 2)
+                .draw(graphics, style, view.stored(), view.capacity());
 
-        y += BAR_HEIGHT + GAP;
+        y += ChargeBar.HEIGHT + GAP;
         final int textWidth = EnergyCellMenu.UPGRADES_LEFT - PanelStyle.PADDING * 2;
         statLine.begin();
         y += statLine.draw(graphics, font, EnergyFormat.stored(view.stored(), view.capacity()),
@@ -100,22 +98,5 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
         return minecraft != null && (priority.click(minecraft, getMenu().containerId, event.x(), event.y())
                 || sides.click(minecraft, getMenu().containerId, event.x(), event.y(), event.button()))
                 || super.mouseClicked(event, doubleClick);
-    }
-
-    private void drawChargeBar(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final EnergyCellView view,
-            final PanelBounds bar) {
-        graphics.fill(bar.left(), bar.top(), bar.left() + bar.width(), bar.top() + bar.height(), style.track());
-        final int inner = bar.width() - 2;
-        final int filled = view.capacity() > 0 ? (int) (inner * view.stored() / view.capacity()) : 0;
-        if (filled > 0) {
-            graphics.fill(bar.left() + 1, bar.top() + 1, bar.left() + 1 + filled, bar.top() + bar.height() - 1,
-                    style.accent());
-        }
-        graphics.outline(bar.left(), bar.top(), bar.width(), bar.height(), style.border());
-        final long percent = view.capacity() > 0 ? view.stored() * PERCENT / view.capacity() : 0;
-        final String label = percent + "%";
-        graphics.text(font, label, bar.left() + (bar.width() - font.width(label)) / 2,
-                bar.top() + (bar.height() - font.lineHeight) / 2 + 1, PanelStyle.TEXT_LIGHT, true);
     }
 }

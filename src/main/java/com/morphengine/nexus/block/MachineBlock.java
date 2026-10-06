@@ -4,6 +4,7 @@ import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.block.entity.MachineBlockEntity;
 import com.morphengine.nexus.machine.MachineTier;
 import com.morphengine.nexus.processing.MachineKind;
@@ -112,6 +113,11 @@ public final class MachineBlock extends NetworkDeviceBlock implements TieredBloc
     @Override
     protected BlockState orientedFor(final BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    public DeviceRole role() {
+        return DeviceRole.MACHINE;
     }
 
     @Override

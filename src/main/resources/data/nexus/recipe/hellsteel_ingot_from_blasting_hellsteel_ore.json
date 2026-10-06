@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "experience": 2.0,
+  "group": "hellsteel_ingot",
+  "ingredient": "nexus:hellsteel_ore",
+  "result": {
+    "id": "nexus:hellsteel_ingot"
+  }
+}

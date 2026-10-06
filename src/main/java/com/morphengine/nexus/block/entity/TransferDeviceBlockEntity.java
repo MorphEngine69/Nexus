@@ -182,7 +182,8 @@ public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity {
      * whether it may keep stock and order crafts, and the tool it breaks with.
      */
     private void readUpgrades() {
-        rate = TransferRate.of(upgrades.count(UpgradeTypes.SPEED), upgrades.count(UpgradeTypes.STACK));
+        rate = TransferRate.of(upgrades.count(UpgradeTypes.SPEED), upgrades.count(UpgradeTypes.STACK),
+                upgrades.count(UpgradeTypes.EFFICIENCY));
         regulated = upgrades.count(UpgradeTypes.REGULATOR) > 0;
         autocrafts = upgrades.count(UpgradeTypes.AUTOCRAFTING) > 0;
         tool = new HarvestTool(upgrades.count(UpgradeTypes.FORTUNE), upgrades.count(UpgradeTypes.SILK_TOUCH) > 0);

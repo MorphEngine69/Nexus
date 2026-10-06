@@ -1,0 +1,7 @@
+{
+  "type": "nexus:pulverizing",
+  "ingredient": "nexus:steel_ingot",
+  "result": {
+    "id": "nexus:steel_dust"
+  }
+}

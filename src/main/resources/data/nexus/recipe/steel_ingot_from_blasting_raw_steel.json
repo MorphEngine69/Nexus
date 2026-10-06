@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "experience": 0.7,
+  "group": "steel_ingot",
+  "ingredient": "nexus:raw_steel",
+  "result": {
+    "id": "nexus:steel_ingot"
+  }
+}
