@@ -1,0 +1,7 @@
+{
+  "type": "nexus:pulverizing",
+  "ingredient": "minecraft:copper_ingot",
+  "result": {
+    "id": "nexus:copper_dust"
+  }
+}

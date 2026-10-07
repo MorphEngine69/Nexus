@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:antenna",
+    "B": "nexus:aether_ingot",
+    "C": "nexus:machine_casing",
+    "D": "nexus:mithril_ingot"
+  },
+  "pattern": [
+    " A ",
+    "BCB",
+    "DBD"
+  ],
+  "result": {
+    "id": "nexus:nexus_link"
+  }
+}

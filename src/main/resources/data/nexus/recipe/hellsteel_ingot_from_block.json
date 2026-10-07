@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "nexus:hellsteel_block"
+  ],
+  "result": {
+    "id": "nexus:hellsteel_ingot",
+    "count": 9
+  },
+  "group": "hellsteel_ingot"
+}

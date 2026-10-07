@@ -1,0 +1,17 @@
+{
+  "values": [
+    "nexus:steel_ore",
+    "nexus:deepslate_steel_ore",
+    "nexus:steel_block",
+    "nexus:cobalt_ore",
+    "nexus:deepslate_cobalt_ore",
+    "nexus:cobalt_block",
+    "nexus:mithril_ore",
+    "nexus:deepslate_mithril_ore",
+    "nexus:mithril_block",
+    "nexus:hellsteel_ore",
+    "nexus:hellsteel_block",
+    "nexus:nexus_ore",
+    "nexus:deepslate_nexus_ore"
+  ]
+}

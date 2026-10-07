@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:mithril_ingot",
+    "B": "minecraft:string",
+    "C": "minecraft:emerald",
+    "D": "nexus:upgrade_blank"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "ABA"
+  ],
+  "result": {
+    "id": "nexus:silk_touch_upgrade"
+  }
+}

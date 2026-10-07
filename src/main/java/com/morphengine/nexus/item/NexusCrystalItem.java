@@ -1,0 +1,68 @@
+package com.morphengine.nexus.item;
+
+import com.geckolib.animatable.GeoItem;
+import com.geckolib.animatable.client.GeoRenderProvider;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.constant.DataTickets;
+import com.geckolib.renderer.GeoItemRenderer;
+import com.geckolib.util.GeckoLibUtil;
+import com.morphengine.nexus.client.render.CrystalItemRenderer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Set;
+import java.util.function.Consumer;
+
+/**
+ * The Nexus Crystal, drawn from its GeckoLib model: still in a slot of the inventory and in the creative tabs, where
+ * many of them are on screen at once, and slowly turning, with a light glow, in a hand and on the ground.
+ */
+public final class NexusCrystalItem extends Item implements GeoItem {
+
+    private static final RawAnimation STILL = RawAnimation.begin().thenLoop("still");
+    private static final RawAnimation SPIN = RawAnimation.begin().thenLoop("spin");
+    private static final Set<ItemDisplayContext> STILL_IN =
+            Set.of(ItemDisplayContext.GUI, ItemDisplayContext.NONE, ItemDisplayContext.FIXED);
+
+    private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
+
+    public NexusCrystalItem(final Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    public boolean isPerspectiveAware() {
+        return true;
+    }
+
+    @Override
+    public void createGeoRenderer(final Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            private @Nullable CrystalItemRenderer renderer;
+
+            @Override
+            public @Nullable GeoItemRenderer<?> getGeoItemRenderer() {
+                if (renderer == null) {
+                    renderer = new CrystalItemRenderer();
+                }
+                return renderer;
+            }
+        });
+    }
+
+    @Override
+    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>("crystal", state -> state.setAndContinue(
+                STILL_IN.contains(state.getDataOrDefault(DataTickets.ITEM_RENDER_PERSPECTIVE, ItemDisplayContext.NONE))
+                        ? STILL : SPIN)));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return animationCache;
+    }
+}

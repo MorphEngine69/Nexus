@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:cobalt_ingot",
+    "B": "nexus:screen",
+    "C": "nexus:lumen_ingot",
+    "D": "nexus:machine_casing"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "AAA"
+  ],
+  "result": {
+    "id": "nexus:crafting_monitor"
+  }
+}

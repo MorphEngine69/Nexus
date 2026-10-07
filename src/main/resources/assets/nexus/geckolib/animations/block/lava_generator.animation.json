@@ -1,0 +1,26 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "idle": {
+      "loop": true,
+      "animation_length": 1,
+      "bones": {}
+    },
+    "online": {
+      "loop": true,
+      "animation_length": 1,
+      "bones": {}
+    },
+    "active": {
+      "loop": true,
+      "animation_length": 1,
+      "bones": {}
+    },
+    "item": {
+      "loop": true,
+      "animation_length": 1,
+      "bones": {}
+    }
+  },
+  "geckolib_format_version": 2
+}

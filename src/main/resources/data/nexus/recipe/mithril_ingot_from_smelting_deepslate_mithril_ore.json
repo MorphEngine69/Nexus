@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "experience": 1.0,
+  "group": "mithril_ingot",
+  "ingredient": "nexus:deepslate_mithril_ore",
+  "result": {
+    "id": "nexus:mithril_ingot"
+  }
+}

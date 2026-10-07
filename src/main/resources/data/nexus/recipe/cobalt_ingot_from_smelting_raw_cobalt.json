@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "experience": 1.0,
+  "group": "cobalt_ingot",
+  "ingredient": "nexus:raw_cobalt",
+  "result": {
+    "id": "nexus:cobalt_ingot"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": [
+    "nexus:ore_steel_upper",
+    "nexus:ore_steel_middle",
+    "nexus:ore_steel_small"
+  ],
+  "step": "underground_ores"
+}

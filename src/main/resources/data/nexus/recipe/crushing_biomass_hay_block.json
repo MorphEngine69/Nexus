@@ -1,0 +1,8 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:hay_block",
+  "result": {
+    "id": "nexus:biomass",
+    "count": 9
+  }
+}

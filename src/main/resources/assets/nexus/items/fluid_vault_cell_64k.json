@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "nexus:item/fluid_vault_cell_64k"
+  }
+}

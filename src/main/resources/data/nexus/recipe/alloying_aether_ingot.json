@@ -1,0 +1,17 @@
+{
+  "type": "nexus:alloying",
+  "ingredients": [
+    {
+      "ingredient": "nexus:mithril_ingot"
+    },
+    {
+      "ingredient": "nexus:cobalt_ingot"
+    },
+    {
+      "ingredient": "minecraft:diamond"
+    }
+  ],
+  "result": {
+    "id": "nexus:aether_ingot"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "asset_name": "steel",
+  "description": {
+    "color": "#9AA5B1",
+    "translate": "trim_material.nexus.steel"
+  },
+  "override_armor_assets": {
+    "nexus:steel": "steel_darker"
+  }
+}

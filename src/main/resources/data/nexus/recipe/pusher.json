@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "minecraft:piston",
+    "C": "minecraft:redstone",
+    "D": "nexus:core"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "AAA"
+  ],
+  "result": {
+    "id": "nexus:pusher"
+  }
+}

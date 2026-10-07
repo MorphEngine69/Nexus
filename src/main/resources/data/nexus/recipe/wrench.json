@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "minecraft:redstone"
+  },
+  "pattern": [
+    "A A",
+    " B ",
+    " A "
+  ],
+  "result": {
+    "id": "nexus:wrench"
+  }
+}

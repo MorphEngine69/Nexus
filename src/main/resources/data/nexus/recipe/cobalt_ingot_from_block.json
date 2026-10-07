@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "nexus:cobalt_block"
+  ],
+  "result": {
+    "id": "nexus:cobalt_ingot",
+    "count": 9
+  },
+  "group": "cobalt_ingot"
+}

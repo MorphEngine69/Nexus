@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:cocoa_beans",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:cell_part_16k",
+    "B": "nexus:mithril_ingot",
+    "C": "nexus:lumen_ingot"
+  },
+  "pattern": [
+    "ABA",
+    "BCB",
+    "ABA"
+  ],
+  "result": {
+    "id": "nexus:cell_part_64k"
+  }
+}

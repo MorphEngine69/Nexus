@@ -1,0 +1,19 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "nexus:mithril"
+      }
+    ],
+    "humanoid_baby": [
+      {
+        "texture": "nexus:mithril"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "nexus:mithril"
+      }
+    ]
+  }
+}

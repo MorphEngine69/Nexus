@@ -1,0 +1,10 @@
+{
+  "asset_name": "hellsteel",
+  "description": {
+    "color": "#FF6A2A",
+    "translate": "trim_material.nexus.hellsteel"
+  },
+  "override_armor_assets": {
+    "nexus:hellsteel": "hellsteel_darker"
+  }
+}

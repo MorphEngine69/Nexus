@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:kelp",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

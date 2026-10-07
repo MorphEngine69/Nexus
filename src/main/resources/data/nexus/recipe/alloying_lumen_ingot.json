@@ -1,0 +1,17 @@
+{
+  "type": "nexus:alloying",
+  "ingredients": [
+    {
+      "ingredient": "nexus:cobalt_ingot"
+    },
+    {
+      "ingredient": "minecraft:quartz"
+    },
+    {
+      "ingredient": "minecraft:lapis_lazuli"
+    }
+  ],
+  "result": {
+    "id": "nexus:lumen_ingot"
+  }
+}

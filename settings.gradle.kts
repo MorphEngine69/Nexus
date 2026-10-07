@@ -13,3 +13,17 @@ plugins {
 }
 
 rootProject.name = "nexus"
+
+include(
+    "nexus-core-api",
+    "nexus-resource-api",
+    "nexus-storage-api",
+    "nexus-energy-api",
+    "nexus-transport-api",
+    "nexus-upgrade-api",
+    "nexus-machine-api",
+    "nexus-automation-api",
+    "nexus-network-api",
+    "nexus-network",
+    "nexus-network-test",
+)

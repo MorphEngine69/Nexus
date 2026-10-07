@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "nexus:advanced_crusher",
+    "nexus:superior_tier_upgrade"
+  ],
+  "result": {
+    "id": "nexus:superior_crusher"
+  },
+  "group": "crusher"
+}

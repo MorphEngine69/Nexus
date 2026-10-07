@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:nether_wart",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

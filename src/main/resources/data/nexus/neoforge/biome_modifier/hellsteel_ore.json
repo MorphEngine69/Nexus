@@ -1,0 +1,9 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_nether",
+  "features": [
+    "nexus:ore_hellsteel_large",
+    "nexus:ore_hellsteel_small"
+  ],
+  "step": "underground_ores"
+}

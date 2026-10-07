@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:hellsteel_ingot",
+    "B": "minecraft:ender_eye",
+    "C": "nexus:aether_ingot",
+    "D": "nexus:upgrade_blank"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "ABA"
+  ],
+  "result": {
+    "id": "nexus:chunk_loader_upgrade"
+  }
+}

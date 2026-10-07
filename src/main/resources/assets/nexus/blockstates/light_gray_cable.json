@@ -1,0 +1,432 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/coupling"
+      },
+      "when": {
+        "OR": [
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "west": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "east": "true",
+            "south": "true",
+            "powered": "false"
+          },
+          {
+            "east": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "east": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "south": "true",
+            "west": "true",
+            "powered": "false"
+          },
+          {
+            "south": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "south": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "west": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "west": "true",
+            "down": "true",
+            "powered": "false"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm"
+      },
+      "when": {
+        "north": "true",
+        "powered": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm",
+        "y": 90
+      },
+      "when": {
+        "east": "true",
+        "powered": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm",
+        "y": 180
+      },
+      "when": {
+        "south": "true",
+        "powered": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm",
+        "y": 270
+      },
+      "when": {
+        "west": "true",
+        "powered": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm",
+        "x": 270
+      },
+      "when": {
+        "up": "true",
+        "powered": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm",
+        "x": 90
+      },
+      "when": {
+        "down": "true",
+        "powered": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/mid"
+      },
+      "when": {
+        "OR": [
+          {
+            "north": "true",
+            "east": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "south": "true",
+            "east": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/mid",
+        "y": 90
+      },
+      "when": {
+        "OR": [
+          {
+            "east": "true",
+            "north": "false",
+            "south": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "west": "true",
+            "north": "false",
+            "south": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/mid",
+        "x": 90
+      },
+      "when": {
+        "OR": [
+          {
+            "up": "true",
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "powered": "false"
+          },
+          {
+            "down": "true",
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "powered": "false"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/coupling_powered"
+      },
+      "when": {
+        "OR": [
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "true"
+          },
+          {
+            "north": "true",
+            "east": "true",
+            "powered": "true"
+          },
+          {
+            "north": "true",
+            "west": "true",
+            "powered": "true"
+          },
+          {
+            "north": "true",
+            "up": "true",
+            "powered": "true"
+          },
+          {
+            "north": "true",
+            "down": "true",
+            "powered": "true"
+          },
+          {
+            "east": "true",
+            "south": "true",
+            "powered": "true"
+          },
+          {
+            "east": "true",
+            "up": "true",
+            "powered": "true"
+          },
+          {
+            "east": "true",
+            "down": "true",
+            "powered": "true"
+          },
+          {
+            "south": "true",
+            "west": "true",
+            "powered": "true"
+          },
+          {
+            "south": "true",
+            "up": "true",
+            "powered": "true"
+          },
+          {
+            "south": "true",
+            "down": "true",
+            "powered": "true"
+          },
+          {
+            "west": "true",
+            "up": "true",
+            "powered": "true"
+          },
+          {
+            "west": "true",
+            "down": "true",
+            "powered": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm_powered"
+      },
+      "when": {
+        "north": "true",
+        "powered": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm_powered",
+        "y": 90
+      },
+      "when": {
+        "east": "true",
+        "powered": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm_powered",
+        "y": 180
+      },
+      "when": {
+        "south": "true",
+        "powered": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm_powered",
+        "y": 270
+      },
+      "when": {
+        "west": "true",
+        "powered": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm_powered",
+        "x": 270
+      },
+      "when": {
+        "up": "true",
+        "powered": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/arm_powered",
+        "x": 90
+      },
+      "when": {
+        "down": "true",
+        "powered": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/mid_powered"
+      },
+      "when": {
+        "OR": [
+          {
+            "north": "true",
+            "east": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "true"
+          },
+          {
+            "south": "true",
+            "east": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/mid_powered",
+        "y": 90
+      },
+      "when": {
+        "OR": [
+          {
+            "east": "true",
+            "north": "false",
+            "south": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "true"
+          },
+          {
+            "west": "true",
+            "north": "false",
+            "south": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "nexus:block/cable/light_gray/mid_powered",
+        "x": 90
+      },
+      "when": {
+        "OR": [
+          {
+            "up": "true",
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "powered": "true"
+          },
+          {
+            "down": "true",
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "powered": "true"
+          }
+        ]
+      }
+    }
+  ]
+}

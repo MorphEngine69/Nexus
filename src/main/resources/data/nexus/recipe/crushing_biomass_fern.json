@@ -1,0 +1,7 @@
+{
+  "type": "nexus:crushing",
+  "ingredient": "minecraft:fern",
+  "result": {
+    "id": "nexus:biomass"
+  }
+}

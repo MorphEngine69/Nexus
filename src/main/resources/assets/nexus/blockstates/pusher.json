@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "type": "nexus:cable_arms"
+      }
+    }
+  ]
+}

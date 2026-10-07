@@ -1,0 +1,7 @@
+{
+  "type": "nexus:compressing",
+  "ingredient": "nexus:cobalt_ingot",
+  "result": {
+    "id": "nexus:cobalt_plate"
+  }
+}
