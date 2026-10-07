@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -94,6 +95,13 @@ final class SideModePanel<K extends Enum<K>> {
                     square.contains(mouseX, mouseY) ? PanelStyle.TEXT_LIGHT : style.border());
             drawSign(graphics, square, mode, style.accent());
         }
+    }
+
+    /**
+     * @return the button, and the window while it is open, for a recipe viewer to keep clear of
+     */
+    List<Rect2i> areas() {
+        return open ? List.of(button.toRect(), window.toRect()) : List.of(button.toRect());
     }
 
     /**

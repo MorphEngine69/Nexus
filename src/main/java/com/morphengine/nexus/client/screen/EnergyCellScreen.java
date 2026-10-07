@@ -5,16 +5,19 @@ import com.morphengine.nexus.menu.EnergyCellView;
 import com.morphengine.nexus.menu.NetworkBadge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
+import java.util.List;
+
 /**
  * Charge of one Energy Cell, tinted with the color of the network it belongs
  * to, and its priority in the network's energy pool.
  */
-public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
+public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> implements SideAreas {
 
     private static final int IMAGE_WIDTH = 236;
     private static final int IMAGE_HEIGHT = EnergyCellMenu.INVENTORY_TOP + 84;
@@ -47,6 +50,11 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> {
 
     private PriorityRow createPriorityRow() {
         return new PriorityRow(panelBounds(), topPos + PRIORITY_TOP, EnergyCellMenu.BUTTON_PRIORITY);
+    }
+
+    @Override
+    public List<Rect2i> extraAreas() {
+        return sides.areas();
     }
 
     @Override

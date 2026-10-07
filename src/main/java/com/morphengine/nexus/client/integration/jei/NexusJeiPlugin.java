@@ -2,11 +2,11 @@ package com.morphengine.nexus.client.integration.jei;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.client.integration.MachineRecipes;
-import com.morphengine.nexus.client.screen.AssemblerScreen;
 import com.morphengine.nexus.client.screen.ExternalVaultScreen;
 import com.morphengine.nexus.client.screen.TerminalScreen;
 import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import com.morphengine.nexus.client.screen.VaultCellScreen;
+import com.morphengine.nexus.client.screen.VoidUpgradeScreen;
 import com.morphengine.nexus.processing.MachineKind;
 import com.morphengine.nexus.registry.NexusItems;
 import com.morphengine.nexus.registry.NexusMenuTypes;
@@ -14,18 +14,16 @@ import com.morphengine.nexus.registry.NexusRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
-import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
-import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ItemLike;
 
-import java.util.List;
 
 /**
  * JEI support: its "+" button lays out a crafting recipe on the grid of a
@@ -107,22 +105,12 @@ public final class NexusJeiPlugin implements IModPlugin {
     @Override
     public void registerGuiHandlers(final IGuiHandlerRegistration registration) {
         registration.addGenericGuiContainerHandler(TerminalScreen.class, new TerminalGuiHandler());
-        registration.addGuiContainerHandler(TransferDeviceScreen.class, new IGuiContainerHandler<>() {
-            @Override
-            public List<Rect2i> getGuiExtraAreas(final TransferDeviceScreen screen) {
-                return List.of(screen.sidebarArea());
-            }
-        });
+        registration.addGenericGuiContainerHandler(AbstractContainerScreen.class, new SideAreasHandler());
         registration.addGhostIngredientHandler(VaultCellScreen.class, new FilterGhostHandler<>());
         registration.addGhostIngredientHandler(TransferDeviceScreen.class, new FilterGhostHandler<>());
         registration.addGhostIngredientHandler(ExternalVaultScreen.class, new FilterGhostHandler<>());
+        registration.addGhostIngredientHandler(VoidUpgradeScreen.class, new FilterGhostHandler<>());
         registration.addGhostIngredientHandler(terminalScreens(), new FilterGhostHandler<>());
-        registration.addGuiContainerHandler(AssemblerScreen.class, new IGuiContainerHandler<>() {
-            @Override
-            public List<Rect2i> getGuiExtraAreas(final AssemblerScreen screen) {
-                return List.of(screen.sidebarArea());
-            }
-        });
     }
 
     /**

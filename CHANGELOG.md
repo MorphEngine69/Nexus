@@ -59,6 +59,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   resource still gets it first.
 - A machine or a generator that is broken, or taken down with the Wrench, keeps the FE and the fluid it held
   on its item, which tells what it holds, and has them again when it is put up.
+- Jade and The One Probe show what a block of Nexus is doing when you look at it: the network it is in, in its
+  color, whether the network has energy, who owns the device and what stops it, and then what is its own: the
+  energy, tanks and progress of machines and generators, what a Placer places or a Remover breaks and what its
+  filter allows, the cells and priority of a vault, the state of terminals and wireless blocks. Nothing is needed
+  to turn it on; each mod can switch the lines off in its own settings.
+- JEI and REI keep their overlay off the buttons and windows beside the panels of machines, generators, Energy
+  Cells and the Nexus, as they already did for terminals, Pullers and Assemblers, and items from JEI can be
+  dragged into the list of a Void Upgrade.
 - The Nexus Crystal in the hand turns slowly and glows.
 - JEI and REI show the recipes of the Crusher, Pulverizer, Compressor, Alloy Smelter
   and Extractor, with the machines of every tier as the stations, and the Crafting

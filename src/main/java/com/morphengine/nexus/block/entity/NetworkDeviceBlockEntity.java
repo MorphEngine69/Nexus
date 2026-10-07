@@ -139,7 +139,7 @@ public abstract class NetworkDeviceBlockEntity extends BlockEntity
      * @return the id and name of the player the device works for, as last seen;
      *         {@code null} when it works for nobody
      */
-    protected final @Nullable NameAndId ownerProfile() {
+    public final @Nullable NameAndId ownerProfile() {
         return owner.profile();
     }
 
@@ -170,7 +170,7 @@ public abstract class NetworkDeviceBlockEntity extends BlockEntity
     /**
      * @return whether the device is in a network whose energy pool is not empty
      */
-    protected final boolean isNetworkPowered() {
+    public final boolean isNetworkPowered() {
         final NetworkController controller = network.controller();
         return controller != null && controller.energy().stored() > 0;
     }

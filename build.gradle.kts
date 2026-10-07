@@ -188,6 +188,13 @@ repositories {
     maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/") {
         content { includeGroup("com.geckolib") }
     }
+    exclusiveContent {
+        forRepository { maven("https://api.modrinth.com/maven") }
+        filter { includeGroup("maven.modrinth") }
+    }
+    maven("https://maven.k-4u.nl") {
+        content { includeGroup("mcjty.theoneprobe") }
+    }
     maven("https://maven.shedaniel.me") {
         content {
             includeGroup("me.shedaniel")
@@ -204,6 +211,8 @@ dependencies {
     "interfaceInjectionData"(geckolib)
     compileOnly("mezz.jei:jei-${property("minecraft_version")}-neoforge-api:${property("jei_version")}")
     compileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${property("rei_version")}")
+    compileOnly("maven.modrinth:jade:${property("jade_version")}")
+    compileOnly("mcjty.theoneprobe:theoneprobe:${property("top_version")}:api")
 }
 
 tasks.processResources {
