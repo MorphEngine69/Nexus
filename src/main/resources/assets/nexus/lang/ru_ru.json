@@ -541,5 +541,9 @@
   "tooltip.nexus.probe.filter.nothing": "Ничего не выбрано",
   "tooltip.nexus.probe.filter.only": "Только: %s",
   "tooltip.nexus.probe.filter.except": "Всё, кроме: %s",
-  "tooltip.nexus.probe.tank": "Бак"
+  "tooltip.nexus.probe.tank": "Бак",
+  "trim_material.nexus.steel": "Сталь",
+  "trim_material.nexus.cobalt": "Кобальт",
+  "trim_material.nexus.mithril": "Мифрил",
+  "trim_material.nexus.hellsteel": "Адская сталь"
 }

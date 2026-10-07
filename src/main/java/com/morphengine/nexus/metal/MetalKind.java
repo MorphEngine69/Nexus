@@ -17,6 +17,7 @@ import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
+import net.minecraft.world.item.equipment.trim.TrimMaterial;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.MapColor;
@@ -103,6 +104,13 @@ public record MetalKind(String id, ToolMaterial tools, ArmorMaterial armor, Tool
      */
     public Item.Properties shape(final Item.Properties properties) {
         return fireResistant ? properties.fireResistant() : properties;
+    }
+
+    /**
+     * @return the key of the trim material that the ingot of the metal gives, from {@code data/nexus/trim_material}
+     */
+    public ResourceKey<TrimMaterial> trimMaterial() {
+        return ResourceKey.create(Registries.TRIM_MATERIAL, Identifier.fromNamespaceAndPath(Nexus.MOD_ID, id));
     }
 
     private static ToolMaterial toolMaterial(final String id, final TagKey<Block> incorrectBlocks, final int durability,

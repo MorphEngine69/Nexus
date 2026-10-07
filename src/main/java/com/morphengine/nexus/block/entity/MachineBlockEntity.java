@@ -179,13 +179,16 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implemen
 
     /**
      * What the machine shows a neighbour on {@code worldSide} of its tank: the fluid to take out where the side lets
-     * things out.
+     * things out. Asked for no side, as a player filling a bucket does, it shows the tank whatever the sides say.
      *
      * @return the handler, {@code null} when the machine has no tank or the side lets nothing out
      */
     public @Nullable ResourceHandler<FluidResource> fluidHandler(final @Nullable Direction worldSide) {
-        if (tank == null || worldSide == null) {
+        if (tank == null) {
             return null;
+        }
+        if (worldSide == null) {
+            return tank.handler();
         }
         final Direction facing = getBlockState().getValue(MachineBlock.FACING);
         return machine.sides().mode(MachineFacing.sideOf(facing, worldSide)).allowsOutput() ? tank.handler() : null;

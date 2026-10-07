@@ -1,0 +1,10 @@
+{
+  "asset_name": "mithril",
+  "description": {
+    "color": "#6FB7B0",
+    "translate": "trim_material.nexus.mithril"
+  },
+  "override_armor_assets": {
+    "nexus:mithril": "mithril_darker"
+  }
+}

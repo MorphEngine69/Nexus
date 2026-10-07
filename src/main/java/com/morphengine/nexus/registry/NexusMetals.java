@@ -78,8 +78,10 @@ public final class NexusMetals {
     private static Map<MetalPart, DeferredItem<Item>> registerParts(final MetalKind metal) {
         final Map<MetalPart, DeferredItem<Item>> parts = new EnumMap<>(MetalPart.class);
         for (MetalPart part : MetalPart.values()) {
-            parts.put(part, NexusItems.ITEMS.registerItem(
-                    part.idFor(metal), properties -> new Item(metal.shape(properties))));
+            parts.put(part, NexusItems.ITEMS.registerItem(part.idFor(metal),
+                    properties -> new Item(part == MetalPart.INGOT
+                            ? metal.shape(properties).trimMaterial(metal.trimMaterial())
+                            : metal.shape(properties))));
         }
         return Collections.unmodifiableMap(parts);
     }
