@@ -426,4 +426,105 @@ class NetworkStorageTest {
 
         assertThat(network.amountOf(STONE)).isZero();
     }
+
+    @Test
+    void aDiscardedResourceIsCountedAsInsertedButKeptByNoSource() {
+        final CellStorage cell = cell();
+        network.addSource(cell, 0);
+        network.addDiscarder(onlyListing(STONE));
+
+        final long inserted = network.insert(STONE, 7, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(inserted).isEqualTo(7);
+        assertThat(cell.amountOf(STONE)).isZero();
+        assertThat(network.amountOf(STONE)).isZero();
+    }
+
+    @Test
+    void aDiscardedResourceAnswersASimulationAsAnExecution() {
+        network.addDiscarder(onlyListing(STONE));
+
+        assertThat(network.insert(STONE, 7, Action.SIMULATE, Actor.NOBODY)).isEqualTo(7);
+    }
+
+    @Test
+    void aResourceTheDiscarderDoesNotListIsStoredAsBefore() {
+        network.addSource(cell(), 0);
+        network.addDiscarder(onlyListing(STONE));
+
+        network.insert(DIRT, 7, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(network.amountOf(DIRT)).isEqualTo(7);
+    }
+
+    @Test
+    void whatTheNetworkAlreadyHoldsOfADiscardedResourceStays() {
+        network.addSource(cellWith(STONE, 10), 0);
+        network.addDiscarder(onlyListing(STONE));
+
+        network.insert(STONE, 5, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(network.amountOf(STONE)).isEqualTo(10);
+    }
+
+    @Test
+    void aSourceReservedForTheDiscardedResourceTakesItFirstAndTheRestIsDestroyed() {
+        final CellStorage open = cell();
+        final CellStorage reserved = cell();
+        network.addSource(open, 5);
+        network.addSource(new FilteredStorage(reserved, new ResourceFilter(FilterMode.ALLOW, Set.of(STONE))), 0);
+        network.addDiscarder(onlyListing(STONE));
+
+        network.insert(STONE, 10, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(open.amountOf(STONE)).isZero();
+        assertThat(reserved.amountOf(STONE)).isEqualTo(10);
+    }
+
+    @Test
+    void whatAReservedSourceCannotHoldIsDestroyedNotSpilledIntoOtherSources() {
+        final CellStorage open = cell();
+        final CellStorage reserved = new CellStorage(ITEMS, new CellSpec(16, 8, 1, 8), List.of());
+        network.addSource(open, 5);
+        network.addSource(new FilteredStorage(reserved, new ResourceFilter(FilterMode.ALLOW, Set.of(STONE))), 0);
+        network.addDiscarder(onlyListing(STONE));
+        final long room = reserved.insert(STONE, Long.MAX_VALUE / 2, Action.SIMULATE, Actor.NOBODY);
+
+        final long inserted = network.insert(STONE, room + 100, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(inserted).isEqualTo(room + 100);
+        assertThat(open.amountOf(STONE)).isZero();
+        assertThat(network.amountOf(STONE)).isEqualTo(room);
+    }
+
+    @Test
+    void aRemovedDiscarderStopsDestroying() {
+        network.addSource(cell(), 0);
+        final ResourceFilter listing = onlyListing(STONE);
+        network.addDiscarder(listing);
+
+        assertThat(network.removeDiscarder(listing)).isTrue();
+        network.insert(STONE, 7, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(network.amountOf(STONE)).isEqualTo(7);
+    }
+
+    @Test
+    void aDiscarderDoesNotOverrideWhatAnInterceptorClaimed() {
+        final long[] seenByInterceptor = new long[1];
+        network.addInterceptor((resource, amount, action) -> {
+            seenByInterceptor[0] = amount;
+            return 3;
+        });
+        network.addDiscarder(onlyListing(STONE));
+
+        final long inserted = network.insert(STONE, 10, Action.EXECUTE, Actor.NOBODY);
+
+        assertThat(inserted).isEqualTo(10);
+        assertThat(seenByInterceptor[0]).isEqualTo(10);
+    }
+
+    private static ResourceFilter onlyListing(final ResourceKey resource) {
+        return new ResourceFilter(FilterMode.ALLOW, Set.of(resource));
+    }
 }

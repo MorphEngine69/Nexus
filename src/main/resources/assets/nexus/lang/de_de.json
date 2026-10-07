@@ -513,5 +513,11 @@
   "gui.nexus.external.access.read_only": "Netz entnimmt nur",
   "gui.nexus.external.access.read_only.hint": "Das Netz zeigt, was der Block enthält, und entnimmt es, legt aber nie etwas hinein.",
   "gui.nexus.chunk_loader.on.short": "Chunk %s, %s bleibt geladen",
-  "gui.nexus.chunk_loader.off.short": "Chunk-Lader-Upgrade (optional)"
+  "gui.nexus.chunk_loader.off.short": "Chunk-Lader-Upgrade (optional)",
+  "item.nexus.void_upgrade": "Vernichtungs-Upgrade",
+  "tooltip.nexus.upgrade.void": "In einem Storage Vault oder External Vault: Das Netzwerk vernichtet, was das Upgrade auflistet, beim Eintreffen, statt es zu speichern. Nur was nach dem Einbau ankommt; was das Netzwerk schon hält, bleibt. Eine Zelle, die auf eine gelistete Ressource eingestellt ist, nimmt sie weiterhin zuerst. Mit der Haupthand wird die Liste festgelegt. Eines pro Gerät.",
+  "tooltip.nexus.upgrade.void.empty": "Liste leer: vernichtet nichts",
+  "tooltip.nexus.upgrade.void.listed": "Vernichtet Gelistetes: %s",
+  "gui.nexus.void.hint": "Wird beim Eintritt vernichtet",
+  "gui.nexus.void.list": "Vernichten"
 }

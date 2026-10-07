@@ -513,5 +513,11 @@
   "gui.nexus.external.access.read_only": "Le réseau prend seulement",
   "gui.nexus.external.access.read_only.hint": "Le réseau affiche le contenu du bloc et le retire, mais n'y place jamais rien.",
   "gui.nexus.chunk_loader.on.short": "Le chunk %s, %s reste chargé",
-  "gui.nexus.chunk_loader.off.short": "Amélioration de chargement de chunk (facultatif)"
+  "gui.nexus.chunk_loader.off.short": "Amélioration de chargement de chunk (facultatif)",
+  "item.nexus.void_upgrade": "Amélioration du vide",
+  "tooltip.nexus.upgrade.void": "Dans un Storage Vault ou un External Vault : le réseau détruit ce que l'amélioration énumère à son arrivée, au lieu de le stocker. Seulement ce qui arrive après l'installation ; ce que le réseau contient déjà reste. Une cellule réglée sur une ressource énumérée la prend toujours en premier. S'utilise avec la main principale pour fixer la liste. Une par appareil.",
+  "tooltip.nexus.upgrade.void.empty": "Liste vide : ne détruit rien",
+  "tooltip.nexus.upgrade.void.listed": "Détruit les éléments énumérés : %s",
+  "gui.nexus.void.hint": "Détruit en entrant dans le réseau",
+  "gui.nexus.void.list": "Détruire"
 }

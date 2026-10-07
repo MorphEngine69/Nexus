@@ -3,6 +3,7 @@ package com.morphengine.nexus.storage;
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.ResourceAmount;
+import com.morphengine.nexus.api.resource.ResourceFilter;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.Storage;
@@ -32,17 +33,23 @@ import java.util.Objects;
  * <p>A {@linkplain #guardWith gate} decides every insert and extract first, by
  * who it is for: one turned away moves nothing.
  *
+ * <p>A {@linkplain #addDiscarder discarder} turns the resources it lists away from
+ * the sources: what is offered of them is counted as inserted and destroyed, apart
+ * from what the sources {@linkplain Storage#isReservedFor reserved} for the
+ * resource take, which they get first. Only inserts are affected; what the sources
+ * already hold stays.
+ *
  * <p>The sources of one priority can also be reached as a {@linkplain #band
  * band}, for a network that ranks them together with buffers of its own, as it
  * does with energy. Server thread only.
  */
 public final class NetworkStorage implements Storage {
 
-    /** Sorted by priority, highest first; sources of equal priority in the order they were added. */
-    private final List<Source> sources = new ArrayList<>();
+    private final PrioritizedSources sources = new PrioritizedSources();
     private final ResourceCounter totals = new ResourceCounter();
     private final List<StorageListener> listeners = new ArrayList<>();
     private final List<InsertInterceptor> interceptors = new ArrayList<>();
+    private final List<ResourceFilter> discarders = new ArrayList<>();
     private AccessGate gate = AccessGate.UNRESTRICTED;
     private int revision;
 
@@ -56,10 +63,10 @@ public final class NetworkStorage implements Storage {
      */
     public void addSource(final Storage storage, final int priority) {
         Objects.requireNonNull(storage, "storage must not be null");
-        if (indexOf(storage) >= 0) {
+        if (sources.indexOf(storage) >= 0) {
             throw new IllegalArgumentException("storage is already a source: " + storage);
         }
-        insertSorted(new Source(storage, priority));
+        sources.insert(storage, priority);
         revision++;
         for (ResourceAmount content : storage.contents()) {
             notifyListeners(content.resource(), totals.add(content.resource(), content.amount()));
@@ -70,7 +77,7 @@ public final class NetworkStorage implements Storage {
      * @return whether the storage was a source and has been removed
      */
     public boolean removeSource(final Storage storage) {
-        final int index = indexOf(storage);
+        final int index = sources.indexOf(storage);
         if (index < 0) {
             return false;
         }
@@ -91,7 +98,7 @@ public final class NetworkStorage implements Storage {
      */
     public boolean sourceChanged(final Storage source, final ResourceKey resource, final long delta) {
         Objects.requireNonNull(resource, "resource must not be null");
-        if (indexOf(source) < 0) {
+        if (sources.indexOf(source) < 0) {
             return false;
         }
         if (delta > 0) {
@@ -111,12 +118,12 @@ public final class NetworkStorage implements Storage {
      * @return whether the storage is a source
      */
     public boolean changePriority(final Storage storage, final int priority) {
-        final int index = indexOf(storage);
+        final int index = sources.indexOf(storage);
         if (index < 0) {
             return false;
         }
         sources.remove(index);
-        insertSorted(new Source(storage, priority));
+        sources.insert(storage, priority);
         revision++;
         return true;
     }
@@ -138,9 +145,10 @@ public final class NetworkStorage implements Storage {
      */
     public List<Integer> priorities() {
         final List<Integer> priorities = new ArrayList<>();
-        for (Source source : sources) {
-            if (priorities.isEmpty() || priorities.getLast() != source.priority()) {
-                priorities.add(source.priority());
+        for (int i = 0; i < sources.size(); i++) {
+            final int priority = sources.get(i).priority();
+            if (priorities.isEmpty() || priorities.getLast() != priority) {
+                priorities.add(priority);
             }
         }
         return List.copyOf(priorities);
@@ -170,6 +178,27 @@ public final class NetworkStorage implements Storage {
      */
     public void addInterceptor(final InsertInterceptor interceptor) {
         interceptors.add(Objects.requireNonNull(interceptor, "interceptor must not be null"));
+    }
+
+    /**
+     * Has every insert of a resource {@code listing} allows destroyed from now on, as the class description says.
+     * Callers keep a filter that lists something: one that lists nothing allows everything.
+     */
+    public void addDiscarder(final ResourceFilter listing) {
+        discarders.add(Objects.requireNonNull(listing, "listing must not be null"));
+    }
+
+    /**
+     * @return whether {@code listing} was added, by identity, and has been removed
+     */
+    public boolean removeDiscarder(final ResourceFilter listing) {
+        for (int i = 0; i < discarders.size(); i++) {
+            if (discarders.get(i) == listing) {
+                discarders.remove(i);
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -203,13 +232,11 @@ public final class NetworkStorage implements Storage {
             claimed += interceptors.get(i).intercept(resource, amount - claimed, action);
         }
         final long offered = amount - claimed;
-        long remaining = offered;
-        int start = 0;
-        while (start < sources.size() && remaining > 0) {
-            final int end = groupEnd(start);
-            remaining = insertIntoGroup(start, end, resource, remaining, action, actor);
-            start = end;
-        }
+        final boolean discarding = offered > 0 && isDiscarded(resource);
+        final long remaining = discarding
+                ? insertIntoReserved(resource, offered, action, actor)
+                : insertByPriority(resource, offered, action, actor);
+        final long discarded = discarding ? remaining : 0;
         final long inserted = offered - remaining;
         if (inserted > 0 && action.isExecute()) {
             notifyListeners(resource, totals.add(resource, inserted));
@@ -218,7 +245,7 @@ public final class NetworkStorage implements Storage {
                 uncounted -= interceptors.get(i).inserted(resource, uncounted);
             }
         }
-        return claimed + inserted;
+        return claimed + inserted + discarded;
     }
 
     @Override
@@ -231,7 +258,7 @@ public final class NetworkStorage implements Storage {
         final long wanted = remaining;
         int end = sources.size();
         while (end > 0 && remaining > 0) {
-            final int start = groupStart(end);
+            final int start = sources.groupStart(end);
             for (int i = start; i < end && remaining > 0; i++) {
                 remaining -= sources.get(i).storage().extract(resource, remaining, action, actor);
             }
@@ -242,6 +269,39 @@ public final class NetworkStorage implements Storage {
             notifyListeners(resource, totals.remove(resource, extracted));
         }
         return extracted;
+    }
+
+    private long insertByPriority(
+            final ResourceKey resource, final long amount, final Action action, final Actor actor) {
+        long remaining = amount;
+        int start = 0;
+        while (start < sources.size() && remaining > 0) {
+            final int end = sources.groupEnd(start);
+            remaining = insertIntoGroup(start, end, resource, remaining, action, actor);
+            start = end;
+        }
+        return remaining;
+    }
+
+    private long insertIntoReserved(
+            final ResourceKey resource, final long amount, final Action action, final Actor actor) {
+        long remaining = amount;
+        for (int i = 0; i < sources.size() && remaining > 0; i++) {
+            final Storage storage = sources.get(i).storage();
+            if (storage.isReservedFor(resource)) {
+                remaining -= storage.insert(resource, remaining, action, actor);
+            }
+        }
+        return remaining;
+    }
+
+    private boolean isDiscarded(final ResourceKey resource) {
+        for (int i = 0; i < discarders.size(); i++) {
+            if (discarders.get(i).allows(resource)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private long insertIntoGroup(
@@ -264,76 +324,10 @@ public final class NetworkStorage implements Storage {
         return storage.isReservedFor(resource) || storage.amountOf(resource) > 0;
     }
 
-    /**
-     * @return index just past the last source with the same priority as the one at {@code start}
-     */
-    private int groupEnd(final int start) {
-        final int priority = sources.get(start).priority();
-        int end = start + 1;
-        while (end < sources.size() && sources.get(end).priority() == priority) {
-            end++;
-        }
-        return end;
-    }
-
-    /**
-     * @return index of the first source with the same priority as the one just before {@code end}
-     */
-    private int groupStart(final int end) {
-        final int priority = sources.get(end - 1).priority();
-        int start = end - 1;
-        while (start > 0 && sources.get(start - 1).priority() == priority) {
-            start--;
-        }
-        return start;
-    }
-
-    private void insertSorted(final Source source) {
-        int index = 0;
-        while (index < sources.size() && sources.get(index).priority() >= source.priority()) {
-            index++;
-        }
-        sources.add(index, source);
-    }
-
-    private int indexOf(final Storage storage) {
-        for (int i = 0; i < sources.size(); i++) {
-            if (sources.get(i).storage() == storage) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
     private void notifyListeners(final ResourceKey resource, final long amount) {
         for (int i = 0; i < listeners.size(); i++) {
             listeners.get(i).onAmountChanged(resource, amount);
         }
-    }
-
-    /**
-     * @return index of the first source of {@code priority}, or where one would go
-     */
-    private int bandStart(final int priority) {
-        int start = 0;
-        while (start < sources.size() && sources.get(start).priority() > priority) {
-            start++;
-        }
-        return start;
-    }
-
-    /**
-     * @return index just past the last source of {@code priority}, from {@code start}
-     */
-    private int bandEnd(final int start, final int priority) {
-        int end = start;
-        while (end < sources.size() && sources.get(end).priority() == priority) {
-            end++;
-        }
-        return end;
-    }
-
-    private record Source(Storage storage, int priority) {
     }
 
     /** The sources of one priority; see {@link #band}. */
@@ -347,8 +341,8 @@ public final class NetworkStorage implements Storage {
 
         @Override
         public long amountOf(final ResourceKey resource) {
-            final int start = bandStart(priority);
-            final int end = bandEnd(start, priority);
+            final int start = sources.bandStart(priority);
+            final int end = sources.bandEnd(start, priority);
             long amount = 0;
             for (int i = start; i < end; i++) {
                 amount = SaturatedMath.add(amount, sources.get(i).storage().amountOf(resource));
@@ -359,8 +353,8 @@ public final class NetworkStorage implements Storage {
         @Override
         public List<ResourceAmount> contents() {
             final ResourceCounter counter = new ResourceCounter();
-            final int start = bandStart(priority);
-            final int end = bandEnd(start, priority);
+            final int start = sources.bandStart(priority);
+            final int end = sources.bandEnd(start, priority);
             for (int i = start; i < end; i++) {
                 for (ResourceAmount content : sources.get(i).storage().contents()) {
                     counter.add(content.resource(), content.amount());
@@ -372,9 +366,9 @@ public final class NetworkStorage implements Storage {
         @Override
         public long insert(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
             StorageArguments.check(resource, amount, action, actor);
-            final int start = bandStart(priority);
-            final long inserted = amount - insertIntoGroup(start, bandEnd(start, priority), resource, amount, action,
-                    actor);
+            final int start = sources.bandStart(priority);
+            final int end = sources.bandEnd(start, priority);
+            final long inserted = amount - insertIntoGroup(start, end, resource, amount, action, actor);
             if (inserted > 0 && action.isExecute()) {
                 notifyListeners(resource, totals.add(resource, inserted));
             }
@@ -384,8 +378,8 @@ public final class NetworkStorage implements Storage {
         @Override
         public long extract(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
             StorageArguments.check(resource, amount, action, actor);
-            final int start = bandStart(priority);
-            final int end = bandEnd(start, priority);
+            final int start = sources.bandStart(priority);
+            final int end = sources.bandEnd(start, priority);
             long remaining = amount;
             for (int i = start; i < end && remaining > 0; i++) {
                 remaining -= sources.get(i).storage().extract(resource, remaining, action, actor);

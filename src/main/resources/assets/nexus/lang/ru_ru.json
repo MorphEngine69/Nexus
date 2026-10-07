@@ -513,5 +513,11 @@
   "gui.nexus.external.access.read_only": "Сеть только берёт",
   "gui.nexus.external.access.read_only.hint": "Сеть видит содержимое блока и забирает его, но ничего в него не кладёт.",
   "gui.nexus.chunk_loader.on.short": "Чанк %s, %s остаётся загруженным",
-  "gui.nexus.chunk_loader.off.short": "Улучшение прогрузки чанка (по желанию)"
+  "gui.nexus.chunk_loader.off.short": "Улучшение прогрузки чанка (по желанию)",
+  "item.nexus.void_upgrade": "Улучшение уничтожения",
+  "tooltip.nexus.upgrade.void": "В Storage Vault или External Vault: сеть уничтожает то, что перечислено в улучшении, при поступлении, а не хранит. Только то, что пришло после установки; уже лежащее в сети остаётся. Ячейка, настроенная на такой ресурс, всё равно берёт его первой. Список задаётся улучшением в основной руке. Одно на устройство.",
+  "tooltip.nexus.upgrade.void.empty": "Список пуст: ничего не уничтожает",
+  "tooltip.nexus.upgrade.void.listed": "Уничтожает перечисленное: %s",
+  "gui.nexus.void.hint": "Уничтожается при входе в сеть",
+  "gui.nexus.void.list": "Уничтожать"
 }

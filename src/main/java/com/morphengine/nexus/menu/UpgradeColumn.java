@@ -2,6 +2,7 @@ package com.morphengine.nexus.menu;
 
 import com.morphengine.nexus.block.entity.DeviceUpgrades;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
+import com.morphengine.nexus.upgrade.UpgradeLimits;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -23,11 +24,13 @@ final class UpgradeColumn {
 
     /**
      * @param hosted the device's slots; {@code null} on the client
+     * @param limits what the device takes, which the stand-ins on the client follow
      * @return the slots of the column, top to bottom
      */
-    static List<Slot> slots(final @Nullable Container hosted, final int left, final int top) {
+    static List<Slot> slots(
+            final @Nullable Container hosted, final UpgradeLimits limits, final int left, final int top) {
         final Container upgrades = hosted != null ? hosted
-                : new UpgradeContainer(DeviceUpgrades.SIZE, DeviceUpgrades.LIMITS, () -> { });
+                : new UpgradeContainer(DeviceUpgrades.SIZE, limits, () -> { });
         final List<Slot> column = new ArrayList<>(DeviceUpgrades.SIZE);
         for (int slot = 0; slot < DeviceUpgrades.SIZE; slot++) {
             column.add(new UpgradeSlot(upgrades, slot, left, top + slot * SLOT_SPACING));
@@ -35,7 +38,7 @@ final class UpgradeColumn {
         return column;
     }
 
-    static boolean takes(final ItemStack stack) {
-        return DeviceUpgrades.LIMITS.takesKindOf(stack);
+    static boolean takes(final UpgradeLimits limits, final ItemStack stack) {
+        return limits.takesKindOf(stack);
     }
 }

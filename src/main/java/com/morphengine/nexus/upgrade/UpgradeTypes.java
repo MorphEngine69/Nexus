@@ -16,8 +16,9 @@ import net.neoforged.neoforge.registries.RegistryBuilder;
  * Capacity work in Pullers, Pushers, Placers and Removers, Regulator in
  * Pullers and Pushers, Autocrafting in Pushers and Placers, Fortune and Silk
  * Touch in Removers, Range in Nexus Links, Speed in Assemblers and the Coal
- * Generator too, Efficiency and Buffer in machines and generators, and Chunk Loader, one at most, in every device
- * that takes upgrades. Other mods register more kinds into {@link #REGISTRY}.
+ * Generator too, Efficiency and Buffer in machines and generators, Void, one at most, in Storage Vaults and External
+ * Vaults, and Chunk Loader, one at most, in every device that takes upgrades. Other mods register more kinds into
+ * {@link #REGISTRY}.
  */
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class UpgradeTypes {
@@ -51,6 +52,8 @@ public final class UpgradeTypes {
             TYPES.register("autocrafting", NexusUpgradeType::working);
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> CHUNK_LOADER =
             TYPES.register("chunk_loader", NexusUpgradeType::working);
+    public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> VOID =
+            TYPES.register("void", NexusUpgradeType::working);
 
     private UpgradeTypes() {
     }

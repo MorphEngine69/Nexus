@@ -17,10 +17,10 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The upgrade slots shared by the Nexus, the Storage Vault and the Energy Cell:
- * for now they take a Chunk Loader Upgrade, which keeps the chunk of the owner
- * loaded while it sits in a slot. The owner passes on its removal, saving and
- * loading.
+ * The upgrade slots of the Nexus, the Storage Vault and the Energy Cell. They take a
+ * Chunk Loader Upgrade, which keeps the chunk of the owner loaded while it sits in a
+ * slot, and an owner may take more kinds by giving its own limits. The owner passes
+ * on its removal, saving and loading, and may ask to be told of every change.
  */
 public final class DeviceUpgrades {
 
@@ -31,10 +31,21 @@ public final class DeviceUpgrades {
 
     private final BlockEntity owner;
     private final UpgradeContainer upgrades;
+    private final Runnable onChange;
 
     public DeviceUpgrades(final BlockEntity owner) {
+        this(owner, LIMITS, () -> { });
+    }
+
+    /**
+     * @param limits   the kinds the owner takes, and how many of each
+     * @param onChange run after every change of the slots, once the chunk and the owner are seen to
+     */
+    public DeviceUpgrades(final BlockEntity owner, final UpgradeLimits limits, final Runnable onChange) {
         this.owner = Objects.requireNonNull(owner, "owner must not be null");
-        this.upgrades = new UpgradeContainer(SIZE, LIMITS, this::changed);
+        this.onChange = Objects.requireNonNull(onChange, "onChange must not be null");
+        this.upgrades = new UpgradeContainer(SIZE, Objects.requireNonNull(limits, "limits must not be null"),
+                this::changed);
     }
 
     public Container container() {
@@ -60,5 +71,6 @@ public final class DeviceUpgrades {
     private void changed() {
         ChunkAnchors.follow(owner, upgrades);
         owner.setChanged();
+        onChange.run();
     }
 }

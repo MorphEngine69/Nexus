@@ -15,6 +15,7 @@ import com.morphengine.nexus.item.NetworkCardItem;
 import com.morphengine.nexus.item.NexusTerminalItem;
 import com.morphengine.nexus.item.TierUpgradeItem;
 import com.morphengine.nexus.item.VaultCellItem;
+import com.morphengine.nexus.item.VoidUpgradeItem;
 import com.morphengine.nexus.item.WrenchItem;
 import com.morphengine.nexus.processing.MachineKind;
 import com.morphengine.nexus.processing.MachineMarks;
@@ -129,11 +130,14 @@ public final class NexusItems {
     public static final DeferredItem<UpgradeItem> SILK_TOUCH_UPGRADE = registerUpgrade(UpgradeTypes.SILK_TOUCH);
     public static final DeferredItem<UpgradeItem> AUTOCRAFTING_UPGRADE = registerUpgrade(UpgradeTypes.AUTOCRAFTING);
     public static final DeferredItem<UpgradeItem> CHUNK_LOADER_UPGRADE = registerUpgrade(UpgradeTypes.CHUNK_LOADER);
+    public static final DeferredItem<UpgradeItem> VOID_UPGRADE = ITEMS.registerItem(
+            UpgradeTypes.VOID.getId().getPath() + "_upgrade",
+            properties -> new VoidUpgradeItem(UpgradeTypes.VOID, properties));
 
     /** Every upgrade, those that work first. */
     public static final List<DeferredItem<UpgradeItem>> UPGRADES = List.of(SPEED_UPGRADE, STACK_UPGRADE,
             REGULATOR_UPGRADE, CAPACITY_UPGRADE, EFFICIENCY_UPGRADE, BUFFER_UPGRADE, RANGE_UPGRADE, FORTUNE_UPGRADE,
-            SILK_TOUCH_UPGRADE, AUTOCRAFTING_UPGRADE, CHUNK_LOADER_UPGRADE);
+            SILK_TOUCH_UPGRADE, AUTOCRAFTING_UPGRADE, CHUNK_LOADER_UPGRADE, VOID_UPGRADE);
 
     /** The still pose of the model that the item of a machine stands in: lit as if at work, nothing moving. */
     private static final String ITEM_POSE = "item";

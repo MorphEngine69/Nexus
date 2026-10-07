@@ -34,6 +34,11 @@ public final class NexusDataComponents {
             "cell_filter",
             builder -> builder.persistent(FilterSlots.CODEC).networkSynchronized(FilterSlots.STREAM_CODEC));
 
+    /** The resources a Void Upgrade has the network destroy; an empty list destroys nothing. */
+    public static final Supplier<DataComponentType<FilterSlots>> DISCARD_FILTER = COMPONENTS.registerComponentType(
+            "discard_filter",
+            builder -> builder.persistent(FilterSlots.CODEC).networkSynchronized(FilterSlots.STREAM_CODEC));
+
     /** The recipe encoded on a Blueprint; a blank Blueprint has none. */
     public static final Supplier<DataComponentType<EncodedBlueprint>> ENCODED_BLUEPRINT =
             COMPONENTS.registerComponentType("encoded_blueprint",

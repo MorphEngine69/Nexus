@@ -513,5 +513,11 @@
   "gui.nexus.external.access.read_only": "La red solo toma",
   "gui.nexus.external.access.read_only.hint": "La red muestra lo que contiene el bloque y lo saca, pero nunca añade nada.",
   "gui.nexus.chunk_loader.on.short": "El chunk %s, %s sigue cargado",
-  "gui.nexus.chunk_loader.off.short": "Mejora de carga de chunk (opcional)"
+  "gui.nexus.chunk_loader.off.short": "Mejora de carga de chunk (opcional)",
+  "item.nexus.void_upgrade": "Mejora de vacío",
+  "tooltip.nexus.upgrade.void": "En un Storage Vault o un External Vault: la red destruye lo que la mejora enumera al entrar, en lugar de guardarlo. Solo lo que llega después de instalarla; lo que la red ya tiene se queda. Una celda configurada para un recurso enumerado sigue tomándolo primero. Se usa con la mano principal para fijar la lista. Una por dispositivo.",
+  "tooltip.nexus.upgrade.void.empty": "Lista vacía: no destruye nada",
+  "tooltip.nexus.upgrade.void.listed": "Destruye lo enumerado: %s",
+  "gui.nexus.void.hint": "Se destruye al entrar en la red",
+  "gui.nexus.void.list": "Destruir"
 }

@@ -1,13 +1,17 @@
 package com.morphengine.nexus.block.entity;
 
+import com.morphengine.nexus.api.resource.ResourceFilter;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.VaultLamp;
+import com.morphengine.nexus.item.VoidUpgradeItem;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.StorageHost;
 import com.morphengine.nexus.menu.StorageVaultMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
+import com.morphengine.nexus.upgrade.UpgradeLimits;
+import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -29,6 +33,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Storage Vault: holds up to {@value VaultCellSlots#SIZE} Vault Cells and lends
@@ -36,7 +42,8 @@ import java.util.List;
  * changed cells onto their items and shows on its meters how full each cell is;
  * with no energy in the network every meter is dark. Every {@value #BUSY_PERIOD_TICKS}
  * ticks it also shows which cells took or gave resources in that time. Cells that lost their slot
- * when the vault got fewer slots are dropped in front of it on its next tick.
+ * when the vault got fewer slots are dropped in front of it on its next tick. A Void Upgrade in its slots has the
+ * network destroy what it lists.
  */
 public final class StorageVaultBlockEntity extends AnimatedDeviceBlockEntity
         implements StorageHost, Renamable, VaultCellSlots.Owner {
@@ -44,6 +51,10 @@ public final class StorageVaultBlockEntity extends AnimatedDeviceBlockEntity
     public static final int SLOTS = VaultCellSlots.SIZE;
     /** One swell of a working cell's meter; the cells shown as working only change at its start, when it is at rest. */
     public static final int BUSY_PERIOD_TICKS = 72;
+
+    /** A Chunk Loader Upgrade and a Void Upgrade, one of each. */
+    public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(
+            Map.of(UpgradeTypes.CHUNK_LOADER, 1, UpgradeTypes.VOID, 1));
 
     private static final String TAG_PRIORITY = "priority";
     private static final String TAG_LAMPS = "lamps";
@@ -53,7 +64,7 @@ public final class StorageVaultBlockEntity extends AnimatedDeviceBlockEntity
 
     private final VaultCellSlots cells = new VaultCellSlots(this);
     private final List<ItemStack> homeless = new ArrayList<>();
-    private final DeviceUpgrades upgrades = new DeviceUpgrades(this);
+    private final DeviceUpgrades upgrades = new DeviceUpgrades(this, UPGRADE_LIMITS, this::refreshNetwork);
     private int priority;
     /** Lamps of all slots as packed by {@link VaultLamp}; on the client, as last sent. */
     private long lamps;
@@ -127,6 +138,11 @@ public final class StorageVaultBlockEntity extends AnimatedDeviceBlockEntity
     @Override
     public List<Storage> storages() {
         return cells.storages();
+    }
+
+    @Override
+    public Optional<ResourceFilter> discarded() {
+        return VoidUpgradeItem.discardedBy(upgrades.container());
     }
 
     @Override

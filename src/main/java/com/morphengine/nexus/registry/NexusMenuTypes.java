@@ -21,6 +21,7 @@ import com.morphengine.nexus.menu.TerminalMenu;
 import com.morphengine.nexus.menu.TerminalOpening;
 import com.morphengine.nexus.menu.TransferDeviceMenu;
 import com.morphengine.nexus.menu.VaultCellMenu;
+import com.morphengine.nexus.menu.VoidUpgradeMenu;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import com.morphengine.nexus.transfer.TransferKind;
 import com.morphengine.nexus.transfer.TransferSettings;
@@ -84,6 +85,11 @@ public final class NexusMenuTypes {
             "vault_cell",
             () -> IMenuTypeExtension.create(
                     (containerId, inventory, buffer) -> new VaultCellMenu(containerId, inventory)));
+
+    public static final Supplier<MenuType<VoidUpgradeMenu>> VOID_UPGRADE = MENU_TYPES.register(
+            "void_upgrade",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) -> new VoidUpgradeMenu(containerId, inventory)));
 
     public static final Supplier<MenuType<TransferDeviceMenu>> TRANSFER_DEVICE = MENU_TYPES.register(
             "transfer_device",

@@ -1,7 +1,9 @@
 package com.morphengine.nexus.level;
 
+import com.morphengine.nexus.api.resource.ResourceFilter;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.storage.NetworkStorage;
+import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -10,7 +12,8 @@ import java.util.Objects;
 
 /**
  * The storages of one network seen as a single {@link NetworkStorage}: every
- * storage its {@link StorageHost}s lend, at the priority of its host.
+ * storage its {@link StorageHost}s lend, at the priority of its host, and the resources
+ * its hosts have the network destroy.
  */
 public final class StorageComponent implements NetworkComponent {
 
@@ -51,7 +54,14 @@ public final class StorageComponent implements NetworkComponent {
         Objects.requireNonNull(host, "host must not be null");
         final List<Storage> current = host.storages();
         final int priority = host.storagePriority();
+        final ResourceFilter discarded = host.discarded().orElse(null);
         final Mount previous = mounts.getOrDefault(host, Mount.NONE);
+        if (previous.discarded() != null) {
+            storage.removeDiscarder(previous.discarded());
+        }
+        if (discarded != null) {
+            storage.addDiscarder(discarded);
+        }
         for (Storage lent : previous.storages()) {
             if (!containsSame(current, lent)) {
                 storage.removeSource(lent);
@@ -64,15 +74,15 @@ public final class StorageComponent implements NetworkComponent {
                 storage.changePriority(lent, priority);
             }
         }
-        if (current.isEmpty()) {
+        if (current.isEmpty() && discarded == null) {
             mounts.remove(host);
         } else {
-            mounts.put(host, new Mount(List.copyOf(current), priority));
+            mounts.put(host, new Mount(List.copyOf(current), priority, discarded));
         }
     }
 
     /**
-     * Takes every storage of {@code host} out of the network at once, for a host
+     * Takes every storage of {@code host} out of the network at once, and what it has the network destroy, for a host
      * that is being removed; nothing can be put into its storages afterwards.
      */
     public void detach(final StorageHost host) {
@@ -80,6 +90,9 @@ public final class StorageComponent implements NetworkComponent {
         if (mount != null) {
             for (Storage lent : mount.storages()) {
                 storage.removeSource(lent);
+            }
+            if (mount.discarded() != null) {
+                storage.removeDiscarder(mount.discarded());
             }
         }
     }
@@ -93,8 +106,11 @@ public final class StorageComponent implements NetworkComponent {
         return false;
     }
 
-    private record Mount(List<Storage> storages, int priority) {
+    /**
+     * @param discarded what the host has the network destroy; {@code null} when nothing
+     */
+    private record Mount(List<Storage> storages, int priority, @Nullable ResourceFilter discarded) {
 
-        static final Mount NONE = new Mount(List.of(), 0);
+        static final Mount NONE = new Mount(List.of(), 0, null);
     }
 }

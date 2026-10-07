@@ -513,5 +513,11 @@
   "gui.nexus.external.access.read_only": "Network only takes",
   "gui.nexus.external.access.read_only.hint": "The network lists what the block holds and takes it out, but never puts anything in.",
   "gui.nexus.chunk_loader.on.short": "Chunk %s, %s stays loaded",
-  "gui.nexus.chunk_loader.off.short": "Chunk Loader Upgrade (optional)"
+  "gui.nexus.chunk_loader.off.short": "Chunk Loader Upgrade (optional)",
+  "item.nexus.void_upgrade": "Void Upgrade",
+  "tooltip.nexus.upgrade.void": "In a Storage Vault or an External Vault: the network destroys what the upgrade lists as it comes in, instead of storing it. Only what arrives after it is installed; what the network already holds stays. A cell set for a listed resource still takes it first. Use with the main hand to set the list. One per device.",
+  "tooltip.nexus.upgrade.void.empty": "List is empty: destroys nothing",
+  "tooltip.nexus.upgrade.void.listed": "Destroys %s listed",
+  "gui.nexus.void.hint": "Destroyed on entering the network",
+  "gui.nexus.void.list": "Destroy"
 }

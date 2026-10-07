@@ -52,6 +52,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   twice as much at a time. Buffer doubles the energy buffer of a machine or generator
   and the tank of an Extractor or a fluid generator. The generators and machines have
   four slots for upgrades.
+- Void Upgrade, for a Storage Vault or an External Vault, one to a vault. Right-click it in the hand
+  to list up to nine items or fluids; while it sits in the vault, the network destroys what is listed
+  as it comes in instead of storing it. Only what arrives after it is installed is destroyed: what
+  the network already holds stays, an empty list destroys nothing, and a cell set to take a listed
+  resource still gets it first.
 - The Nexus Crystal in the hand turns slowly and glows.
 - JEI and REI show the recipes of the Crusher, Pulverizer, Compressor, Alloy Smelter
   and Extractor, with the machines of every tier as the stations, and the Crafting

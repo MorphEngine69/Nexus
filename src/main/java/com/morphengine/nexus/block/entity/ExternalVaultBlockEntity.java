@@ -1,10 +1,12 @@
 package com.morphengine.nexus.block.entity;
 
 import com.geckolib.animation.RawAnimation;
+import com.morphengine.nexus.api.resource.ResourceFilter;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.ExternalVaultBlock;
 import com.morphengine.nexus.external.ExternalVaultSettings;
+import com.morphengine.nexus.item.VoidUpgradeItem;
 import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NeighbourCapabilities;
 import com.morphengine.nexus.level.NetworkComponentTypes;
@@ -38,6 +40,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * External Vault: lends the items and fluids of the block its face touches to its network as one storage, at its
@@ -45,7 +48,8 @@ import java.util.Map;
  * and whether it may put any in. What the network knows of the block is a copy, read again once a second, a different
  * moment for each vault so that many of them do not read together; what the network itself puts in or takes out is
  * counted at once. A block that belongs to a network itself is never used, so that nothing is counted twice or goes
- * round in a circle. Lights or darkens its cable arms with the energy of the network.
+ * round in a circle. A Void Upgrade in its slots has the network destroy what it lists. Lights or darkens its cable
+ * arms with the energy of the network.
  */
 public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity implements StorageHost, Renamable {
 
@@ -55,7 +59,8 @@ public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity im
     public static final int UPGRADE_SLOTS = 4;
     public static final int MAX_SPEED_UPGRADES = 4;
     public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(Map.of(
-            UpgradeTypes.CAPACITY, 3, UpgradeTypes.CHUNK_LOADER, 1, UpgradeTypes.SPEED, MAX_SPEED_UPGRADES));
+            UpgradeTypes.CAPACITY, 3, UpgradeTypes.CHUNK_LOADER, 1, UpgradeTypes.SPEED, MAX_SPEED_UPGRADES,
+            UpgradeTypes.VOID, 1));
     /** Steps of a resource, an item or a bucket, that devices may move through a vault in a tick; placeholder. */
     public static final int BASE_STEPS_PER_TICK = 8;
     public static final int STEPS_PER_SPEED_UPGRADE = 8;
@@ -147,6 +152,11 @@ public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity im
         return lent;
     }
 
+    @Override
+    public Optional<ResourceFilter> discarded() {
+        return VoidUpgradeItem.discardedBy(upgrades);
+    }
+
     /**
      * @return what the face of the vault touches as one storage of its items and fluids; nothing where it touches a
      *         block of a network
@@ -168,6 +178,7 @@ public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity im
         scan();
         ChunkAnchors.follow(this, upgrades);
         setChanged();
+        refreshNetwork();
     }
 
     private void readSpeed() {
