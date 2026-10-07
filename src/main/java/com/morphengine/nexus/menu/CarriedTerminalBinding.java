@@ -5,27 +5,26 @@ import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.item.NexusTerminalItem;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A terminal menu opened on a Nexus Terminal in a hand: it stays open while
- * that hand holds a Nexus Terminal, and when it closes the terminal gives back
- * what its grid and encoder held.
+ * A terminal menu opened on a Nexus Terminal the player carries: it stays open
+ * while that slot holds a Nexus Terminal, and when it closes the terminal gives
+ * back what its grid and encoder held.
  */
-final class HandTerminalBinding implements TerminalBinding {
+final class CarriedTerminalBinding implements TerminalBinding {
 
     private final Player player;
-    private final InteractionHand hand;
+    private final TerminalSlot slot;
     private final @Nullable PortableTerminal host;
 
     /**
      * @param host the terminal on the server; {@code null} on the client
      */
-    HandTerminalBinding(final Player player, final InteractionHand hand, final @Nullable PortableTerminal host) {
+    CarriedTerminalBinding(final Player player, final TerminalSlot slot, final @Nullable PortableTerminal host) {
         this.player = player;
-        this.hand = hand;
+        this.slot = slot;
         this.host = host;
     }
 
@@ -41,7 +40,7 @@ final class HandTerminalBinding implements TerminalBinding {
 
     @Override
     public boolean stillValid(final Player clicker) {
-        return clicker.getItemInHand(hand).getItem() instanceof NexusTerminalItem
+        return slot.stackOf(clicker).getItem() instanceof NexusTerminalItem
                 && permits(clicker, Permission.OPEN);
     }
 
@@ -59,6 +58,6 @@ final class HandTerminalBinding implements TerminalBinding {
 
     @Override
     public Component defaultTitle() {
-        return player.getItemInHand(hand).getHoverName();
+        return slot.stackOf(player).getHoverName();
     }
 }

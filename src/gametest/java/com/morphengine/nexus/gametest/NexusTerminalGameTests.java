@@ -5,6 +5,8 @@ import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.item.NexusTerminalItem;
 import com.morphengine.nexus.level.NetworkController;
+import com.morphengine.nexus.menu.TerminalSlot;
+import com.morphengine.nexus.menu.TerminalSlots;
 import com.morphengine.nexus.registry.NexusBlocks;
 import com.morphengine.nexus.registry.NexusItems;
 import net.minecraft.core.BlockPos;
@@ -48,6 +50,7 @@ public final class NexusTerminalGameTests {
 
     private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 100;
+    private static final int INVENTORY_SLOT = 20;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos ELSEWHERE = new BlockPos(6, 1, 6);
     private static final NetworkColor RED = new NetworkColor(0xC03030);
@@ -60,7 +63,11 @@ public final class NexusTerminalGameTests {
             Map.entry("nexus_broken_in_creative_keeps_its_network",
                     NexusTerminalGameTests::creativeBreakKeepsNetwork),
             Map.entry("default_nexus_broken_in_creative_drops_nothing",
-                    NexusTerminalGameTests::creativeBreakOfDefault));
+                    NexusTerminalGameTests::creativeBreakOfDefault),
+            Map.entry("key_finds_terminal_in_inventory", NexusTerminalGameTests::keyFindsInventoryTerminal),
+            Map.entry("key_prefers_hand_to_inventory", NexusTerminalGameTests::keyPrefersHand),
+            Map.entry("key_prefers_bound_terminal", NexusTerminalGameTests::keyPrefersBoundTerminal),
+            Map.entry("key_finds_nothing_without_terminal", NexusTerminalGameTests::keyFindsNothing));
 
     private NexusTerminalGameTests() {
     }
@@ -173,6 +180,47 @@ public final class NexusTerminalGameTests {
         helper.assertTrue(helper.getEntities(EntityTypes.ITEM).isEmpty(),
                 Component.literal("a Nexus with the default network dropped in creative mode"));
         helper.succeed();
+    }
+
+    private static void keyFindsInventoryTerminal(final GameTestHelper helper) {
+        final Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.getInventory().setItem(INVENTORY_SLOT, new ItemStack(NexusItems.NEXUS_TERMINAL.get()));
+
+        assertFound(helper, player, new TerminalSlot.Carried(INVENTORY_SLOT));
+        helper.succeed();
+    }
+
+    private static void keyPrefersHand(final GameTestHelper helper) {
+        final Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.getInventory().setItem(INVENTORY_SLOT, new ItemStack(NexusItems.NEXUS_TERMINAL.get()));
+        player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(NexusItems.NEXUS_TERMINAL.get()));
+
+        assertFound(helper, player, new TerminalSlot.Hand(InteractionHand.OFF_HAND));
+        helper.succeed();
+    }
+
+    private static void keyPrefersBoundTerminal(final GameTestHelper helper) {
+        placeNexus(helper, NEXUS);
+        final Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(NexusItems.NEXUS_TERMINAL.get()));
+        player.getInventory().setItem(INVENTORY_SLOT, boundTerminal(helper, NEXUS));
+
+        assertFound(helper, player, new TerminalSlot.Carried(INVENTORY_SLOT));
+        helper.succeed();
+    }
+
+    private static void keyFindsNothing(final GameTestHelper helper) {
+        final Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.getInventory().setItem(INVENTORY_SLOT, new ItemStack(NexusItems.WRENCH.get()));
+
+        helper.assertTrue(TerminalSlots.find(player) == null,
+                Component.literal("a terminal found in an inventory without one"));
+        helper.succeed();
+    }
+
+    private static void assertFound(final GameTestHelper helper, final Player player, final TerminalSlot expected) {
+        final TerminalSlot found = TerminalSlots.find(player);
+        helper.assertTrue(expected.equals(found), Component.literal("the key found " + found + ", not " + expected));
     }
 
     /**

@@ -5,6 +5,7 @@ import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.NetworkDirectory;
 import com.morphengine.nexus.menu.PortableTerminals;
+import com.morphengine.nexus.menu.TerminalSlot;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.terminal.EnumCycle;
 import com.morphengine.nexus.terminal.TerminalKind;
@@ -34,7 +35,7 @@ import java.util.function.Consumer;
  * that network; a right click in the air opens it wherever a Nexus Link of the
  * network reaches. It works as a terminal, a crafting terminal or a blueprint
  * terminal, as its mode says; used while sneaking in the air, it switches
- * mode.
+ * mode. It can be opened and switched from wherever it is carried, with keys.
  *
  * <p>It is bound to the network by id, not to the Nexus by name or place: the
  * network stays reachable when renamed and when its Nexus is moved. Only when
@@ -133,25 +134,43 @@ public final class NexusTerminalItem extends Item {
     public InteractionResult use(final Level level, final Player player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
         if (player.isSecondaryUseActive()) {
-            final TerminalKind next = EnumCycle.step(modeOf(stack), false);
             if (!level.isClientSide()) {
-                stack.set(NexusDataComponents.TERMINAL_MODE.get(), next);
-                player.sendOverlayMessage(Component.translatable("item.nexus.nexus_terminal.mode",
-                        Component.translatable(modeKey(next))));
+                cycleMode(player, stack);
             }
             return InteractionResult.SUCCESS;
         }
-        if (boundNexus(stack) == null) {
-            if (!level.isClientSide()) {
-                player.sendOverlayMessage(Component.translatable("item.nexus.nexus_terminal.unbound"));
-            }
-            return InteractionResult.FAIL;
-        }
         if (player instanceof ServerPlayer serverPlayer) {
-            refreshBinding(stack, serverPlayer.level().getServer());
-            PortableTerminals.open(serverPlayer, hand);
+            return open(serverPlayer, new TerminalSlot.Hand(hand)) ? InteractionResult.SUCCESS
+                    : InteractionResult.FAIL;
         }
-        return InteractionResult.SUCCESS;
+        return boundNexus(stack) == null ? InteractionResult.FAIL : InteractionResult.SUCCESS;
+    }
+
+    /**
+     * Opens the terminal in {@code slot} for {@code player}; tells them when it is bound to no network. Server side
+     * only.
+     *
+     * @return whether the terminal was bound, so that its menu was opened or refused for lack of access
+     */
+    public static boolean open(final ServerPlayer player, final TerminalSlot slot) {
+        final ItemStack stack = slot.stackOf(player);
+        if (boundNexus(stack) == null) {
+            player.sendOverlayMessage(Component.translatable("item.nexus.nexus_terminal.unbound"));
+            return false;
+        }
+        refreshBinding(stack, player.level().getServer());
+        PortableTerminals.open(player, slot);
+        return true;
+    }
+
+    /**
+     * Switches {@code stack} to the next mode and tells {@code player}. Server side only.
+     */
+    public static void cycleMode(final Player player, final ItemStack stack) {
+        final TerminalKind next = EnumCycle.step(modeOf(stack), false);
+        stack.set(NexusDataComponents.TERMINAL_MODE.get(), next);
+        player.sendOverlayMessage(Component.translatable("item.nexus.nexus_terminal.mode",
+                Component.translatable(modeKey(next))));
     }
 
     @Override

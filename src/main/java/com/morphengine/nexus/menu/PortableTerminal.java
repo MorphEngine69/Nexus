@@ -17,14 +17,13 @@ import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import com.morphengine.nexus.terminal.TerminalStatus;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
 /**
- * A Nexus Terminal in a player's hand, as the host of its menu. It reaches the
+ * A Nexus Terminal a player carries, as the host of its menu. It reaches the
  * network of the Nexus it is bound to while that Nexus is loaded and a Nexus
  * Link of the network reaches the player. Its settings live on the item. Its
  * crafting grid and encoder are the menu's alone: when the menu closes, the
@@ -34,19 +33,19 @@ import java.util.UUID;
 final class PortableTerminal implements TerminalHost, Secured {
 
     private final ServerPlayer player;
-    private final InteractionHand hand;
+    private final TerminalSlot carriedIn;
     private final @Nullable TerminalCraftingGrid grid;
     private final @Nullable BlueprintEncoder encoder;
 
-    PortableTerminal(final ServerPlayer player, final InteractionHand hand, final TerminalKind mode) {
+    PortableTerminal(final ServerPlayer player, final TerminalSlot carriedIn, final TerminalKind mode) {
         this.player = player;
-        this.hand = hand;
+        this.carriedIn = carriedIn;
         this.grid = mode.hasCraftingGrid() ? new TerminalCraftingGrid(() -> { }) : null;
         this.encoder = mode.hasEncoder() ? new BlueprintEncoder(() -> { }) : null;
     }
 
     ItemStack stack() {
-        return player.getItemInHand(hand);
+        return carriedIn.stackOf(player);
     }
 
     /**

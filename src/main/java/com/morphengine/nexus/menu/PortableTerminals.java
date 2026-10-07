@@ -9,7 +9,6 @@ import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -17,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * Opening the menu of a Nexus Terminal, on the server as the player uses it
- * and on the client from what the server sends: the hand it is in, then its
+ * and on the client from what the server sends: the slot it is in, then its
  * settings.
  */
 public final class PortableTerminals {
@@ -26,22 +25,22 @@ public final class PortableTerminals {
     }
 
     /**
-     * Opens the Nexus Terminal in {@code hand} as its mode says, for a player
+     * Opens the Nexus Terminal in {@code slot} as its mode says, for a player
      * who may open the network it is bound to. Server side only.
      */
-    public static void open(final ServerPlayer player, final InteractionHand hand) {
-        final ItemStack stack = player.getItemInHand(hand);
+    public static void open(final ServerPlayer player, final TerminalSlot slot) {
+        final ItemStack stack = slot.stackOf(player);
         final TerminalKind mode = NexusTerminalItem.modeOf(stack);
         final TerminalSettings settings = settingsOf(stack);
-        final PortableTerminal host = new PortableTerminal(player, hand, mode);
+        final PortableTerminal host = new PortableTerminal(player, slot, mode);
         if (!NetworkAccess.permits(player, host, Permission.OPEN)) {
             NetworkAccess.refuse(player, Permission.OPEN);
             return;
         }
-        final TerminalOpening opening = new TerminalOpening(new HandTerminalBinding(player, hand, host), settings);
+        final TerminalOpening opening = new TerminalOpening(new CarriedTerminalBinding(player, slot, host), settings);
         player.openMenu(new SimpleMenuProvider((containerId, inventory, opener) -> create(mode, containerId,
                 inventory, opening), stack.getHoverName()), buffer -> {
-                    buffer.writeEnum(hand);
+                    TerminalSlot.STREAM_CODEC.encode(buffer, slot);
                     TerminalSettings.STREAM_CODEC.encode(buffer, settings);
                 });
     }
@@ -50,8 +49,8 @@ public final class PortableTerminals {
      * @return what the client's menu of a Nexus Terminal opens with, from what {@link #open} sent
      */
     public static TerminalOpening readOpening(final Inventory inventory, final RegistryFriendlyByteBuf buffer) {
-        final InteractionHand hand = buffer.readEnum(InteractionHand.class);
-        return new TerminalOpening(new HandTerminalBinding(inventory.player, hand, null),
+        final TerminalSlot slot = TerminalSlot.STREAM_CODEC.decode(buffer);
+        return new TerminalOpening(new CarriedTerminalBinding(inventory.player, slot, null),
                 TerminalSettings.STREAM_CODEC.decode(buffer));
     }
 
