@@ -90,6 +90,10 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> implemen
         for (Slot slot : getMenu().slots) {
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
         }
+        graphics.text(font, Component.translatable("gui.nexus.energy_cell.charging"),
+                leftPos + EnergyCellMenu.CHARGE_LEFT + PanelStyle.SLOT_SIZE + GAP / 2,
+                topPos + EnergyCellMenu.CHARGE_TOP + (PanelStyle.SLOT_SIZE - font.lineHeight) / 2,
+                PanelStyle.TEXT_DIM, false);
         graphics.text(font, playerInventoryTitle, leftPos + EnergyCellMenu.INVENTORY_LEFT,
                 topPos + EnergyCellMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }

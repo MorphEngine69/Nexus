@@ -38,6 +38,16 @@ final class UpgradeColumn {
         return column;
     }
 
+    /**
+     * @param hosted the device's only upgrade slot; {@code null} on the client
+     * @return the slot of a device that takes one upgrade
+     */
+    static Slot single(final @Nullable Container hosted, final UpgradeLimits limits, final int left, final int top) {
+        final Container upgrades = hosted != null ? hosted
+                : new UpgradeContainer(DeviceUpgrades.SINGLE_SLOT, limits, () -> { });
+        return new UpgradeSlot(upgrades, 0, left, top);
+    }
+
     static boolean takes(final UpgradeLimits limits, final ItemStack stack) {
         return limits.takesKindOf(stack);
     }

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:cobalt_ingot",
+    "B": "minecraft:item_frame",
+    "C": "nexus:lumen_ingot",
+    "D": "nexus:upgrade_blank"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "ABA"
+  ],
+  "result": {
+    "id": "nexus:capacity_upgrade"
+  }
+}

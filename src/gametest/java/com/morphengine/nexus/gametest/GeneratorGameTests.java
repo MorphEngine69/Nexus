@@ -124,7 +124,7 @@ public final class GeneratorGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> assertValue(helper, generator.view().production(),
-                        GeneratorKind.COAL.energyPerTick(), "FE a tick"))
+                        GeneratorKind.COAL.outputPerTick(), "FE a tick"))
                 .thenSucceed();
     }
 
@@ -136,7 +136,7 @@ public final class GeneratorGameTests {
                 .thenWaitUntil(() -> assertValue(helper, generator.view().burnTicksTotal(), STAR_BURN_TICKS,
                         "ticks a nether star burns"))
                 .thenExecute(() -> assertValue(helper, generator.view().production(),
-                        GeneratorKind.NETHER_STAR.energyPerTick(), "FE a tick"))
+                        GeneratorKind.NETHER_STAR.outputPerTick(), "FE a tick"))
                 .thenSucceed();
     }
 
@@ -158,7 +158,7 @@ public final class GeneratorGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> assertValue(helper, generator.view().production(),
-                        GeneratorKind.LAVA.energyPerTick(), "FE a tick"))
+                        GeneratorKind.LAVA.outputPerTick(), "FE a tick"))
                 .thenSucceed();
     }
 
@@ -168,7 +168,7 @@ public final class GeneratorGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> assertValue(helper, generator.view().production(),
-                        GeneratorKind.BIOFUEL.energyPerTick(), "FE a tick"))
+                        GeneratorKind.BIOFUEL.outputPerTick(), "FE a tick"))
                 .thenExecute(() -> helper.assertTrue(
                         GeneratorKind.BIOFUEL.energyPerTick() > GeneratorKind.STEAM.energyPerTick()
                                 && GeneratorKind.STEAM.energyPerTick() > GeneratorKind.LAVA.energyPerTick(),
@@ -185,7 +185,7 @@ public final class GeneratorGameTests {
                 .thenExecute(() -> assertValue(helper, generator.view().production(), 0, "FE a tick without water"))
                 .thenExecute(() -> insert(generator, FluidResource.of(Fluids.WATER), BUCKET))
                 .thenWaitUntil(() -> assertValue(helper, generator.view().production(),
-                        GeneratorKind.STEAM.energyPerTick(), "FE a tick with both"))
+                        GeneratorKind.STEAM.outputPerTick(), "FE a tick with both"))
                 .thenSucceed();
     }
 

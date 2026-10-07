@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "minecraft:bucket",
+    "C": "nexus:core",
+    "D": "nexus:machine_casing",
+    "E": "nexus:battery"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "AEA"
+  ],
+  "result": {
+    "id": "nexus:basic_extractor"
+  }
+}

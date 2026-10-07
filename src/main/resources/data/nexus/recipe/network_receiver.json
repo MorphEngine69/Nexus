@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:mithril_ingot",
+    "B": "nexus:voltsteel_ingot",
+    "C": "nexus:aether_ingot",
+    "D": "nexus:machine_casing",
+    "E": "nexus:antenna"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    " E "
+  ],
+  "result": {
+    "id": "nexus:network_receiver"
+  }
+}

@@ -1,18 +1,22 @@
 package com.morphengine.nexus.block.entity;
 
 import com.geckolib.animation.RawAnimation;
+import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.transport.RedstoneMode;
 import com.morphengine.nexus.api.transport.TransferQuota;
 import com.morphengine.nexus.block.TransferDeviceBlock;
+import com.morphengine.nexus.energy.OperationUpgrades;
 import com.morphengine.nexus.level.AutocraftingComponent;
 import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NeighbourCapabilities;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
+import com.morphengine.nexus.level.OperationToll;
 import com.morphengine.nexus.level.SideStorage;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.TransferDeviceMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.resource.NexusResources;
@@ -21,6 +25,7 @@ import com.morphengine.nexus.storage.SingleTypeStorage;
 import com.morphengine.nexus.transfer.DeliveryMode;
 import com.morphengine.nexus.transfer.DeviceOperation;
 import com.morphengine.nexus.transfer.TransferKind;
+import com.morphengine.nexus.transfer.TransferResource;
 import com.morphengine.nexus.transfer.TransferSettings;
 import com.morphengine.nexus.transfer.Workplace;
 import com.morphengine.nexus.transport.RedstoneGate;
@@ -68,7 +73,7 @@ import java.util.random.RandomGenerator;
  * lights or darkens its cable arms with the network's energy. It keeps its
  * settings and its upgrades.
  */
-public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity {
+public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity implements UpgradeHolder {
 
     public static final int FILTER_SLOTS = 9;
     /** A Capacity Upgrade adds this many filter slots; placeholder balance. */
@@ -144,6 +149,20 @@ public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity {
         return settings;
     }
 
+    /**
+     * @return how often the device works and how much it moves each time, with the upgrades it holds
+     */
+    public TransferRate rate() {
+        return rate;
+    }
+
+    /**
+     * @return whether the redstone setting keeps the device from working now
+     */
+    public boolean isPausedByRedstone() {
+        return !gate.isOpen();
+    }
+
     public void changeSettings(final TransferSettings newSettings) {
         applySettings(newSettings);
         setChanged();
@@ -202,6 +221,17 @@ public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity {
         }
     }
 
+    private void recordEnergyMoved(final long moved) {
+        if (settings.resource() != TransferResource.ENERGY) {
+            return;
+        }
+        if (kind.role() == DeviceRole.PULLER) {
+            energyMeter().recordSupplied(moved);
+        } else {
+            energyMeter().recordDrawn(moved);
+        }
+    }
+
     /**
      * Works for its owner: a device whose owner may not move resources the way
      * it does in its network stands still, and one whose owner may not order
@@ -217,11 +247,19 @@ public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity {
         if (!allowed) {
             return;
         }
+        final OperationUpgrades toll = OperationUpgrades.speedOnly(upgrades.count(UpgradeTypes.SPEED));
+        if (!OperationToll.affords(controller, kind.operationKind(), toll)) {
+            return;
+        }
         final SideStorage beside = besideStorage(level, pos, face);
         final SingleTypeStorage network =
                 new SingleTypeStorage(controller.resources(), settings.resource().resourceType());
         final FrontSpace front = new FrontSpace(level, pos, face, new DeviceHand(tool, ownerProfile()));
-        operation().run(new Workplace(network, beside, front, actor()));
+        final long moved = operation().run(new Workplace(network, beside, front, actor()));
+        if (moved > 0) {
+            OperationToll.charge(controller, kind.operationKind(), toll, energyMeter());
+            recordEnergyMoved(moved);
+        }
         gate.operated();
         if (autocrafts && kind.ordersCrafts() && --operationsUntilOrder <= 0
                 && ownerMay(Permission.AUTOCRAFTING)) {

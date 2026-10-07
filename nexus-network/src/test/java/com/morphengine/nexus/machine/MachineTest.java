@@ -34,7 +34,7 @@ class MachineTest {
     }
 
     @Test
-    void theMachineWorksFasterThanARecipeSaysAtItsTierSpeed() {
+    void theMachineWorksAtTheSpeedOfItsTier() {
         charge(MachineTier.BASIC.maxInsert());
         machine.inventory().insert(STONE, 1, Action.EXECUTE, NOBODY);
         int ticks = 0;
@@ -44,8 +44,14 @@ class MachineTest {
             ticks++;
         }
 
-        assertThat(ticks).isLessThan(STONE_TICKS);
         assertThat(ticks).isEqualTo((int) Math.ceil(STONE_TICKS * 100.0 / MachineTier.BASIC.speedPercent()));
+    }
+
+    @Test
+    void everyTierAfterTheFirstIsFasterThanARecipeSays() {
+        for (int rank = 2; rank <= 4; rank++) {
+            assertThat(MachineTier.ofRank(rank).speedPercent()).isGreaterThan(MachineTier.BASIC.speedPercent());
+        }
     }
 
     private long energySpentOnOneStone(final Machine worker) {

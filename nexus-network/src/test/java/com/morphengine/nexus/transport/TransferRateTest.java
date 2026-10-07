@@ -9,13 +9,15 @@ class TransferRateTest {
 
     @Test
     void withoutUpgradesItWorksAtBaseRate() {
-        assertThat(TransferRate.of(0, 0)).isEqualTo(new TransferRate(10, 1));
+        assertThat(TransferRate.of(0, 0)).isEqualTo(new TransferRate(16, 1));
     }
 
     @Test
     void everySpeedUpgradeShortensTheInterval() {
-        assertThat(TransferRate.of(1, 0).intervalTicks()).isEqualTo(8);
-        assertThat(TransferRate.of(4, 0).intervalTicks()).isEqualTo(2);
+        assertThat(TransferRate.of(1, 0).intervalTicks()).isEqualTo(12);
+        assertThat(TransferRate.of(2, 0).intervalTicks()).isEqualTo(8);
+        assertThat(TransferRate.of(3, 0).intervalTicks()).isEqualTo(5);
+        assertThat(TransferRate.of(4, 0).intervalTicks()).isEqualTo(3);
     }
 
     @Test
@@ -41,7 +43,7 @@ class TransferRateTest {
 
     @Test
     void speedAndStackCombine() {
-        assertThat(TransferRate.of(2, 1)).isEqualTo(new TransferRate(6, 64));
+        assertThat(TransferRate.of(2, 1)).isEqualTo(new TransferRate(8, 64));
     }
 
     @Test

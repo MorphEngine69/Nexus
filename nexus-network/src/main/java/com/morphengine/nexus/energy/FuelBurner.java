@@ -15,6 +15,7 @@ public final class FuelBurner {
     private final long energyPerTick;
     private int speed = 1;
     private int efficiencyUpgrades;
+    private int yieldPercent = EnergyScale.NEUTRAL_PERCENT;
     private int burnTicksLeft;
     private int burnTicksTotal;
 
@@ -49,6 +50,16 @@ public final class FuelBurner {
     public void setEfficiencyUpgrades(final int upgrades) {
         EfficiencyUpgrades.yielded(0, upgrades);
         this.efficiencyUpgrades = upgrades;
+    }
+
+    /**
+     * @param percent the share of the FE it makes that the burner really makes, as a setting of the world may ask
+     *                for, from {@value EnergyScale#MIN_PERCENT} to {@value EnergyScale#MAX_PERCENT}; a hundred
+     *                changes nothing
+     */
+    public void setYieldPercent(final int percent) {
+        EnergyScale.of(0, percent);
+        this.yieldPercent = percent;
     }
 
     /**
@@ -112,7 +123,8 @@ public final class FuelBurner {
     }
 
     private long energyOf(final int burntTicks) {
-        return EfficiencyUpgrades.yielded(energyPerTick * burntTicks, efficiencyUpgrades);
+        return EnergyScale.of(EfficiencyUpgrades.yielded(energyPerTick * burntTicks, efficiencyUpgrades),
+                yieldPercent);
     }
 
     /**

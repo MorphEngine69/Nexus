@@ -7,6 +7,7 @@ import com.morphengine.nexus.block.entity.NetworkTransmitterBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.NexusLinkBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
+import com.morphengine.nexus.config.NexusConfig;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.level.NetworkComponentTypes;
@@ -132,9 +133,9 @@ public final class WirelessGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(access(helper).hasAccessPoints(),
                         Component.literal("the network has no access point")))
-                .thenExecute(() -> helper.assertTrue(reaches(helper, link.add(NexusLinkBlockEntity.BASE_RANGE - 1, 0,
+                .thenExecute(() -> helper.assertTrue(reaches(helper, link.add(NexusConfig.linkRange(0) - 1, 0,
                         0)), Component.literal("the link does not reach within its range")))
-                .thenExecute(() -> helper.assertFalse(reaches(helper, link.add(NexusLinkBlockEntity.BASE_RANGE + 1,
+                .thenExecute(() -> helper.assertFalse(reaches(helper, link.add(NexusConfig.linkRange(0) + 1,
                         0, 0)), Component.literal("the link reaches beyond its range")))
                 .thenSucceed();
     }
@@ -144,7 +145,7 @@ public final class WirelessGameTests {
         place(helper, LINK, NexusBlocks.NEXUS_LINK.get().defaultBlockState());
         helper.getBlockEntity(LINK, NexusLinkBlockEntity.class).upgrades()
                 .setItem(0, new ItemStack(NexusItems.RANGE_UPGRADE.get()));
-        final Vec3 far = Vec3.atCenterOf(helper.absolutePos(LINK)).add(NexusLinkBlockEntity.BASE_RANGE + 1, 0, 0);
+        final Vec3 far = Vec3.atCenterOf(helper.absolutePos(LINK)).add(NexusConfig.linkRange(0) + 1, 0, 0);
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(reaches(helper, far),

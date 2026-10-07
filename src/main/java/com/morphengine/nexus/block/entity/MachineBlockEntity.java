@@ -4,11 +4,13 @@ import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.machine.MachineRecipe;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.block.MachineBlock;
+import com.morphengine.nexus.config.NexusConfig;
 import com.morphengine.nexus.energy.BufferUpgrades;
 import com.morphengine.nexus.energy.EfficiencyUpgrades;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.SideStorage;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.machine.InputMode;
 import com.morphengine.nexus.machine.Machine;
 import com.morphengine.nexus.machine.MachineActivity;
@@ -62,7 +64,8 @@ import java.util.Optional;
  * Upgrades, and what it looks like. Every tick it tops its buffer up from the energy pool of its network, which takes
  * from its sources by priority, and lets the core work; the buffer takes energy in from outside and never gives any.
  */
-public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implements Renamable {
+public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity
+        implements UpgradeHolder, Renamable, StandaloneDevice {
 
     public static final int UPGRADE_SLOTS = 4;
     public static final UpgradeLimits UPGRADE_LIMITS =
@@ -253,6 +256,7 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implemen
                             .orElse(0F));
         }
         drawEnergy();
+        machine.setEnergyUsePercent(NexusConfig.machineUsePercent());
         final boolean mayWork = redstone.permitsWork();
         final MachineActivity activity = mayWork ? machine.tick() : MachineActivity.IDLE;
         if (mayWork) {
@@ -282,7 +286,10 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implemen
         final SimpleEnergyBuffer buffer = machine.energy();
         final long room = buffer.insert(machine.tier().maxInsert(), Action.SIMULATE);
         if (room > 0) {
-            buffer.insert(controller.energy().extract(room, Action.EXECUTE), Action.EXECUTE);
+            final long drawn = buffer.insert(controller.energy().extract(room, Action.EXECUTE), Action.EXECUTE);
+            if (drawn > 0) {
+                energyMeter().recordDrawn(drawn);
+            }
         }
     }
 

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:antenna",
+    "B": "nexus:aether_ingot",
+    "C": "nexus:machine_casing",
+    "D": "nexus:mithril_ingot",
+    "E": "nexus:voltsteel_ingot"
+  },
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "result": {
+    "id": "nexus:network_transmitter"
+  }
+}

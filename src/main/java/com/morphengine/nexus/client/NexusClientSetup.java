@@ -17,6 +17,7 @@ import com.morphengine.nexus.client.render.KindDeviceRenderer;
 import com.morphengine.nexus.client.render.MachineRenderer;
 import com.morphengine.nexus.client.render.NexusRenderer;
 import com.morphengine.nexus.client.render.StorageVaultRenderer;
+import com.morphengine.nexus.client.screen.AnalyserScreen;
 import com.morphengine.nexus.client.screen.AssemblerScreen;
 import com.morphengine.nexus.client.screen.CraftingMonitorScreen;
 import com.morphengine.nexus.client.screen.EnergyCellScreen;
@@ -67,6 +68,7 @@ public final class NexusClientSetup {
     @SubscribeEvent
     static void registerScreens(final RegisterMenuScreensEvent event) {
         event.register(NexusMenuTypes.NEXUS.get(), NexusScreen::new);
+        event.register(NexusMenuTypes.ANALYSER.get(), AnalyserScreen::new);
         event.register(NexusMenuTypes.ENERGY_CELL.get(), EnergyCellScreen::new);
         event.register(NexusMenuTypes.GENERATOR.get(), GeneratorScreen::new);
         event.register(NexusMenuTypes.MACHINE.get(), MachineScreen::new);

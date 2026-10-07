@@ -15,10 +15,12 @@ import com.morphengine.nexus.level.NetworkMember;
 import com.morphengine.nexus.level.PlayerActor;
 import com.morphengine.nexus.level.SideStorage;
 import com.morphengine.nexus.level.StorageHost;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.ExternalVaultMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.resource.NexusResources;
 import com.morphengine.nexus.storage.ExternalStorage;
+import com.morphengine.nexus.storage.ScanSchedule;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
@@ -45,13 +47,16 @@ import java.util.Optional;
 /**
  * External Vault: lends the items and fluids of the block its face touches to its network as one storage, at its
  * priority. What the player lists in its filter and the access it is set to decide which resources the network uses
- * and whether it may put any in. What the network knows of the block is a copy, read again once a second, a different
- * moment for each vault so that many of them do not read together; what the network itself puts in or takes out is
- * counted at once. A block that belongs to a network itself is never used, so that nothing is counted twice or goes
- * round in a circle. A Void Upgrade in its slots has the network destroy what it lists. Lights or darkens its cable
- * arms with the energy of the network.
+ * and whether it may put any in. What the network knows of the block is a copy, read again every second at first, a
+ * different moment for each vault so that many of them do not read together, a little less often for a large block and
+ * much oftener while a player is at it, see {@link ScanSchedule}; what the network itself puts in or takes out is
+ * counted at once.
+ * A block that belongs to a network itself is never used, so that nothing is counted twice or goes round in a circle.
+ * A Void Upgrade in its slots has the network destroy what it lists. Lights or darkens its cable arms with the energy
+ * of the network.
  */
-public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity implements StorageHost, Renamable {
+public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity
+        implements UpgradeHolder, StorageHost, Renamable {
 
     public static final int FILTER_SLOTS = 9;
     /** A Capacity Upgrade adds this many filter slots; placeholder balance. */
@@ -65,7 +70,7 @@ public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity im
     public static final int BASE_STEPS_PER_TICK = 8;
     public static final int STEPS_PER_SPEED_UPGRADE = 8;
 
-    private static final int SCAN_INTERVAL_TICKS = 20;
+    private static final long NOT_PLANNED = -1;
     private static final int POWER_CHECK_INTERVAL_TICKS = 20;
     private static final RawAnimation AT_REST = RawAnimation.begin().thenLoop("idle");
     private static final Storage NOTHING = new SideStorage(null, null, null);
@@ -81,6 +86,8 @@ public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity im
     private ExternalVaultSettings settings = ExternalVaultSettings.DEFAULT;
     private int priority;
     private int stepsPerTick = BASE_STEPS_PER_TICK;
+    private final ScanSchedule schedule = new ScanSchedule();
+    private long nextScanTick = NOT_PLANNED;
 
     public ExternalVaultBlockEntity(final BlockPos pos, final BlockState state) {
         super(NexusBlockEntityTypes.EXTERNAL_VAULT.get(), pos, state, current -> AT_REST);
@@ -94,11 +101,28 @@ public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity im
         vault.storage.startTick();
         final long time = level.getGameTime();
         if (time % POWER_CHECK_INTERVAL_TICKS == 0) {
-            vault.showPower(level, pos, state);
+            final boolean powered = vault.isNetworkPowered();
+            if (state.getValue(ExternalVaultBlock.POWERED) != powered) {
+                level.setBlock(pos, state.setValue(ExternalVaultBlock.POWERED, powered), Block.UPDATE_CLIENTS);
+            }
         }
-        if (Math.floorMod(time + pos.asLong(), SCAN_INTERVAL_TICKS) == 0) {
-            vault.scan();
+        if (vault.nextScanTick == NOT_PLANNED) {
+            vault.nextScanTick = time + Math.floorMod(pos.asLong(), ScanSchedule.BASE_INTERVAL_TICKS);
         }
+        if (time >= vault.nextScanTick) {
+            if (vault.controller() != null) {
+                vault.schedule.scanned(vault.storage.rescan(vault.sink));
+            }
+            vault.nextScanTick = time + vault.schedule.intervalTicks(time);
+        }
+    }
+
+    /**
+     * Has the block it lends read often for a while, for when a player is at it and may take things out by hand.
+     */
+    public void watch(final long time) {
+        schedule.watch(time);
+        nextScanTick = Math.min(nextScanTick, time + ScanSchedule.WATCH_INTERVAL_TICKS);
     }
 
     public ExternalVaultSettings settings() {
@@ -190,10 +214,15 @@ public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity im
                 settings.access());
     }
 
+    /**
+     * Reads the block at once, as after a change of what the vault allows.
+     */
     private void scan() {
         if (controller() != null) {
-            storage.rescan(sink);
+            schedule.scanned(storage.rescan(sink));
         }
+        nextScanTick = level != null ? level.getGameTime() + schedule.intervalTicks(level.getGameTime())
+                : NOT_PLANNED;
     }
 
     private void reportChange(final ResourceKey resource, final long delta) {
@@ -214,13 +243,6 @@ public final class ExternalVaultBlockEntity extends AnimatedDeviceBlockEntity im
         final NetworkController controller = controller();
         if (controller != null) {
             controller.component(NetworkComponentTypes.STORAGE).detach(this);
-        }
-    }
-
-    private void showPower(final Level world, final BlockPos pos, final BlockState state) {
-        final boolean powered = isNetworkPowered();
-        if (state.getValue(ExternalVaultBlock.POWERED) != powered) {
-            world.setBlock(pos, state.setValue(ExternalVaultBlock.POWERED, powered), Block.UPDATE_CLIENTS);
         }
     }
 

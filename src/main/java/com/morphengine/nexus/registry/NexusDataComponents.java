@@ -45,6 +45,11 @@ public final class NexusDataComponents {
             "stored_energy",
             builder -> builder.persistent(Codec.LONG).networkSynchronized(ByteBufCodecs.VAR_LONG));
 
+    /** The FE a Nexus Terminal holds; opening it spends some. */
+    public static final Supplier<DataComponentType<Integer>> TERMINAL_CHARGE = COMPONENTS.registerComponentType(
+            "terminal_charge",
+            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
     /** The fluid a machine or a generator held in its tanks when it was taken down. */
     public static final Supplier<DataComponentType<StoredFluids>> STORED_FLUIDS = COMPONENTS.registerComponentType(
             "stored_fluids",

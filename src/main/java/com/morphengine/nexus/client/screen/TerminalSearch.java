@@ -7,6 +7,8 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.List;
+
 /**
  * The search box of a terminal with a reset cross at its right end. It keeps
  * the keyboard only while the player is searching: erasing the text to nothing,
@@ -17,6 +19,14 @@ import org.lwjgl.glfw.GLFW;
 final class TerminalSearch {
 
     private static final int INSET = 2;
+    private static final List<Component> SEARCH_HELP = List.of(
+            Component.translatable("gui.nexus.terminal.search.help.title"),
+            Component.translatable("gui.nexus.terminal.search.help.mod").withColor(PanelStyle.TEXT_DIM),
+            Component.translatable("gui.nexus.terminal.search.help.tag").withColor(PanelStyle.TEXT_DIM),
+            Component.translatable("gui.nexus.terminal.search.help.tooltip").withColor(PanelStyle.TEXT_DIM),
+            Component.translatable("gui.nexus.terminal.search.help.not").withColor(PanelStyle.TEXT_DIM),
+            Component.translatable("gui.nexus.terminal.search.help.or").withColor(PanelStyle.TEXT_DIM),
+            Component.translatable("gui.nexus.terminal.search.help.group").withColor(PanelStyle.TEXT_DIM));
 
     private final PanelBounds frame;
     private final PanelBounds reset;
@@ -45,6 +55,17 @@ final class TerminalSearch {
 
     String text() {
         return box.getValue();
+    }
+
+    /**
+     * @return what to say about the part of the box under the cursor: how to clear it, or what it understands; nothing
+     *         when the cursor is off the box
+     */
+    List<Component> tooltip(final double x, final double y) {
+        if (isOverReset(x, y)) {
+            return List.of(Component.translatable("gui.nexus.terminal.clear_search"));
+        }
+        return frame.contains(x, y) ? SEARCH_HELP : List.of();
     }
 
     boolean isOverReset(final double x, final double y) {

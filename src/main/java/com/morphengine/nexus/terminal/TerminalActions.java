@@ -30,11 +30,18 @@ public final class TerminalActions {
     private final AbstractContainerMenu menu;
     private final Storage storage;
     private final Actor actor;
+    private final Runnable onTake;
 
-    public TerminalActions(final ServerPlayer player, final AbstractContainerMenu menu, final Storage storage) {
+    /**
+     * @param onTake told each time the player took something out of the network, so that it can be paid for
+     */
+    public TerminalActions(
+            final ServerPlayer player, final AbstractContainerMenu menu, final Storage storage,
+            final Runnable onTake) {
         this.player = player;
         this.menu = menu;
         this.storage = storage;
+        this.onTake = onTake;
         this.actor = PlayerActor.of(player);
     }
 
@@ -79,6 +86,7 @@ public final class TerminalActions {
         }
         final long extracted = storage.extract(item, wanted, Action.EXECUTE, actor);
         menu.setCarried(item.toStack((int) extracted));
+        onTake.run();
     }
 
     private void moveToInventory(final ItemKey item) {
@@ -88,6 +96,7 @@ public final class TerminalActions {
         }
         final long extracted = storage.extract(item, room, Action.EXECUTE, actor);
         if (extracted > 0) {
+            onTake.run();
             final ItemStack stack = item.toStack((int) extracted);
             player.getInventory().add(stack);
             insert(stack);
@@ -138,6 +147,7 @@ public final class TerminalActions {
                 return false;
             }
             transaction.commit();
+            onTake.run();
             return true;
         }
     }

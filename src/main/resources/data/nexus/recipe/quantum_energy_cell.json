@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "nexus:superior_energy_cell",
+    "nexus:quantum_tier_upgrade"
+  ],
+  "result": {
+    "id": "nexus:quantum_energy_cell"
+  },
+  "group": "energy_cell"
+}

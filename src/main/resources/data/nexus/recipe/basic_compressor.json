@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "minecraft:piston",
+    "C": "minecraft:blast_furnace",
+    "D": "minecraft:redstone"
+  },
+  "pattern": [
+    "ABA",
+    "ACA",
+    "ADA"
+  ],
+  "result": {
+    "id": "nexus:basic_compressor"
+  }
+}

@@ -2,6 +2,7 @@ package com.morphengine.nexus.item;
 
 import com.morphengine.nexus.access.NetworkAccess;
 import com.morphengine.nexus.api.network.security.Permission;
+import com.morphengine.nexus.config.NexusConfig;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.NetworkDirectory;
 import com.morphengine.nexus.menu.PortableTerminals;
@@ -16,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -44,6 +46,10 @@ import java.util.function.Consumer;
  * even by a new one, still works with it.
  */
 public final class NexusTerminalItem extends Item {
+
+    private static final int BAR_WIDTH = 13;
+    /** Where green lies on the hue wheel, as a fraction of it: a full bar is green, an empty one red. */
+    private static final float GREEN_HUE = 1.0F / 3.0F;
 
     public NexusTerminalItem(final Item.Properties properties) {
         super(properties);
@@ -103,6 +109,47 @@ public final class NexusTerminalItem extends Item {
     }
 
     /**
+     * @return the FE the terminal holds
+     */
+    public static int chargeOf(final ItemStack stack) {
+        return stack.getOrDefault(NexusDataComponents.TERMINAL_CHARGE.get(), 0);
+    }
+
+    private static void spend(final ItemStack stack, final int amount) {
+        stack.set(NexusDataComponents.TERMINAL_CHARGE.get(), chargeOf(stack) - amount);
+    }
+
+    /**
+     * @return the FE a carried terminal holds, as the settings of the world say
+     */
+    public static int capacity() {
+        return NexusConfig.terminalCapacity();
+    }
+
+    /**
+     * @return the FE that opening a carried terminal uses, as the settings of the world say
+     */
+    public static int openCost() {
+        return NexusConfig.terminalOpenCost();
+    }
+
+    @Override
+    public boolean isBarVisible(final ItemStack stack) {
+        return NexusConfig.terminalDischarges();
+    }
+
+    @Override
+    public int getBarWidth(final ItemStack stack) {
+        return Math.round(BAR_WIDTH * (float) chargeOf(stack) / capacity());
+    }
+
+    @Override
+    public int getBarColor(final ItemStack stack) {
+        final float charged = Math.clamp((float) chargeOf(stack) / capacity(), 0.0F, 1.0F);
+        return Mth.hsvToRgb(charged * GREEN_HUE, 1.0F, 1.0F);
+    }
+
+    /**
      * @return what the terminal works as; a plain terminal until the mode is switched
      */
     public static TerminalKind modeOf(final ItemStack stack) {
@@ -158,7 +205,15 @@ public final class NexusTerminalItem extends Item {
             player.sendOverlayMessage(Component.translatable("item.nexus.nexus_terminal.unbound"));
             return false;
         }
+        final boolean discharges = NexusConfig.terminalDischarges();
+        if (discharges && chargeOf(stack) < openCost()) {
+            player.sendOverlayMessage(Component.translatable("item.nexus.nexus_terminal.discharged"));
+            return false;
+        }
         refreshBinding(stack, player.level().getServer());
+        if (discharges) {
+            spend(stack, openCost());
+        }
         PortableTerminals.open(player, slot);
         return true;
     }
@@ -180,6 +235,10 @@ public final class NexusTerminalItem extends Item {
             final Consumer<Component> builder, final TooltipFlag flag) {
         builder.accept(Component.translatable("item.nexus.nexus_terminal.mode",
                 Component.translatable(modeKey(modeOf(stack)))).withStyle(ChatFormatting.GRAY));
+        if (NexusConfig.terminalDischarges()) {
+            builder.accept(Component.translatable("tooltip.nexus.nexus_terminal.charge", chargeOf(stack), capacity(),
+                    openCost()).withStyle(ChatFormatting.GRAY));
+        }
         final GlobalPos nexus = boundNexus(stack);
         if (nexus == null) {
             builder.accept(Component.translatable("tooltip.nexus.nexus_terminal.unbound")

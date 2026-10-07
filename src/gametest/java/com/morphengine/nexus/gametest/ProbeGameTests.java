@@ -69,7 +69,9 @@ public final class ProbeGameTests {
             "a_machine_report_has_its_energy_and_its_network", ProbeGameTests::machineReport,
             "a_generator_report_has_its_tanks", ProbeGameTests::generatorReport,
             "a_nexus_report_has_the_energy_of_its_network", ProbeGameTests::nexusReport,
-            "a_device_outside_a_network_says_so", ProbeGameTests::deviceOutsideNetwork,
+            "a_machine_outside_a_network_says_it_works_alone", ProbeGameTests::machineOutsideNetwork,
+            "a_generator_outside_a_network_says_it_works_alone", ProbeGameTests::generatorOutsideNetwork,
+            "a_device_that_needs_a_network_says_it_has_none", ProbeGameTests::deviceOutsideNetwork,
             "a_report_survives_the_wire", ProbeGameTests::reportSurvivesWire);
 
     private ProbeGameTests() {
@@ -188,14 +190,37 @@ public final class ProbeGameTests {
                 .thenSucceed();
     }
 
-    private static void deviceOutsideNetwork(final GameTestHelper helper) {
+    private static void machineOutsideNetwork(final GameTestHelper helper) {
         place(helper, LONELY, NexusBlocks.machineTiers(MachineKind.CRUSHER).getFirst().get().defaultBlockState());
+
+        assertWorksAlone(helper, reportOf(helper, LONELY), "a machine");
+        helper.succeed();
+    }
+
+    private static void generatorOutsideNetwork(final GameTestHelper helper) {
+        place(helper, LONELY, NexusBlocks.GENERATORS.get(GeneratorKind.COAL).get().defaultBlockState());
+
+        assertWorksAlone(helper, reportOf(helper, LONELY), "a generator");
+        helper.succeed();
+    }
+
+    private static void deviceOutsideNetwork(final GameTestHelper helper) {
+        place(helper, LONELY, NexusBlocks.PULLER.get().defaultBlockState());
 
         final ProbeReport report = reportOf(helper, LONELY);
 
         helper.assertTrue(hasText(report, "gui.nexus.terminal.no_network"),
-                Component.literal("a device alone does not say so: " + report.lines()));
+                Component.literal("a Puller alone does not say it has no network: " + report.lines()));
+        helper.assertFalse(hasText(report, "gui.nexus.standalone"),
+                Component.literal("a Puller alone says it works standalone: " + report.lines()));
         helper.succeed();
+    }
+
+    private static void assertWorksAlone(final GameTestHelper helper, final ProbeReport report, final String what) {
+        helper.assertTrue(hasText(report, "gui.nexus.standalone"),
+                Component.literal(what + " alone does not say it works on its own: " + report.lines()));
+        helper.assertFalse(hasText(report, "gui.nexus.terminal.no_network"),
+                Component.literal(what + " alone says it is missing a network: " + report.lines()));
     }
 
     private static void reportSurvivesWire(final GameTestHelper helper) {

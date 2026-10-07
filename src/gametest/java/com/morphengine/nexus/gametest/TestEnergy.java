@@ -39,6 +39,25 @@ final class TestEnergy {
     }
 
     /**
+     * Puts {@code amount} FE into the block at {@code pos} in as many goes as it takes, for a test whose devices
+     * spend FE on what they do.
+     */
+    static void fill(final GameTestHelper helper, final BlockPos pos, final int amount) {
+        final EnergyHandler handler = handler(helper, pos);
+        int left = amount;
+        while (left > 0) {
+            try (Transaction transaction = Transaction.openRoot()) {
+                final int accepted = handler.insert(left, transaction);
+                transaction.commit();
+                if (accepted <= 0) {
+                    return;
+                }
+                left -= accepted;
+            }
+        }
+    }
+
+    /**
      * Puts {@code amount} FE into the block at {@code pos}, as much as it takes in one go.
      */
     static void charge(final GameTestHelper helper, final BlockPos pos, final int amount) {

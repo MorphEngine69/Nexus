@@ -81,8 +81,24 @@ final class PanelStyle {
     static void drawNetwork(
             final GuiGraphicsExtractor graphics, final Font font, final @Nullable NetworkBadge network,
             final int panelLeft, final int panelTop) {
+        drawNetworkLine(graphics, font, network, "gui.nexus.no_network", panelLeft, panelTop);
+    }
+
+    /**
+     * Like {@link #drawNetwork}, for a device that works without a network: with none, it says it works standalone
+     * instead of that it is not connected.
+     */
+    static void drawNetworkOrStandalone(
+            final GuiGraphicsExtractor graphics, final Font font, final @Nullable NetworkBadge network,
+            final int panelLeft, final int panelTop) {
+        drawNetworkLine(graphics, font, network, "gui.nexus.standalone", panelLeft, panelTop);
+    }
+
+    private static void drawNetworkLine(
+            final GuiGraphicsExtractor graphics, final Font font, final @Nullable NetworkBadge network,
+            final String withoutNetworkKey, final int panelLeft, final int panelTop) {
         final Component line = network != null ? Component.translatable("gui.nexus.network", network.name())
-                : Component.translatable("gui.nexus.no_network");
+                : Component.translatable(withoutNetworkKey);
         graphics.text(font, line, panelLeft + PADDING, panelTop + NETWORK_TOP, TEXT_DIM, false);
     }
 

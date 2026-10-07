@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "nexus:screen",
+    "C": "nexus:core"
+  },
+  "pattern": [
+    "ABA",
+    " C ",
+    " A "
+  ],
+  "result": {
+    "id": "nexus:nexus_analyser"
+  }
+}

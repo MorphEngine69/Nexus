@@ -4,6 +4,7 @@ import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.CableBlock;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.item.DeviceBlockItem;
+import com.morphengine.nexus.item.NexusTerminalItem;
 import com.morphengine.nexus.item.TierUpgradeItem;
 import com.morphengine.nexus.item.VaultCellItem;
 import com.morphengine.nexus.metal.MetalKind;
@@ -74,6 +75,13 @@ public final class NexusCreativeTabs {
         output.accept(NexusItems.NETWORK_RECEIVER.get());
         output.accept(NexusItems.NETWORK_CARD.get());
         output.accept(NexusItems.WRENCH.get());
+        output.accept(NexusItems.NEXUS_ANALYSER.get());
+    }
+
+    private static ItemStack chargedTerminal() {
+        final ItemStack terminal = new ItemStack(NexusItems.NEXUS_TERMINAL.get());
+        terminal.set(NexusDataComponents.TERMINAL_CHARGE.get(), NexusTerminalItem.capacity());
+        return terminal;
     }
 
     private static void terminals(final CreativeModeTab.Output output) {
@@ -81,6 +89,7 @@ public final class NexusCreativeTabs {
         output.accept(NexusItems.CRAFTING_TERMINAL.get());
         output.accept(NexusItems.BLUEPRINT_TERMINAL.get());
         output.accept(NexusItems.NEXUS_TERMINAL.get());
+        output.accept(chargedTerminal());
         output.accept(NexusItems.CRAFTING_MONITOR.get());
         output.accept(NexusItems.BLUEPRINT.get());
     }

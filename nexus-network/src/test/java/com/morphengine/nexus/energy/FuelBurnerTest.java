@@ -31,6 +31,31 @@ class FuelBurnerTest {
     }
 
     @Test
+    void burningFasterGivesTheSameFuelTheSameEnergyInLessTime() {
+        final FuelBurner slow = new FuelBurner(20);
+        final FuelBurner fast = new FuelBurner(20);
+        fast.setSpeed(4);
+        slow.ignite(1600);
+        fast.ignite(1600);
+        final SimpleEnergyBuffer slowBuffer = new SimpleEnergyBuffer(100_000, 100_000, 100_000);
+        final SimpleEnergyBuffer fastBuffer = new SimpleEnergyBuffer(100_000, 100_000, 100_000);
+
+        int slowTicks = 0;
+        while (slow.isBurning()) {
+            slow.tick(slowBuffer);
+            slowTicks++;
+        }
+        int fastTicks = 0;
+        while (fast.isBurning()) {
+            fast.tick(fastBuffer);
+            fastTicks++;
+        }
+
+        assertThat(fastBuffer.stored()).isEqualTo(slowBuffer.stored()).isEqualTo(32_000);
+        assertThat(fastTicks).isEqualTo(slowTicks / 4);
+    }
+
+    @Test
     void efficiencyUpgradesMakeTheSameFuelGiveMore() {
         final FuelBurner plain = new FuelBurner(40);
         plain.ignite(5);

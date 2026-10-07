@@ -12,6 +12,7 @@ import com.morphengine.nexus.level.NetworkComponentType;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.NetworkGuard;
 import com.morphengine.nexus.level.NetworkState;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.NexusMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.registry.NexusDataComponents;
@@ -49,7 +50,7 @@ import java.util.UUID;
  * and color of its network.
  */
 public final class NexusBlockEntity extends AnimatedBlockEntity
-        implements NetworkController, MenuHost, Renamable {
+        implements UpgradeHolder, NetworkController, MenuHost, Renamable {
 
     private static final String TAG_NETWORK_ID = "network_id";
     private static final String TAG_NETWORK_NAME = "network_name";
@@ -128,6 +129,7 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
      * @return figures refreshed on the server; on the client always empty, the
      *         menu receives them by packet instead
      */
+    @Override
     public NetworkStatistics statistics() {
         return networkState.statistics();
     }

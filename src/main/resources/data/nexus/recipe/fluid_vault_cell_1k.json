@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:cobalt_ingot",
+    "B": "nexus:cell_housing",
+    "C": "nexus:cell_part_1k",
+    "D": "minecraft:bucket"
+  },
+  "pattern": [
+    " A ",
+    "BCD",
+    " A "
+  ],
+  "result": {
+    "id": "nexus:fluid_vault_cell_1k"
+  },
+  "group": "fluid_vault_cell"
+}

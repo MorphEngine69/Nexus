@@ -2,6 +2,7 @@ package com.morphengine.nexus.gametest;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.core.Action;
+import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.NetworkStatistics;
 import com.morphengine.nexus.api.resource.FilterMatchMode;
@@ -17,14 +18,19 @@ import com.morphengine.nexus.block.NetworkDeviceBlock;
 import com.morphengine.nexus.block.SideConnections;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
+import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
+import com.morphengine.nexus.energy.OperationKind;
+import com.morphengine.nexus.energy.OperationPrice;
+import com.morphengine.nexus.energy.OperationUpgrades;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.generator.GeneratorKind;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.level.NetworkComponentTypes;
+import com.morphengine.nexus.level.OperationToll;
 import com.morphengine.nexus.registry.NexusBlocks;
 import com.morphengine.nexus.registry.NexusItems;
 import com.morphengine.nexus.resource.FluidKey;
@@ -89,6 +95,9 @@ public final class TransferGameTests {
 
     private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
+    private static final int NETWORK_FILL = 10_000;
+    private static final int STONES_TO_MOVE = 3;
+    private static final int PAST_THE_LAST_OPERATION_TICKS = 40;
     /** Inserts of one maximum transfer that fill a basic Energy Cell to sixty percent. */
     private static final int SIXTY_PERCENT_STEPS = 60;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
@@ -110,6 +119,10 @@ public final class TransferGameTests {
             Map.entry("nexus_counts_pullers_pushers_and_storages", TransferGameTests::nexusCountsRoles),
             Map.entry("device_arms_glow_with_energy", TransferGameTests::deviceArmsGlow),
             Map.entry("speed_upgrades_make_puller_work_more_often", TransferGameTests::speedUpgradesMakePullerFaster),
+            Map.entry("puller_pays_for_every_operation_that_moves_something", TransferGameTests::pullerPaysForWork),
+            Map.entry("puller_with_nothing_to_move_costs_nothing", TransferGameTests::idlePullerCostsNothing),
+            Map.entry("puller_stands_still_when_the_network_cannot_pay", TransferGameTests::pullerNeedsEnergyToWork),
+            Map.entry("a_price_above_what_a_cell_gives_in_one_go_is_still_paid", TransferGameTests::dearPriceIsPaid),
             Map.entry("stack_upgrade_moves_a_stack_at_once", TransferGameTests::stackUpgradeMovesStack),
             Map.entry("pusher_without_regulator_ignores_amount", TransferGameTests::pusherWithoutRegulator),
             Map.entry("puller_with_regulator_leaves_stock", TransferGameTests::pullerWithRegulatorLeavesStock),
@@ -345,10 +358,88 @@ public final class TransferGameTests {
 
         helper.startSequence()
                 .thenIdle(60)
-                .thenExecute(() -> helper.assertTrue(network(helper).amountOf(key(Items.STONE)) >= 20,
+                .thenExecute(() -> helper.assertTrue(network(helper).amountOf(key(Items.STONE)) >= 18,
                         Component.literal("in 60 ticks only " + network(helper).amountOf(key(Items.STONE))
-                                + " stone, fewer than a Puller working every 2 ticks moves")))
+                                + " stone, fewer than a Puller working every 3 ticks moves")))
                 .thenSucceed();
+    }
+
+    private static void pullerPaysForWork(final GameTestHelper helper) {
+        buildNetwork(helper);
+        placePullerBeside(helper, Items.STONE, STONES_TO_MOVE);
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(network(helper).amountOf(key(Items.STONE)) == STONES_TO_MOVE,
+                        Component.literal("the stone has not moved yet")))
+                .thenIdle(PAST_THE_LAST_OPERATION_TICKS)
+                .thenExecute(() -> helper.assertValueEqual(NETWORK_FILL - poolEnergy(helper),
+                        STONES_TO_MOVE * OperationKind.TRANSFER.baseCost(), Component.literal("FE paid")))
+                .thenSucceed();
+    }
+
+    private static void idlePullerCostsNothing(final GameTestHelper helper) {
+        buildNetwork(helper);
+        placePullerBeside(helper, Items.STONE, 0);
+
+        helper.startSequence()
+                .thenIdle(PAST_THE_LAST_OPERATION_TICKS)
+                .thenExecute(() -> helper.assertValueEqual(poolEnergy(helper), (long) NETWORK_FILL,
+                        Component.literal("FE left")))
+                .thenSucceed();
+    }
+
+    private static void pullerNeedsEnergyToWork(final GameTestHelper helper) {
+        buildNetwork(helper);
+        final EnergyBuffer cell = helper.getBlockEntity(CELL, EnergyCellBlockEntity.class).energyBuffer();
+        while (cell.extract(Long.MAX_VALUE, Action.EXECUTE) > 0) {
+            continue;
+        }
+        cell.insert(OperationKind.TRANSFER.baseCost() - 1, Action.EXECUTE);
+        placePullerBeside(helper, Items.STONE, STONES_TO_MOVE);
+
+        helper.startSequence()
+                .thenIdle(PAST_THE_LAST_OPERATION_TICKS)
+                .thenExecute(() -> helper.assertValueEqual(0L, network(helper).amountOf(key(Items.STONE)),
+                        Component.literal("stone moved without the FE to pay for it")))
+                .thenSucceed();
+    }
+
+    private static void dearPriceIsPaid(final GameTestHelper helper) {
+        buildNetwork(helper);
+        final NexusBlockEntity nexus = helper.getBlockEntity(NEXUS, NexusBlockEntity.class);
+        final OperationUpgrades fastest = OperationUpgrades.speedOnly(OperationPrice.MAX_SPEED_UPGRADES);
+
+        helper.startSequence()
+                .thenIdle(PAST_THE_LAST_OPERATION_TICKS)
+                .thenExecute(() -> {
+                    final long price = OperationPrice.of(OperationKind.ASSEMBLER_RUN, nexus.statistics().devices(),
+                            fastest);
+                    helper.assertTrue(price > EnergyCellTier.BASIC.maxTransfer(),
+                            Component.literal("the price " + price + " is not above what a Basic cell gives"));
+                    helper.assertTrue(OperationToll.affords(nexus, OperationKind.ASSEMBLER_RUN, fastest),
+                            Component.literal("a charged network cannot afford " + price));
+                    final long before = poolEnergy(helper);
+                    OperationToll.charge(nexus, OperationKind.ASSEMBLER_RUN, fastest,
+                            nexus.component(NetworkComponentTypes.ENERGY_ACCOUNT).portableTerminals());
+                    helper.assertValueEqual(before - poolEnergy(helper), price, Component.literal("FE paid"));
+                })
+                .thenSucceed();
+    }
+
+    private static long poolEnergy(final GameTestHelper helper) {
+        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class).energy().stored();
+    }
+
+    /**
+     * A network that the test first {@code buildNetwork}s must exist before this is called.
+     */
+    private static void placePullerBeside(final GameTestHelper helper, final Item item, final int count) {
+        final BlockPos chest = TARGET.above();
+        place(helper, chest, Blocks.CHEST.defaultBlockState());
+        if (count > 0) {
+            container(helper, chest).setItem(0, new ItemStack(item, count));
+        }
+        place(helper, CABLE.above(), device(NexusBlocks.PULLER.get(), Direction.EAST));
     }
 
     private static void stackUpgradeMovesStack(final GameTestHelper helper) {
@@ -770,7 +861,7 @@ public final class TransferGameTests {
     private static void buildNetwork(final GameTestHelper helper) {
         place(helper, NEXUS, NexusBlocks.NEXUS.get().defaultBlockState());
         place(helper, CELL, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
-        TestEnergy.charge(helper, CELL, 10_000);
+        TestEnergy.fill(helper, CELL, NETWORK_FILL);
         place(helper, VAULT, NexusBlocks.STORAGE_VAULT.get().defaultBlockState()
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
         helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class).cells()

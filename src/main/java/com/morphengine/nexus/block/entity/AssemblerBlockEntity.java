@@ -8,6 +8,7 @@ import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.storage.Storage;
+import com.morphengine.nexus.assembler.AssemblerRates;
 import com.morphengine.nexus.assembler.AssemblerSettings;
 import com.morphengine.nexus.automation.CraftingTask;
 import com.morphengine.nexus.automation.TaskList;
@@ -17,11 +18,15 @@ import com.morphengine.nexus.blueprint.BlueprintCodecs;
 import com.morphengine.nexus.blueprint.CraftingBlueprint;
 import com.morphengine.nexus.blueprint.EncodedBlueprint;
 import com.morphengine.nexus.blueprint.ProcessingBlueprint;
+import com.morphengine.nexus.energy.OperationKind;
+import com.morphengine.nexus.energy.OperationUpgrades;
 import com.morphengine.nexus.level.AutocraftingComponent;
 import com.morphengine.nexus.level.AutocraftingHost;
 import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
+import com.morphengine.nexus.level.OperationToll;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.AssemblerMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.resource.NexusResources;
@@ -61,15 +66,14 @@ import java.util.Map;
  * the machine is waited for is up to the root of the chain, and counts the
  * inputs of the Blueprints of every Assembler in it.
  */
-public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implements AutocraftingHost, Renamable {
+public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity
+        implements UpgradeHolder, AutocraftingHost, Renamable {
 
     public static final int UPGRADE_SLOTS = 4;
     /** Placeholder balance: up to four Speed Upgrades share one slot. */
     public static final UpgradeLimits UPGRADE_LIMITS =
-            new UpgradeLimits(Map.of(UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.CHUNK_LOADER, 1));
-
-    /** With a Stack Upgrade a task hands out up to a stack of runs at once instead of one. */
-    private static final int STACK_RUNS = 64;
+            new UpgradeLimits(Map.of(UpgradeTypes.SPEED, 4, UpgradeTypes.STACK, 1, UpgradeTypes.EFFICIENCY, 1,
+                    UpgradeTypes.CHUNK_LOADER, 1));
 
     private static final int STATE_CHECK_INTERVAL_TICKS = 20;
     private static final String TAG_SETTINGS = "settings";
@@ -132,27 +136,24 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implem
         final AutocraftingComponent autocrafting = controller.component(NetworkComponentTypes.AUTOCRAFTING);
         boolean changed = work.deliver(network);
         changed |= work.collect(machine.of(level, pos), blueprintSlots.processing(), autocrafting, network);
-        changed |= tasks.step(network, autocrafting.blueprints(), dispatchesPerOperation());
+        changed |= tasks.step(network, autocrafting.blueprints(), AssemblerRates.runsPerOperation(upgrades));
         if (changed) {
             setChanged();
         }
     }
 
-    /**
-     * @return runs the Assembler's tasks hand out per operation: one, and one
-     *         more for every Speed Upgrade, all of that a stack of times over with a Stack Upgrade; a task never
-     *         hands out more runs than it still has
-     */
-    private int dispatchesPerOperation() {
-        final int perStack = upgrades.count(UpgradeTypes.STACK) > 0 ? STACK_RUNS : 1;
-        return (1 + upgrades.count(UpgradeTypes.SPEED)) * perStack;
-    }
 
     @Override
     public DispatchResult dispatch(final Blueprint blueprint, final List<ResourceAmount> inputs,
                                    final Action action) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return DispatchResult.NO_TARGET;
+        }
+        final NetworkController network = controller();
+        final OperationUpgrades runUpgrades = new OperationUpgrades(upgrades.count(UpgradeTypes.SPEED),
+                upgrades.count(UpgradeTypes.EFFICIENCY));
+        if (network != null && !OperationToll.affords(network, OperationKind.ASSEMBLER_RUN, runUpgrades)) {
+            return DispatchResult.NO_ENERGY;
         }
         final EncodedBlueprint encoded = blueprintSlots.encodingOf(blueprint);
         final DispatchResult result = switch (encoded) {
@@ -161,6 +162,9 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implem
             case ProcessingBlueprint _ -> dispatchProcessing(serverLevel, inputs, action);
         };
         if (result.isAccepted() && action.isExecute()) {
+            if (network != null) {
+                OperationToll.charge(network, OperationKind.ASSEMBLER_RUN, runUpgrades, energyMeter());
+            }
             setChanged();
         }
         return result;
@@ -250,7 +254,7 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implem
     }
 
     private void contentsChanged() {
-        rate = TransferRate.of(upgrades.count(UpgradeTypes.SPEED), 0);
+        rate = AssemblerRates.rateOf(upgrades);
         setChanged();
         refreshNetwork();
     }
@@ -318,7 +322,7 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity implem
         ContainerHelper.loadAllItems(input.childOrEmpty(TAG_BLUEPRINTS), blueprintSlots.getItems());
         ContainerHelper.loadAllItems(input.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
         blueprintSlots.readBlueprints();
-        rate = TransferRate.of(upgrades.count(UpgradeTypes.SPEED), 0);
+        rate = AssemblerRates.rateOf(upgrades);
         tasks.restore(input.read(TAG_TASKS, BlueprintCodecs.TASK_CODEC.listOf()).orElse(List.of()));
         work.restore(input.read(TAG_CRAFTED, NexusResources.AMOUNT_CODEC.listOf()).orElse(List.of()));
     }

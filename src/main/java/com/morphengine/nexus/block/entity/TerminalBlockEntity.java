@@ -3,6 +3,7 @@ package com.morphengine.nexus.block.entity;
 import com.geckolib.animation.RawAnimation;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.TerminalBlock;
+import com.morphengine.nexus.energy.DeviceEnergyMeter;
 import com.morphengine.nexus.level.AutocraftingComponent;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
@@ -115,6 +116,16 @@ public final class TerminalBlockEntity extends AnimatedDeviceBlockEntity impleme
             return null;
         }
         return controller.component(NetworkComponentTypes.AUTOCRAFTING);
+    }
+
+    @Override
+    public DeviceEnergyMeter tollPayer(final NetworkController network) {
+        return energyMeter();
+    }
+
+    @Override
+    public @Nullable NetworkController onlineNetwork() {
+        return status() == TerminalStatus.ONLINE ? controller() : null;
     }
 
     @Override

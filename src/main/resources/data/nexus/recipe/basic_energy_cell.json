@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "nexus:battery",
+    "C": "nexus:machine_casing",
+    "D": "minecraft:redstone"
+  },
+  "pattern": [
+    "ABA",
+    "BCB",
+    "ADA"
+  ],
+  "result": {
+    "id": "nexus:basic_energy_cell"
+  }
+}

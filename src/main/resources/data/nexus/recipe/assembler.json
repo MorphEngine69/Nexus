@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:cobalt_ingot",
+    "B": "minecraft:crafting_table",
+    "C": "nexus:lumen_ingot",
+    "D": "nexus:machine_casing",
+    "E": "nexus:core"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "AEA"
+  ],
+  "result": {
+    "id": "nexus:assembler"
+  }
+}

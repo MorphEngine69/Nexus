@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:mithril_ingot",
+    "B": "minecraft:lapis_lazuli",
+    "C": "minecraft:diamond",
+    "D": "nexus:upgrade_blank"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "ABA"
+  ],
+  "result": {
+    "id": "nexus:fortune_upgrade"
+  }
+}

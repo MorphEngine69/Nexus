@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "minecraft:redstone",
+    "B": "nexus:steel_plate",
+    "C": "minecraft:copper_ingot"
+  },
+  "pattern": [
+    " A ",
+    "BCB",
+    "BAB"
+  ],
+  "result": {
+    "id": "nexus:battery"
+  }
+}

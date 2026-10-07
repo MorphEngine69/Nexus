@@ -158,17 +158,17 @@ public enum MachineKind implements StringRepresentable {
     /** Placeholder balance until the numbers are settled. */
     private static final class Balance {
 
-        static final long FURNACE_ENERGY_PER_TICK = 20;
-        static final long CRUSHER_ENERGY_PER_TICK = 30;
+        static final long FURNACE_ENERGY_PER_TICK = 32;
+        static final long CRUSHER_ENERGY_PER_TICK = 48;
         static final int CRUSHER_TICKS = 100;
-        static final long PULVERIZER_ENERGY_PER_TICK = 25;
+        static final long PULVERIZER_ENERGY_PER_TICK = 40;
         static final int PULVERIZER_TICKS = 80;
-        static final long COMPRESSOR_ENERGY_PER_TICK = 40;
+        static final long COMPRESSOR_ENERGY_PER_TICK = 64;
         static final int COMPRESSOR_TICKS = 120;
-        static final long ALLOY_ENERGY_PER_TICK = 35;
+        static final long ALLOY_ENERGY_PER_TICK = 80;
         static final int ALLOY_TICKS = 160;
         static final int ALLOY_INPUTS = 3;
-        static final long EXTRACTOR_ENERGY_PER_TICK = 30;
+        static final long EXTRACTOR_ENERGY_PER_TICK = 48;
         static final int EXTRACTOR_TICKS = 100;
         /** As long as the cooling animation of the furnace model. */
         static final int FURNACE_COOLDOWN_TICKS = 48;

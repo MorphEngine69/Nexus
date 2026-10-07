@@ -3,15 +3,20 @@ package com.morphengine.nexus.gametest;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.storage.Actor;
+import com.morphengine.nexus.block.EnergyCellTier;
 import com.morphengine.nexus.block.MachineBlock;
+import com.morphengine.nexus.block.entity.GeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.MachineBlockEntity;
+import com.morphengine.nexus.generator.GeneratorKind;
 import com.morphengine.nexus.level.SideStorage;
 import com.morphengine.nexus.machine.InputMode;
 import com.morphengine.nexus.machine.MachineSide;
 import com.morphengine.nexus.machine.MachineTier;
+import com.morphengine.nexus.metal.VanillaMetal;
 import com.morphengine.nexus.processing.MachineKind;
 import com.morphengine.nexus.processing.MachinePhase;
 import com.morphengine.nexus.registry.NexusBlocks;
+import com.morphengine.nexus.registry.NexusMaterials;
 import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.BlockPos;
@@ -44,6 +49,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -62,7 +68,9 @@ public final class MachineGameTests {
     private static final BlockPos CELL = NEXUS.south();
     private static final BlockPos ON_NETWORK = NEXUS.east();
     private static final int BUFFER_TOP_UPS = 10;
-    private static final int PER_TOP_UP = 1_000;
+    private static final int DRAW_TEST_TICKS = 20;
+    private static final int DRAW_TEST_CHARGE = 20_000;
+    private static final int PER_TOP_UP = (int) MachineTier.BASIC.maxInsert();
     private static final int CELL_CHARGE = 1_000;
     private static final int STACK = 9;
     private static final int LINES_OF_ADVANCED = 3;
@@ -70,6 +78,11 @@ public final class MachineGameTests {
 
     private static final Map<String, Consumer<GameTestHelper>> TESTS = Map.ofEntries(
             Map.entry("machine_smelts_what_it_is_given_and_gives_the_result", MachineGameTests::smelts),
+            Map.entry("a_machine_draws_from_one_cell_no_more_than_the_cell_gives_in_one_go",
+                    MachineGameTests::oneCellLimitsTheDraw),
+            Map.entry("two_cells_give_a_machine_twice_as_much_in_a_tick", MachineGameTests::twoCellsDoubleTheDraw),
+            Map.entry("first_compressor_runs_on_generators_beside_it_without_a_network",
+                    MachineGameTests::compressorRunsOnGeneratorsAlone),
             Map.entry("machine_takes_only_what_has_a_recipe", MachineGameTests::takesOnlyRecipes),
             Map.entry("machine_sides_follow_the_front_and_closed_sides_show_nothing", MachineGameTests::sides),
             Map.entry("machine_lets_things_in_at_the_top_and_out_at_the_bottom", MachineGameTests::topInBottomOut),
@@ -123,6 +136,67 @@ public final class MachineGameTests {
                         Component.literal("no iron ingot yet")))
                 .thenExecute(() -> helper.assertValueEqual(machine.slots().inputs().getItem(0).getCount(), 1,
                         Component.literal("raw iron left after one job")))
+                .thenSucceed();
+    }
+
+    private static void oneCellLimitsTheDraw(final GameTestHelper helper) {
+        placeBlock(helper, NEXUS, NexusBlocks.NEXUS.get());
+        placeBlock(helper, CELL, NexusBlocks.BASIC_ENERGY_CELL.get());
+        TestEnergy.fill(helper, CELL, DRAW_TEST_CHARGE);
+        final MachineBlockEntity machine = placeMachine(helper, ON_NETWORK,
+                NexusBlocks.machineTiers(MachineKind.COMPRESSOR).get(2).get());
+
+        helper.startSequence()
+                .thenIdle(DRAW_TEST_TICKS)
+                .thenExecute(() -> assertDrawn(helper, machine, 1))
+                .thenSucceed();
+    }
+
+    private static void twoCellsDoubleTheDraw(final GameTestHelper helper) {
+        placeBlock(helper, NEXUS, NexusBlocks.NEXUS.get());
+        placeBlock(helper, CELL, NexusBlocks.BASIC_ENERGY_CELL.get());
+        placeBlock(helper, NEXUS.north(), NexusBlocks.BASIC_ENERGY_CELL.get());
+        TestEnergy.fill(helper, CELL, DRAW_TEST_CHARGE);
+        TestEnergy.fill(helper, NEXUS.north(), DRAW_TEST_CHARGE);
+        final MachineBlockEntity machine = placeMachine(helper, ON_NETWORK,
+                NexusBlocks.machineTiers(MachineKind.COMPRESSOR).get(2).get());
+
+        helper.startSequence()
+                .thenIdle(DRAW_TEST_TICKS)
+                .thenExecute(() -> assertDrawn(helper, machine, 2))
+                .thenSucceed();
+    }
+
+    /**
+     * A machine fills its buffer from the pool once a tick, and a Basic cell gives at most its transfer limit in one
+     * go, so the buffer holds about that much for every tick and every cell, never more.
+     */
+    private static void assertDrawn(final GameTestHelper helper, final MachineBlockEntity machine, final int cells) {
+        final long limit = cells * EnergyCellTier.BASIC.maxTransfer() * DRAW_TEST_TICKS;
+        final long drawn = machine.machine().energy().stored();
+        helper.assertTrue(drawn <= limit && drawn >= limit * 8 / 10,
+                Component.literal("the machine drew " + drawn + " FE in " + DRAW_TEST_TICKS + " ticks from " + cells
+                        + " Basic cells, expected up to " + limit));
+    }
+
+    /**
+     * Where a player starts: a Coal Generator that needs no Battery, and a Compressor, which makes the plates the
+     * Battery and the rest need. Four generators stand round it, since one makes less FE than the Compressor takes.
+     */
+    private static void compressorRunsOnGeneratorsAlone(final GameTestHelper helper) {
+        final MachineBlockEntity compressor = placeMachine(helper, MACHINE,
+                NexusBlocks.machineTiers(MachineKind.COMPRESSOR).getFirst().get());
+        for (Direction side : List.of(Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST)) {
+            final BlockPos where = MACHINE.relative(side);
+            placeBlock(helper, where, NexusBlocks.GENERATORS.get(GeneratorKind.COAL).get());
+            helper.getBlockEntity(where, GeneratorBlockEntity.class).input().setItem(0, new ItemStack(Items.COAL));
+        }
+        insert(handler(helper, MACHINE, Direction.UP), Items.COPPER_INGOT, 1);
+        final Item plate = NexusMaterials.VANILLA_PLATES.get(VanillaMetal.COPPER).get();
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(compressor.slots().outputs().getItem(0).is(plate),
+                        Component.literal("no plate yet: the Compressor got no FE from the generators")))
                 .thenSucceed();
     }
 
@@ -267,6 +341,7 @@ public final class MachineGameTests {
         helper.assertValueEqual(insert(top, Items.IRON_INGOT, 1), 1, Component.literal("iron ingot put in"));
         helper.assertValueEqual(insert(top, Items.COAL, 1), 1, Component.literal("coal put in"));
         helper.assertValueEqual(insert(top, Items.DIRT, 1), 0, Component.literal("dirt, which no alloy uses"));
+        keepPowered(helper, machine);
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
@@ -303,6 +378,7 @@ public final class MachineGameTests {
         insert(top, Items.COAL, 1);
         final long started = helper.getLevel().getGameTime();
         final long expected = Math.ceilDiv(160L * 100, machine.machine().speedPercent());
+        keepPowered(helper, machine);
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
@@ -322,6 +398,7 @@ public final class MachineGameTests {
         final ResourceHandler<ItemResource> top = handler(helper, MACHINE, Direction.UP);
         insert(top, Items.IRON_INGOT, 1);
         insert(top, Items.COAL, 1);
+        keepPowered(helper, machine);
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(machine.getUpdateTag(helper.getLevel().registryAccess())
@@ -383,6 +460,14 @@ public final class MachineGameTests {
     private static MachineBlockEntity placeMachine(final GameTestHelper helper, final BlockPos pos, final Block block) {
         placeBlock(helper, pos, block);
         return helper.getBlockEntity(pos, MachineBlockEntity.class);
+    }
+
+    /**
+     * Tops the machine up every tick, as the network does for one in play: a recipe of the Alloy Smelter costs more FE
+     * than its buffer holds.
+     */
+    private static void keepPowered(final GameTestHelper helper, final MachineBlockEntity machine) {
+        helper.onEachTick(() -> machine.machine().energy().insert(PER_TOP_UP, Action.EXECUTE));
     }
 
     private static void fill(final MachineBlockEntity machine) {

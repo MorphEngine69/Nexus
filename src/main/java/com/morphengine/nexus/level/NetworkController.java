@@ -4,6 +4,7 @@ import com.morphengine.nexus.access.PlayerPlaced;
 import com.morphengine.nexus.access.Secured;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.api.network.Network;
+import com.morphengine.nexus.api.network.NetworkStatistics;
 import com.morphengine.nexus.api.network.security.AccessPolicy;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.NexusStatus;
@@ -30,6 +31,11 @@ public interface NetworkController extends Secured, PlayerPlaced {
      *         Nexus is broken and placed again elsewhere
      */
     Network network();
+
+    /**
+     * @return the figures of the network as of the last second, among them how many devices it has. Server side only.
+     */
+    NetworkStatistics statistics();
 
     /**
      * @return the energy pool of the network as of the last rebuild: generators

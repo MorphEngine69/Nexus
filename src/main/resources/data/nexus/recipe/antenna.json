@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:aether_ingot",
+    "B": "minecraft:ender_pearl",
+    "C": "nexus:core",
+    "D": "nexus:mithril_plate"
+  },
+  "pattern": [
+    " A ",
+    "BCB",
+    "DDD"
+  ],
+  "result": {
+    "id": "nexus:antenna"
+  }
+}

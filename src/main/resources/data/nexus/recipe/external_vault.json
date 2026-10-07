@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "minecraft:chest",
+    "C": "minecraft:hopper",
+    "D": "nexus:core",
+    "E": "minecraft:redstone"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "AEA"
+  ],
+  "result": {
+    "id": "nexus:external_vault"
+  }
+}

@@ -5,7 +5,10 @@ import com.morphengine.nexus.access.Operators;
 import com.morphengine.nexus.api.network.NetworkStatistics;
 import com.morphengine.nexus.block.entity.DeviceUpgrades;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
+import com.morphengine.nexus.level.NetworkComponentTypes;
+import com.morphengine.nexus.level.NetworkEnergyReport;
 import com.morphengine.nexus.networking.NetworkAccessPayload;
+import com.morphengine.nexus.networking.NexusEnergyPayload;
 import com.morphengine.nexus.networking.NexusStatisticsPayload;
 import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.security.EditResult;
@@ -37,6 +40,7 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
     public static final int INVENTORY_TOP = 198;
 
     private static final int ACCESS_INTERVAL_TICKS = 20;
+    private static final int ENERGY_INTERVAL_TICKS = 20;
 
     /** On the server the figures last sent, on the client the figures last received. */
     private NetworkStatistics statistics = NetworkStatistics.EMPTY;
@@ -44,13 +48,17 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
     private @Nullable AccessView access;
     private int accessRevision = -1;
     private int ticks;
+    /** On the server the energy report last sent, on the client the one last received. */
+    private NetworkEnergyReport energy = NetworkEnergyReport.EMPTY;
+    /** Server side: whether the viewer looks at the energy tab, and so wants its report. */
+    private boolean energyShown;
+    private int ticksSinceEnergy;
 
     public NexusMenu(final int containerId, final Inventory inventory, final BlockPos pos) {
         super(NexusMenuTypes.NEXUS.get(), containerId, inventory, pos, NexusBlockEntity.class);
         final NexusBlockEntity nexus = blockEntity();
-        UpgradeColumn.slots(viewer() != null && nexus != null ? nexus.upgrades() : null, DeviceUpgrades.LIMITS,
-                UPGRADES_LEFT, UPGRADES_TOP)
-                .forEach(this::addSlot);
+        addSlot(UpgradeColumn.single(viewer() != null && nexus != null ? nexus.upgrades() : null,
+                DeviceUpgrades.LIMITS, UPGRADES_LEFT, UPGRADES_TOP));
         addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
     }
 
@@ -74,6 +82,26 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
         access = received;
     }
 
+    /**
+     * @return who draws and who supplies energy in the network, as last received
+     */
+    public NetworkEnergyReport energy() {
+        return energy;
+    }
+
+    public void acceptEnergy(final NetworkEnergyReport received) {
+        energy = received;
+    }
+
+    /**
+     * Starts or stops sending the energy report to the viewer. Server side only.
+     */
+    public void showEnergy(final boolean shown) {
+        energyShown = shown;
+        ticksSinceEnergy = ENERGY_INTERVAL_TICKS;
+        energy = NetworkEnergyReport.EMPTY;
+    }
+
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
@@ -88,6 +116,20 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
             PacketDistributor.sendToPlayer(viewer, new NexusStatisticsPayload(containerId, current));
         }
         sendAccess(viewer, nexus);
+        sendEnergy(viewer, nexus);
+    }
+
+    private void sendEnergy(final ServerPlayer viewer, final NexusBlockEntity nexus) {
+        if (!energyShown || ++ticksSinceEnergy < ENERGY_INTERVAL_TICKS) {
+            return;
+        }
+        ticksSinceEnergy = 0;
+        final NetworkEnergyReport current = nexus.component(NetworkComponentTypes.ENERGY_ACCOUNT)
+                .report(viewer.level().getGameTime()).limitedTo(NexusEnergyPayload.MAX_DEVICES);
+        if (!current.equals(energy)) {
+            energy = current;
+            PacketDistributor.sendToPlayer(viewer, new NexusEnergyPayload(containerId, current));
+        }
     }
 
     /**
@@ -136,6 +178,6 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
     @Override
     public ItemStack quickMoveStack(final Player player, final int slotIndex) {
         final boolean isUpgrade = UpgradeColumn.takes(DeviceUpgrades.LIMITS, slots.get(slotIndex).getItem());
-        return shiftClick(slotIndex, DeviceUpgrades.SIZE, 0, isUpgrade ? DeviceUpgrades.SIZE : 0);
+        return shiftClick(slotIndex, DeviceUpgrades.SINGLE_SLOT, 0, isUpgrade ? DeviceUpgrades.SINGLE_SLOT : 0);
     }
 }

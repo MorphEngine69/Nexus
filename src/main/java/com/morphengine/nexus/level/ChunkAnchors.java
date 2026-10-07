@@ -1,6 +1,8 @@
 package com.morphengine.nexus.level;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.block.entity.NetworkDeviceBlockEntity;
+import com.morphengine.nexus.config.NexusConfig;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
@@ -50,7 +52,20 @@ public final class ChunkAnchors {
      * on the client.
      */
     public static void follow(final BlockEntity owner, final Container upgrades) {
-        setHeld(owner, UpgradeLimits.count(upgrades, UpgradeTypes.CHUNK_LOADER.get()) > 0);
+        final boolean wanted = UpgradeLimits.count(upgrades, UpgradeTypes.CHUNK_LOADER.get()) > 0;
+        setHeld(owner, wanted && isWithinLimit(owner));
+    }
+
+    /**
+     * @return whether the network of {@code owner} may keep one more chunk loaded under the limit the settings of the
+     *         world set; always for a block in no network
+     */
+    private static boolean isWithinLimit(final BlockEntity owner) {
+        final NetworkController network = owner instanceof NetworkController nexus ? nexus
+                : owner instanceof NetworkDeviceBlockEntity device ? device.controller() : null;
+        return !(network instanceof BlockEntity nexusBlock)
+                || network.component(NetworkComponentTypes.CHUNK_LOADERS)
+                        .allows(owner, nexusBlock, NexusConfig.chunkLimit());
     }
 
     /**

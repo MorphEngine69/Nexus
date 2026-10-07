@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:biomass",
+    "B": "minecraft:slime_ball"
+  },
+  "pattern": [
+    "AA",
+    "AB"
+  ],
+  "result": {
+    "id": "nexus:polymer",
+    "count": 4
+  },
+  "group": "polymer"
+}

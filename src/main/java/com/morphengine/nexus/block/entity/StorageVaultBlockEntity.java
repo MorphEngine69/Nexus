@@ -8,6 +8,7 @@ import com.morphengine.nexus.item.VoidUpgradeItem;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.StorageHost;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.StorageVaultMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
@@ -46,7 +47,7 @@ import java.util.Optional;
  * network destroy what it lists.
  */
 public final class StorageVaultBlockEntity extends AnimatedDeviceBlockEntity
-        implements StorageHost, Renamable, VaultCellSlots.Owner {
+        implements UpgradeHolder, StorageHost, Renamable, VaultCellSlots.Owner {
 
     public static final int SLOTS = VaultCellSlots.SIZE;
     /** One swell of a working cell's meter; the cells shown as working only change at its start, when it is at rest. */

@@ -1,11 +1,13 @@
 package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.item.NexusTerminalItem;
 import com.morphengine.nexus.level.NetworkNeighbours;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.transfer.energy.ItemAccessEnergyHandler;
 
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class NexusCapabilities {
@@ -47,5 +49,10 @@ public final class NexusCapabilities {
                 Capabilities.Energy.BLOCK,
                 NexusBlockEntityTypes.NEXUS.get(),
                 (nexus, side) -> NetworkNeighbours.offeredBeyond(nexus, side, nexus.energyHandler()));
+        event.registerItem(
+                Capabilities.Energy.ITEM,
+                (stack, access) -> new ItemAccessEnergyHandler(access, NexusDataComponents.TERMINAL_CHARGE.get(),
+                        NexusTerminalItem.capacity(), NexusTerminalItem.capacity(), 0),
+                NexusItems.NEXUS_TERMINAL.get());
     }
 }

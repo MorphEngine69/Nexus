@@ -1,8 +1,10 @@
 package com.morphengine.nexus.block.entity;
 
 import com.morphengine.nexus.block.WirelessBlock;
+import com.morphengine.nexus.config.NexusConfig;
 import com.morphengine.nexus.level.AccessPoint;
 import com.morphengine.nexus.level.ChunkAnchors;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.NexusLinkMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
@@ -27,20 +29,21 @@ import java.util.Objects;
 
 /**
  * A Nexus Link: lets a Nexus Terminal bound to its network reach the network
- * from up to {@value #BASE_RANGE} blocks away, and {@value #RANGE_PER_UPGRADE}
- * more for every Range Upgrade, in its own dimension. Once a second it lights
- * its block while the network has energy.
+ * from up to so many blocks away, and farther and farther with every Range
+ * Upgrade, as the settings of the world say, in its own dimension; with a
+ * Dimension Upgrade a terminal in
+ * another dimension reaches it from any distance. Once a second it lights its
+ * block while the network has energy.
  */
-public final class NexusLinkBlockEntity extends AnimatedDeviceBlockEntity implements AccessPoint, Renamable {
+public final class NexusLinkBlockEntity extends AnimatedDeviceBlockEntity
+        implements UpgradeHolder, AccessPoint, Renamable {
 
-    /** Placeholder balance, like the Range Upgrades it takes. */
-    public static final int BASE_RANGE = 32;
-    public static final int RANGE_PER_UPGRADE = 32;
-    public static final int MAX_RANGE_UPGRADES = 4;
-    /** Range Upgrades share a slot; a Chunk Loader Upgrade takes another. */
-    public static final int UPGRADE_SLOTS = 2;
+    public static final int MAX_RANGE_UPGRADES = 3;
+    /** Range Upgrades share a slot; a Dimension Upgrade and a Chunk Loader Upgrade take one each. */
+    public static final int UPGRADE_SLOTS = 3;
     public static final UpgradeLimits UPGRADE_LIMITS =
-            new UpgradeLimits(Map.of(UpgradeTypes.RANGE, MAX_RANGE_UPGRADES, UpgradeTypes.CHUNK_LOADER, 1));
+            new UpgradeLimits(Map.of(UpgradeTypes.RANGE, MAX_RANGE_UPGRADES, UpgradeTypes.DIMENSION, 1,
+                    UpgradeTypes.CHUNK_LOADER, 1));
 
     private static final int STATE_CHECK_INTERVAL_TICKS = 20;
     private static final String TAG_UPGRADES = "upgrades";
@@ -76,12 +79,24 @@ public final class NexusLinkBlockEntity extends AnimatedDeviceBlockEntity implem
      * @return how far the link reaches with {@code upgrades} in its slot
      */
     public static int rangeWith(final Container upgrades) {
-        return BASE_RANGE + RANGE_PER_UPGRADE * UpgradeLimits.count(upgrades, UpgradeTypes.RANGE.get());
+        return NexusConfig.linkRange(UpgradeLimits.count(upgrades, UpgradeTypes.RANGE.get()));
+    }
+
+    /**
+     * @return whether a link with {@code upgrades} in its slots reaches terminals in other dimensions
+     */
+    public static boolean reachesOtherDimensionsWith(final Container upgrades) {
+        return UpgradeLimits.count(upgrades, UpgradeTypes.DIMENSION.get()) > 0;
     }
 
     @Override
     public int range() {
         return rangeWith(upgrades);
+    }
+
+    @Override
+    public boolean reachesOtherDimensions() {
+        return reachesOtherDimensionsWith(upgrades);
     }
 
     @Override

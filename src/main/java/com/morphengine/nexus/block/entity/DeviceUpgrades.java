@@ -24,7 +24,10 @@ import java.util.Objects;
  */
 public final class DeviceUpgrades {
 
+    /** Slots of an owner that takes several kinds of upgrade, such as the Storage Vault. */
     public static final int SIZE = 4;
+    /** Slots of an owner that takes a Chunk Loader Upgrade only. */
+    public static final int SINGLE_SLOT = 1;
     public static final UpgradeLimits LIMITS = new UpgradeLimits(Map.of(UpgradeTypes.CHUNK_LOADER, 1));
 
     private static final String TAG_UPGRADES = "upgrades";
@@ -33,8 +36,11 @@ public final class DeviceUpgrades {
     private final UpgradeContainer upgrades;
     private final Runnable onChange;
 
+    /**
+     * The one slot of an owner that takes only a Chunk Loader Upgrade, such as the Nexus and the Energy Cell.
+     */
     public DeviceUpgrades(final BlockEntity owner) {
-        this(owner, LIMITS, () -> { });
+        this(owner, LIMITS, SINGLE_SLOT, () -> { });
     }
 
     /**
@@ -42,9 +48,14 @@ public final class DeviceUpgrades {
      * @param onChange run after every change of the slots, once the chunk and the owner are seen to
      */
     public DeviceUpgrades(final BlockEntity owner, final UpgradeLimits limits, final Runnable onChange) {
+        this(owner, limits, SIZE, onChange);
+    }
+
+    private DeviceUpgrades(
+            final BlockEntity owner, final UpgradeLimits limits, final int slots, final Runnable onChange) {
         this.owner = Objects.requireNonNull(owner, "owner must not be null");
         this.onChange = Objects.requireNonNull(onChange, "onChange must not be null");
-        this.upgrades = new UpgradeContainer(SIZE, Objects.requireNonNull(limits, "limits must not be null"),
+        this.upgrades = new UpgradeContainer(slots, Objects.requireNonNull(limits, "limits must not be null"),
                 this::changed);
     }
 

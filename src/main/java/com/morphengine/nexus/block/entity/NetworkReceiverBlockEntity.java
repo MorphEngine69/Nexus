@@ -3,6 +3,7 @@ package com.morphengine.nexus.block.entity;
 import com.morphengine.nexus.block.WirelessBlock;
 import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NetworkChanges;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.level.WirelessLinks;
 import com.morphengine.nexus.menu.NetworkReceiverMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -34,7 +35,7 @@ import java.util.Map;
  * chunk loaded, as the link needs. Once a second it shows on its block
  * whether a network with energy reaches it.
  */
-public final class NetworkReceiverBlockEntity extends AnimatedDeviceBlockEntity implements Renamable {
+public final class NetworkReceiverBlockEntity extends AnimatedDeviceBlockEntity implements UpgradeHolder, Renamable {
 
     public static final int UPGRADE_SLOTS = 1;
     public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(Map.of(UpgradeTypes.CHUNK_LOADER, 1));

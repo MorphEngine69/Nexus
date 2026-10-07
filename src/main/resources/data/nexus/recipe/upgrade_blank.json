@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:polymer",
+    "B": "minecraft:glass",
+    "C": "nexus:steel_plate",
+    "D": "nexus:core",
+    "E": "minecraft:gold_ingot"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "EEE"
+  ],
+  "result": {
+    "id": "nexus:upgrade_blank"
+  }
+}

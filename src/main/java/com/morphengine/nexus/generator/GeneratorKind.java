@@ -59,6 +59,9 @@ public enum GeneratorKind implements StringRepresentable {
 
     public static final Codec<GeneratorKind> CODEC = StringRepresentable.fromEnum(GeneratorKind::values);
 
+    /** Ticks of fuel a generator burns each game tick, with no Speed Upgrade. */
+    public static final int BURN_RATE = GeneratorBalance.BURN_RATE;
+
     private static final int SLOT_LIMIT = 64;
 
     private final String id;
@@ -99,6 +102,13 @@ public enum GeneratorKind implements StringRepresentable {
     @Override
     public String getSerializedName() {
         return id;
+    }
+
+    /**
+     * @return what the generator makes in a game tick of burning with no Speed Upgrade and no Efficiency Upgrade
+     */
+    public long outputPerTick() {
+        return energyPerTick * BURN_RATE;
     }
 
     public GeneratorFuel fuel() {

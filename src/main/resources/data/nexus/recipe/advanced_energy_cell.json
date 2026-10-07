@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "nexus:basic_energy_cell",
+    "nexus:advanced_tier_upgrade"
+  ],
+  "result": {
+    "id": "nexus:advanced_energy_cell"
+  },
+  "group": "energy_cell"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:polymer",
+    "B": "minecraft:copper_ingot",
+    "C": "minecraft:redstone"
+  },
+  "pattern": [
+    "AAA",
+    "BCB",
+    "AAA"
+  ],
+  "result": {
+    "id": "nexus:cable",
+    "count": 8
+  }
+}
