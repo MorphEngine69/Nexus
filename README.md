@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="src/main/resources/nexus_banner.png" alt="Nexus: network storage and automation" width="100%">
+
 # Nexus
 
 **Network storage and automation for Minecraft.**
