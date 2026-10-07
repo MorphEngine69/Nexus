@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The Nexus Terminal no longer has to be held. Two keys, **O** to open it and **K** to switch its
+  mode (both can be changed in the controls), work with a terminal in either hand, in the
+  inventory or, when Curios is installed, in any Curios slot.
 - Four metals found in the ground: Steel, Cobalt, Mithril and Hellsteel. Steel is
   mined in the places iron is, Cobalt where gold is, Mithril where diamond is and
   Hellsteel in the Nether, a little more often than ancient debris. Each has raw
