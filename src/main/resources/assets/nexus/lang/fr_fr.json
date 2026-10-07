@@ -541,5 +541,9 @@
   "tooltip.nexus.probe.filter.nothing": "Rien de choisi",
   "tooltip.nexus.probe.filter.only": "Seulement : %s",
   "tooltip.nexus.probe.filter.except": "Tout sauf : %s",
-  "tooltip.nexus.probe.tank": "Réservoir"
+  "tooltip.nexus.probe.tank": "Réservoir",
+  "trim_material.nexus.steel": "Acier",
+  "trim_material.nexus.cobalt": "Cobalt",
+  "trim_material.nexus.mithril": "Mithril",
+  "trim_material.nexus.hellsteel": "Acier infernal"
 }

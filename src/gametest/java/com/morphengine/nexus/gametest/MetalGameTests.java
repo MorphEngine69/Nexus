@@ -19,6 +19,8 @@ import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -54,7 +56,9 @@ public final class MetalGameTests {
             Map.entry("every_armor_piece_goes_on_its_own_slot", MetalGameTests::armorSlots),
             Map.entry("every_recipe_of_every_metal_is_loaded", MetalGameTests::recipesAreLoaded),
             Map.entry("every_ore_is_placed_in_its_biomes", MetalGameTests::oresArePlaced),
-            Map.entry("each_alloy_is_made_of_its_three_ingots", MetalGameTests::alloysAreMade));
+            Map.entry("each_alloy_is_made_of_its_three_ingots", MetalGameTests::alloysAreMade),
+            Map.entry("every_metal_item_has_its_common_tag", MetalGameTests::commonTags),
+            Map.entry("every_ingot_gives_a_trim_material_that_is_loaded", MetalGameTests::trimMaterials));
 
     private MetalGameTests() {
     }
@@ -156,6 +160,56 @@ public final class MetalGameTests {
                 helper.assertTrue(helper.getLevel().getServer().getRecipeManager().recipeMap().byKey(key) != null,
                         Component.literal("recipe " + name + " is not loaded"));
             }
+        }
+        helper.succeed();
+    }
+
+    private static boolean hasCommonTag(final ItemStack stack, final String path) {
+        return stack.is(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path)));
+    }
+
+    private static void commonTags(final GameTestHelper helper) {
+        for (MetalKind metal : MetalKind.ALL) {
+            final var set = NexusMetals.of(metal);
+            final Map<String, ItemStack> expected = Map.of(
+                    "ingots/" + metal.id(), new ItemStack(set.part(MetalPart.INGOT).get()),
+                    "nuggets/" + metal.id(), new ItemStack(set.part(MetalPart.NUGGET).get()),
+                    "dusts/" + metal.id(), new ItemStack(set.part(MetalPart.DUST).get()),
+                    "plates/" + metal.id(), new ItemStack(set.part(MetalPart.PLATE).get()),
+                    "raw_materials/" + metal.id(), new ItemStack(set.part(MetalPart.RAW).get()),
+                    "storage_blocks/" + metal.id(), new ItemStack(set.storageBlockItem().get()),
+                    "ores/" + metal.id(), new ItemStack(set.oreItems().getFirst().get()));
+            expected.forEach((path, stack) -> helper.assertTrue(hasCommonTag(stack, path),
+                    Component.literal(stack + " is not in c:" + path)));
+            helper.assertTrue(hasCommonTag(expected.get("ingots/" + metal.id()), "ingots"),
+                    Component.literal(metal.id() + " ingot is not in c:ingots"));
+        }
+        for (String vanilla : List.of("iron", "gold", "copper")) {
+            helper.assertTrue(hasCommonTag(stackOf(vanilla + "_dust"), "dusts/" + vanilla),
+                    Component.literal(vanilla + " dust is not in its common tag"));
+            helper.assertTrue(hasCommonTag(stackOf(vanilla + "_plate"), "plates/" + vanilla),
+                    Component.literal(vanilla + " plate is not in its common tag"));
+        }
+        for (String alloy : List.of("voltsteel", "lumen", "aether")) {
+            helper.assertTrue(hasCommonTag(stackOf(alloy + "_ingot"), "ingots/" + alloy),
+                    Component.literal(alloy + " ingot is not in its common tag"));
+        }
+        helper.succeed();
+    }
+
+    private static void trimMaterials(final GameTestHelper helper) {
+        final var registry = helper.getLevel().registryAccess().lookupOrThrow(Registries.TRIM_MATERIAL);
+        for (MetalKind metal : MetalKind.ALL) {
+            final ItemStack ingot = new ItemStack(NexusMetals.of(metal).part(MetalPart.INGOT).get());
+            final var provided = ingot.get(DataComponents.PROVIDES_TRIM_MATERIAL);
+            helper.assertTrue(provided != null && provided.is(metal.trimMaterial()),
+                    Component.literal(metal.id() + " ingot does not give its trim material"));
+            helper.assertTrue(registry.get(metal.trimMaterial()).isPresent(),
+                    Component.literal("trim material of " + metal.id() + " is not loaded"));
+            helper.assertTrue(ingot.is(ItemTags.TRIM_MATERIALS),
+                    Component.literal(metal.id() + " ingot is not in the tag of trim materials"));
+            helper.assertTrue(NexusMetals.of(metal).armor().get(ArmorType.CHESTPLATE).get().getDefaultInstance()
+                    .is(ItemTags.TRIMMABLE_ARMOR), Component.literal(metal.id() + " armor cannot be trimmed"));
         }
         helper.succeed();
     }
