@@ -3,9 +3,9 @@ package com.morphengine.nexus.transport;
 /**
  * How often a Puller or Pusher works and how much it moves each time, given the
  * Speed and Stack upgrades it holds. Placeholder balance until the numbers are
- * settled: an operation every {@value #BASE_INTERVAL_TICKS} ticks, each Speed
- * Upgrade {@value #TICKS_PER_SPEED_UPGRADE} ticks sooner, never more often than
- * every {@value #MIN_INTERVAL_TICKS}; a Stack Upgrade moves
+ * settled: an operation every {@value #BASE_INTERVAL_TICKS} ticks, and with
+ * Speed Upgrades sooner and sooner, never more often than every
+ * {@value #MIN_INTERVAL_TICKS}; a Stack Upgrade moves
  * {@value #STACK_MULTIPLIER} times as much, an Efficiency Upgrade {@value #EFFICIENCY_MULTIPLIER} times, and where
  * both are held the Stack Upgrade counts.
  *
@@ -14,12 +14,12 @@ package com.morphengine.nexus.transport;
  */
 public record TransferRate(int intervalTicks, long multiplier) {
 
-    public static final int BASE_INTERVAL_TICKS = 10;
-    public static final int TICKS_PER_SPEED_UPGRADE = 2;
-    public static final int MIN_INTERVAL_TICKS = 2;
+    public static final int BASE_INTERVAL_TICKS = 16;
+    public static final int MIN_INTERVAL_TICKS = 3;
     public static final long STACK_MULTIPLIER = 64;
     public static final long EFFICIENCY_MULTIPLIER = 2;
     public static final TransferRate BASE = of(0, 0);
+
 
     public TransferRate {
         if (intervalTicks <= 0 || multiplier <= 0) {
@@ -47,8 +47,8 @@ public record TransferRate(int intervalTicks, long multiplier) {
             throw new IllegalArgumentException("upgrade counts must not be negative: speed " + speedUpgrades
                     + ", stack " + stackUpgrades + ", efficiency " + efficiencyUpgrades);
         }
-        final int interval = Math.max(MIN_INTERVAL_TICKS,
-                BASE_INTERVAL_TICKS - speedUpgrades * TICKS_PER_SPEED_UPGRADE);
+        final int[] intervals = Intervals.BY_SPEED_UPGRADES;
+        final int interval = intervals[Math.min(speedUpgrades, intervals.length - 1)];
         return new TransferRate(interval, multiplierOf(stackUpgrades, efficiencyUpgrades));
     }
 
@@ -57,5 +57,17 @@ public record TransferRate(int intervalTicks, long multiplier) {
             return STACK_MULTIPLIER;
         }
         return efficiencyUpgrades > 0 ? EFFICIENCY_MULTIPLIER : 1;
+    }
+
+    /**
+     * Ticks between operations with no Speed Upgrade, then one, and so on; more upgrades count as the last. Kept apart
+     * so that {@link #BASE} is made after it.
+     */
+    private static final class Intervals {
+
+        static final int[] BY_SPEED_UPGRADES = {BASE_INTERVAL_TICKS, 12, 8, 5, MIN_INTERVAL_TICKS};
+
+        private Intervals() {
+        }
     }
 }

@@ -15,10 +15,10 @@ import java.util.Optional;
  */
 public record MachineTier(int rank, int linePairs, long bufferCapacity, long maxInsert, int speedPercent) {
 
-    public static final MachineTier BASIC = new MachineTier(1, 1, 10_000, 1_000, 150);
-    public static final MachineTier ADVANCED = new MachineTier(2, 3, 40_000, 4_000, 250);
-    public static final MachineTier SUPERIOR = new MachineTier(3, 5, 160_000, 16_000, 400);
-    public static final MachineTier QUANTUM = new MachineTier(4, 7, 640_000, 64_000, 650);
+    public static final MachineTier BASIC = new MachineTier(1, 1, 8_000, 800, 100);
+    public static final MachineTier ADVANCED = new MachineTier(2, 3, 32_000, 3_200, 175);
+    public static final MachineTier SUPERIOR = new MachineTier(3, 5, 128_000, 12_800, 300);
+    public static final MachineTier QUANTUM = new MachineTier(4, 7, 512_000, 51_200, 500);
 
     private static final List<MachineTier> ALL = List.of(BASIC, ADVANCED, SUPERIOR, QUANTUM);
 

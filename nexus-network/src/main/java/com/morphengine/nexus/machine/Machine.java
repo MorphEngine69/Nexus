@@ -6,6 +6,7 @@ import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.energy.BufferUpgrades;
 import com.morphengine.nexus.energy.EfficiencyUpgrades;
+import com.morphengine.nexus.energy.EnergyScale;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.transport.SideConfig;
 import com.morphengine.nexus.transport.SideMode;
@@ -31,6 +32,7 @@ public final class Machine {
     private int speedUpgrades;
     private int efficiencyUpgrades;
     private int bufferUpgrades;
+    private int energyUsePercent = EnergyScale.NEUTRAL_PERCENT;
     private SideConfig<MachineSide> sides = MachineSides.defaults();
     private MachineActivity activity = MachineActivity.IDLE;
 
@@ -126,8 +128,23 @@ public final class Machine {
         efficiencyUpgrades = count;
     }
 
-    public int bufferUpgrades() {
-        return bufferUpgrades;
+    /**
+     * @param percent the share of the FE of the work that the machine really uses, as a setting of the world may ask
+     *                for, from {@value EnergyScale#MIN_PERCENT} to {@value EnergyScale#MAX_PERCENT}; a hundred changes
+     *                nothing
+     */
+    public void setEnergyUsePercent(final int percent) {
+        EnergyScale.of(0, percent);
+        energyUsePercent = percent;
+    }
+
+    /**
+     * @return the share of the price of a recipe the machine pays for its work, in percent: what its Efficiency Upgrade
+     *         and the setting of the world leave of it, never less than one
+     */
+    public int costPercent() {
+        final long scaled = EnergyScale.of(EfficiencyUpgrades.costPercent(efficiencyUpgrades), energyUsePercent);
+        return (int) Math.max(1, Math.min(Integer.MAX_VALUE, scaled));
     }
 
     /**
@@ -159,7 +176,7 @@ public final class Machine {
      */
     public MachineActivity tick() {
         final int speed = speedPercent();
-        final int cost = EfficiencyUpgrades.costPercent(efficiencyUpgrades);
+        final int cost = costPercent();
         MachineActivity result = MachineActivity.IDLE;
         for (MachineLine line : lines) {
             result = result.or(line.tick(energy, speed, cost));

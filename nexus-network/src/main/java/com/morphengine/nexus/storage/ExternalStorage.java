@@ -68,11 +68,16 @@ public final class ExternalStorage implements Storage {
 
     /**
      * Reads the block again and tells {@code sink} each change since the last read, by the amount the copy changed.
+     *
+     * @return how many entries the block listed and how many resources changed, for a caller that reads again sooner
+     *         or later according to how much there was to read and whether anything moved
      */
-    public void rescan(final ChangeSink sink) {
+    public Scan rescan(final ChangeSink sink) {
         Objects.requireNonNull(sink, "sink must not be null");
         final ResourceCounter fresh = new ResourceCounter();
+        int listed = 0;
         for (ResourceAmount held : target.get().contents()) {
+            listed++;
             if (filter.allows(held.resource())) {
                 fresh.add(held.resource(), held.amount());
             }
@@ -94,6 +99,7 @@ public final class ExternalStorage implements Storage {
             shown.add(now.resource(), now.amount());
         }
         changes.forEach(sink::changed);
+        return new Scan(listed, changes.size());
     }
 
     @Override
@@ -165,5 +171,18 @@ public final class ExternalStorage implements Storage {
          * @param delta units gained, or lost when negative; never zero
          */
         void changed(ResourceKey resource, long delta);
+    }
+
+    /**
+     * What a {@link #rescan} found.
+     *
+     * @param entries the entries the block listed, whether the filter allowed them or not
+     * @param changes the resources whose amount differs from the last read
+     */
+    public record Scan(int entries, int changes) {
+
+        public boolean hasChanged() {
+            return changes > 0;
+        }
     }
 }

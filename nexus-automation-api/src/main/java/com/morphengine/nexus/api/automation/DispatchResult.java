@@ -15,7 +15,10 @@ public enum DispatchResult {
     TARGET_FULL,
 
     /** The executor waits for an earlier run to finish before it takes another. */
-    LOCKED;
+    LOCKED,
+
+    /** The network holds too little energy to pay for the run; nothing was taken. */
+    NO_ENERGY;
 
     public boolean isAccepted() {
         return this == ACCEPTED;
