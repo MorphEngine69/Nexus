@@ -213,6 +213,11 @@ dependencies {
     compileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${property("rei_version")}")
     compileOnly("maven.modrinth:jade:${property("jade_version")}")
     compileOnly("mcjty.theoneprobe:theoneprobe:${property("top_version")}:api")
+    compileOnly("maven.modrinth:curios:${property("curios_version")}")
+    // Curios sends packets to every player it sees, and the mock players of the game tests have no connection.
+    if (gradle.startParameter.taskNames.any { it.endsWith("runClient") }) {
+        runtimeOnly("maven.modrinth:curios:${property("curios_version")}")
+    }
 }
 
 tasks.processResources {
