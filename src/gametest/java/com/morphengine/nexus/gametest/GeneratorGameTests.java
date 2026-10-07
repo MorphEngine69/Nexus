@@ -3,11 +3,15 @@ package com.morphengine.nexus.gametest;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.GeneratorBlock;
 import com.morphengine.nexus.block.entity.GeneratorBlockEntity;
+import com.morphengine.nexus.block.entity.MachineBlockEntity;
 import com.morphengine.nexus.generator.GeneratorKind;
+import com.morphengine.nexus.item.StoredFluids;
 import com.morphengine.nexus.machine.MachineSide;
 import com.morphengine.nexus.processing.MachineFacing;
+import com.morphengine.nexus.processing.MachineKind;
 import com.morphengine.nexus.processing.MachinePhase;
 import com.morphengine.nexus.registry.NexusBlocks;
+import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusFluids;
 import com.morphengine.nexus.registry.NexusMaterials;
 import com.morphengine.nexus.registry.NexusRecipes;
@@ -38,6 +42,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
@@ -76,6 +81,8 @@ public final class GeneratorGameTests {
             Map.entry("a_generator_takes_only_what_it_burns_in_its_slot", GeneratorGameTests::slotFilter),
             Map.entry("the_block_shows_whether_it_works", GeneratorGameTests::phaseFollowsWork),
             Map.entry("the_extractor_presses_biofuel_out_of_plants", GeneratorGameTests::extractorPressesBiofuel),
+            Map.entry("an_empty_bucket_in_hand_fills_from_the_extractor", GeneratorGameTests::bucketFillsFromExtractor),
+            Map.entry("a_full_bucket_does_not_pour_into_the_extractor", GeneratorGameTests::extractorTakesNothing),
             Map.entry("an_entity_moves_in_biofuel_and_does_not_drown", GeneratorGameTests::movesInBiofuel),
             Map.entry("a_side_of_a_generator_takes_and_gives_as_it_is_set", GeneratorGameTests::sidesLimitHandlers),
             Map.entry("a_side_that_takes_in_lets_coal_in_but_never_out", GeneratorGameTests::sideTakesCoalIn));
@@ -267,6 +274,44 @@ public final class GeneratorGameTests {
                         helper.getBlockState(GENERATOR).getValue(GeneratorBlock.PHASE), MachinePhase.ACTIVE,
                         Component.literal("a generator at work")))
                 .thenSucceed();
+    }
+
+    private static MachineBlockEntity placeExtractor(final GameTestHelper helper, final int millibuckets) {
+        helper.setBlock(GENERATOR,
+                NexusBlocks.machineTiers(MachineKind.EXTRACTOR).getFirst().get().defaultBlockState());
+        final MachineBlockEntity extractor = helper.getBlockEntity(GENERATOR, MachineBlockEntity.class);
+        final ItemStack seed = new ItemStack(Items.STONE);
+        seed.set(NexusDataComponents.STORED_FLUIDS.get(),
+                new StoredFluids(List.of(new FluidStack(Fluids.WATER, millibuckets))));
+        extractor.applyComponentsFromItemStack(seed);
+        return extractor;
+    }
+
+    private static void bucketFillsFromExtractor(final GameTestHelper helper) {
+        final MachineBlockEntity extractor = placeExtractor(helper, 2 * BUCKET);
+        final ServerPlayer player = holding(helper, new ItemStack(Items.BUCKET));
+
+        final InteractionResult result = useOn(helper, player);
+
+        helper.assertTrue(result.consumesAction(), Component.literal("the bucket was not used"));
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.WATER_BUCKET),
+                Component.literal("the bucket in hand is not full"));
+        assertValue(helper, extractor.view().tank().amount(), BUCKET, "water left in the tank");
+        helper.getLevel().getServer().getPlayerList().remove(player);
+        helper.succeed();
+    }
+
+    private static void extractorTakesNothing(final GameTestHelper helper) {
+        final MachineBlockEntity extractor = placeExtractor(helper, 0);
+        final ServerPlayer player = holding(helper, new ItemStack(Items.WATER_BUCKET));
+
+        useOn(helper, player);
+
+        assertValue(helper, extractor.view().tank().amount(), 0, "water poured into the extractor");
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.WATER_BUCKET),
+                Component.literal("the water bucket was emptied"));
+        helper.getLevel().getServer().getPlayerList().remove(player);
+        helper.succeed();
     }
 
     private static void extractorPressesBiofuel(final GameTestHelper helper) {

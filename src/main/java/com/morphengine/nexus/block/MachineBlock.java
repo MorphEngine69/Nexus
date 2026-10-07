@@ -4,7 +4,9 @@ import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.morphengine.nexus.access.NetworkAccess;
 import com.morphengine.nexus.api.network.DeviceRole;
+import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.MachineBlockEntity;
 import com.morphengine.nexus.machine.MachineTier;
 import com.morphengine.nexus.processing.MachineKind;
@@ -13,6 +15,10 @@ import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.registry.NexusBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -28,6 +34,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -133,6 +143,30 @@ public final class MachineBlock extends NetworkDeviceBlock implements TieredBloc
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
             machine.redstone().receive(level.hasNeighborSignal(pos));
         }
+    }
+
+    /**
+     * An empty bucket, or another container of a fluid, held to a machine that gives a fluid fills from its tank
+     * without opening the panel.
+     */
+    @Override
+    protected InteractionResult useItemOn(
+            final ItemStack stack, final BlockState state, final Level level, final BlockPos pos, final Player player,
+            final InteractionHand hand, final BlockHitResult hit) {
+        if (!(level.getBlockEntity(pos) instanceof MachineBlockEntity machine) || machine.fluidHandler(null) == null) {
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
+        }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!NetworkAccess.permits(player, machine, Permission.OPEN)) {
+            NetworkAccess.refuse(player, Permission.OPEN);
+            return InteractionResult.SUCCESS;
+        }
+        final ResourceHandler<FluidResource> tank = machine.fluidHandler(null);
+        return FluidUtil.interactWithFluidHandler(player, hand, pos, tank, null)
+                ? InteractionResult.SUCCESS
+                : InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
