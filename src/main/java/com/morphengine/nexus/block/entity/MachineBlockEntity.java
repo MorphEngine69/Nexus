@@ -106,6 +106,7 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity implemen
                 ? new MachineTank(() -> machine().bufferCapacity(), this::setChanged) : null;
         this.machine = new Machine(block.tier(), kind.shape(), this::findRecipe,
                 tank != null ? tank.slotsOver(slots) : slots);
+        carryOnItem(new StoredContents(machine.energy(), tank));
         this.items = new MachineItems(slots, machine.inventory(), this::accepts, this::setChanged);
         this.energyHandler = new BufferEnergyHandler(
                 machine.energy(), BufferEnergyHandler.Access.RECEIVE_ONLY, this::setChanged);

@@ -519,5 +519,7 @@
   "tooltip.nexus.upgrade.void.empty": "Liste vide : ne détruit rien",
   "tooltip.nexus.upgrade.void.listed": "Détruit les éléments énumérés : %s",
   "gui.nexus.void.hint": "Détruit en entrant dans le réseau",
-  "gui.nexus.void.list": "Détruire"
+  "gui.nexus.void.list": "Détruire",
+  "tooltip.nexus.stored_energy": "Contient %s FE",
+  "tooltip.nexus.stored_fluid": "Contient %s : %s mB"
 }

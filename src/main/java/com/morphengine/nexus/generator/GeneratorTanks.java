@@ -1,5 +1,6 @@
 package com.morphengine.nexus.generator;
 
+import com.morphengine.nexus.block.entity.FluidKeeper;
 import com.morphengine.nexus.menu.TankView;
 import com.morphengine.nexus.resource.FluidKey;
 import net.minecraft.core.NonNullList;
@@ -16,7 +17,7 @@ import java.util.List;
  * hand, and gives nothing out, since a generator is a place to burn fuel, not to keep it. What the generator burns it
  * draws out itself. Millibuckets; server thread only.
  */
-public final class GeneratorTanks extends FluidStacksResourceHandler {
+public final class GeneratorTanks extends FluidStacksResourceHandler implements FluidKeeper {
 
     /** Millibuckets each tank holds. */
     public static final int CAPACITY_MILLIBUCKETS = GeneratorBalance.TANK_CAPACITY_MILLIBUCKETS;
@@ -48,6 +49,34 @@ public final class GeneratorTanks extends FluidStacksResourceHandler {
                     capacityMillibuckets));
         }
         return views;
+    }
+
+    /**
+     * @return a copy of what each tank holds, in the order of the tanks
+     */
+    @Override
+    public List<FluidStack> held() {
+        final List<FluidStack> held = new ArrayList<>(specs.size());
+        for (FluidStack stack : stacks) {
+            held.add(stack.copy());
+        }
+        return held;
+    }
+
+    /**
+     * Fills each tank with the fluid {@code held} has for it, as far as the tank takes that fluid and holds so much;
+     * what does not fit is not kept.
+     */
+    @Override
+    public void restore(final List<FluidStack> held) {
+        for (int index = 0; index < specs.size(); index++) {
+            final FluidStack stack = index < held.size() ? held.get(index).copy() : FluidStack.EMPTY;
+            if (!stack.isEmpty() && !specs.get(index).accepts(stack.getFluid())) {
+                continue;
+            }
+            stack.setAmount(Math.min(stack.getAmount(), capacityMillibuckets));
+            stacks.set(index, stack);
+        }
     }
 
     public int capacityMillibuckets() {

@@ -1,5 +1,6 @@
 package com.morphengine.nexus.processing;
 
+import com.morphengine.nexus.block.entity.FluidKeeper;
 import com.morphengine.nexus.machine.MachineSlot;
 import com.morphengine.nexus.machine.MachineSlots;
 import com.morphengine.nexus.menu.TankView;
@@ -13,6 +14,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
+import java.util.List;
 import java.util.function.LongSupplier;
 
 /**
@@ -20,7 +22,7 @@ import java.util.function.LongSupplier;
  * pipe or a Puller takes out through a side that lets things out, and what is shown and saved. It takes nothing in
  * from outside. Millibuckets; server thread only.
  */
-public final class MachineTank {
+public final class MachineTank implements FluidKeeper {
 
     private static final String TAG_TANK = "tank";
 
@@ -69,6 +71,18 @@ public final class MachineTank {
         final FluidStack stack = stacks.getFirst();
         return new TankView(stack.isEmpty() ? null : new FluidKey(FluidResource.of(stack)), stack.getAmount(),
                 capacity.getAsLong());
+    }
+
+    @Override
+    public List<FluidStack> held() {
+        return List.of(stacks.getFirst().copy());
+    }
+
+    @Override
+    public void restore(final List<FluidStack> fluids) {
+        final FluidStack kept = fluids.isEmpty() ? FluidStack.EMPTY : fluids.getFirst().copy();
+        kept.setAmount((int) Math.min(kept.getAmount(), capacity.getAsLong()));
+        stacks.set(0, kept);
     }
 
     public void save(final ValueOutput target) {

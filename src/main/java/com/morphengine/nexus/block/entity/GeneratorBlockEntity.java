@@ -103,6 +103,7 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity implem
         this.tanks = kind.fuel().tanks().isEmpty() ? null
                 : new GeneratorTanks(kind.fuel().tanks(), GeneratorTanks.CAPACITY_MILLIBUCKETS,
                         this::setChanged);
+        carryOnItem(new StoredContents(buffer, tanks));
         this.items = new GeneratorItems(input.getItems(), kind.itemRules(), this::setChanged);
     }
 
