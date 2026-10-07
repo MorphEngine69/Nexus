@@ -8,6 +8,7 @@ import com.morphengine.nexus.menu.TankView;
 import com.morphengine.nexus.resource.FluidKey;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -19,7 +20,7 @@ import java.util.List;
  * down or the tanks of the fluids it burns, the charge bar, what the generator is doing, and the upgrade slots on the
  * right.
  */
-public final class GeneratorScreen extends PanelScreen<GeneratorMenu> {
+public final class GeneratorScreen extends PanelScreen<GeneratorMenu> implements SideAreas {
 
     private static final int IMAGE_WIDTH = 200;
     private static final int IMAGE_HEIGHT = 192;
@@ -76,6 +77,11 @@ public final class GeneratorScreen extends PanelScreen<GeneratorMenu> {
     private int barX(final GeneratorView view) {
         final int gauges = view.tanks().size();
         return gauges == 0 ? FLAME_BAR_X : GAUGE_X + gauges * (TANK_WIDTH + TANK_GAP);
+    }
+
+    @Override
+    public List<Rect2i> extraAreas() {
+        return sides.areas();
     }
 
     @Override

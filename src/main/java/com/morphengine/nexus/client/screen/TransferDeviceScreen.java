@@ -39,7 +39,8 @@ import java.util.Locale;
  * Upgrade and a whitelist; when the device keeps stock, each filter slot
  * shows its amount, changed with the mouse wheel.
  */
-public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> implements FilterScreen {
+public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu>
+        implements FilterScreen, SideAreas {
 
     private static final int IMAGE_WIDTH = 224;
     private static final int IMAGE_HEIGHT = TransferDeviceMenu.INVENTORY_TOP + 84;
@@ -76,11 +77,9 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu> 
         return new SideButtons(leftPos, topPos, controls().size());
     }
 
-    /**
-     * @return the column of mode buttons left of the panel, for a recipe viewer to keep clear of
-     */
-    public Rect2i sidebarArea() {
-        return sideButtons().area().toRect();
+    @Override
+    public List<Rect2i> extraAreas() {
+        return List.of(sideButtons().area().toRect());
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.morphengine.nexus.machine.InputMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -37,6 +38,10 @@ final class InputModeButton {
     InputModeButton(final PanelBounds panel, final int buttonId) {
         this.bounds = new PanelBounds(panel.left() - OFFSET_LEFT, panel.top() + OFFSET_TOP, SIZE, SIZE);
         this.buttonId = buttonId;
+    }
+
+    Rect2i area() {
+        return bounds.toRect();
     }
 
     void draw(

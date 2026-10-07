@@ -24,7 +24,7 @@ import java.util.List;
  * its tasks beside them, the upgrade slots and the inventory, with the lock
  * button left of the panel.
  */
-public final class AssemblerScreen extends PanelScreen<AssemblerMenu> {
+public final class AssemblerScreen extends PanelScreen<AssemblerMenu> implements SideAreas {
 
     private static final int IMAGE_WIDTH = 224;
     private static final int IMAGE_HEIGHT = AssemblerMenu.INVENTORY_TOP + 84;
@@ -58,11 +58,9 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> {
         return new SideButtons(leftPos, topPos, 1);
     }
 
-    /**
-     * @return the lock button left of the panel, for a recipe viewer to keep clear of
-     */
-    public Rect2i sidebarArea() {
-        return sideButtons().area().toRect();
+    @Override
+    public List<Rect2i> extraAreas() {
+        return List.of(sideButtons().area().toRect());
     }
 
     @Override

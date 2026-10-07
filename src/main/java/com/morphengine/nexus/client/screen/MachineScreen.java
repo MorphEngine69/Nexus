@@ -12,11 +12,13 @@ import com.morphengine.nexus.resource.FluidKey;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -25,7 +27,7 @@ import java.util.Locale;
  * a bar of its progress between the input slot and the output slot, what the machine is doing and how fast, the slot
  * of the Speed Upgrades, the button of the input mode on the left and the choice of the working sides on the right.
  */
-public final class MachineScreen extends PanelScreen<MachineMenu> {
+public final class MachineScreen extends PanelScreen<MachineMenu> implements SideAreas {
 
     private static final int BAR_TOP = 32;
     private static final int LABEL_GAP = 11;
@@ -79,6 +81,17 @@ public final class MachineScreen extends PanelScreen<MachineMenu> {
     private SideModePanel<MachineSide> createSideModePanel() {
         return new SideModePanel<>(panelBounds(), SideLayouts.MACHINE, SideLayouts.machineNames(),
                 MachineMenu.BUTTON_SIDE_NEXT, MachineMenu.BUTTON_SIDE_PREVIOUS);
+    }
+
+    @Override
+    public List<Rect2i> extraAreas() {
+        final List<Rect2i> areas = new ArrayList<>();
+        areas.add(redstoneButton().area().toRect());
+        if (hasModeButton()) {
+            areas.add(modeButton.area());
+        }
+        areas.addAll(sides.areas());
+        return areas;
     }
 
     @Override

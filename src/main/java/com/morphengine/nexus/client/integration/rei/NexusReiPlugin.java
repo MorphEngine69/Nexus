@@ -3,6 +3,11 @@ package com.morphengine.nexus.client.integration.rei;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.client.integration.MachineRecipes;
 import com.morphengine.nexus.client.screen.AssemblerScreen;
+import com.morphengine.nexus.client.screen.EnergyCellScreen;
+import com.morphengine.nexus.client.screen.GeneratorScreen;
+import com.morphengine.nexus.client.screen.MachineScreen;
+import com.morphengine.nexus.client.screen.NexusScreen;
+import com.morphengine.nexus.client.screen.SideAreas;
 import com.morphengine.nexus.client.screen.TerminalScreen;
 import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import com.morphengine.nexus.processing.AlloyIngredient;
@@ -23,6 +28,7 @@ import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import me.shedaniel.rei.forge.REIPluginClient;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -35,8 +41,8 @@ import java.util.List;
 /**
  * REI support: its "+" button lays out a crafting recipe on the grid of a
  * Crafting Terminal and any recipe as the draft of a Blueprint Terminal, it
- * keeps its overlay off the side buttons of terminals, Pullers, Pushers and
- * Assemblers, its recipe and usage keys work on the resources a terminal
+ * keeps its overlay off the buttons and windows beside the screens that have them, its recipe and usage keys work on
+ * the resources a terminal
  * lists, and its items and fluids can be dragged onto the filter of any panel
  * with one and onto the Blueprint encoder. It lists the recipes of the machines, each in a category of its own with
  * the machines of every tier as its workstations, and shows the Energy Furnace as a workstation of the furnaces and the
@@ -54,6 +60,11 @@ public final class NexusReiPlugin implements REIClientPlugin {
     private static final CategoryIdentifier<?> SMELTING = CategoryIdentifier.of("minecraft", "plugins/smelting");
     private static final CategoryIdentifier<?> BLASTING = CategoryIdentifier.of("minecraft", "plugins/blasting");
     private static final CategoryIdentifier<?> SMOKING = CategoryIdentifier.of("minecraft", "plugins/smoking");
+
+    /** Every screen that has buttons or windows beside its frame, each of which implements {@link SideAreas}. */
+    private static final List<Class<? extends Screen>> SIDE_AREA_SCREENS = List.of(
+            TerminalScreen.class, TransferDeviceScreen.class, AssemblerScreen.class, MachineScreen.class,
+            GeneratorScreen.class, EnergyCellScreen.class, NexusScreen.class);
 
     private static CategoryIdentifier<MachineDisplay> machineCategory(final String name) {
         return CategoryIdentifier.of(Nexus.MOD_ID, name);
@@ -125,10 +136,10 @@ public final class NexusReiPlugin implements REIClientPlugin {
 
     @Override
     public void registerExclusionZones(final ExclusionZones zones) {
-        zones.register(TerminalScreen.class, (TerminalScreen<?> screen) -> List.of(rectangle(screen.sidebarArea())));
-        zones.register(TransferDeviceScreen.class,
-                (TransferDeviceScreen screen) -> List.of(rectangle(screen.sidebarArea())));
-        zones.register(AssemblerScreen.class, (AssemblerScreen screen) -> List.of(rectangle(screen.sidebarArea())));
+        for (Class<? extends Screen> screen : SIDE_AREA_SCREENS) {
+            zones.register(screen, (Screen shown) -> shown instanceof SideAreas areas
+                    ? areas.extraAreas().stream().map(NexusReiPlugin::rectangle).toList() : List.<Rectangle>of());
+        }
     }
 
     private static Rectangle rectangle(final Rect2i area) {

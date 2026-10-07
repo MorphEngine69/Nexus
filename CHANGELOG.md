@@ -64,6 +64,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   energy, tanks and progress of machines and generators, what a Placer places or a Remover breaks and what its
   filter allows, the cells and priority of a vault, the state of terminals and wireless blocks. Nothing is needed
   to turn it on; each mod can switch the lines off in its own settings.
+- JEI and REI keep their overlay off the buttons and windows beside the panels of machines, generators, Energy
+  Cells and the Nexus, as they already did for terminals, Pullers and Assemblers, and items from JEI can be
+  dragged into the list of a Void Upgrade.
 - The Nexus Crystal in the hand turns slowly and glows.
 - JEI and REI show the recipes of the Crusher, Pulverizer, Compressor, Alloy Smelter
   and Extractor, with the machines of every tier as the stations, and the Crafting

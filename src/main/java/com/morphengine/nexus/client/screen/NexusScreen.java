@@ -11,6 +11,7 @@ import com.morphengine.nexus.menu.NexusMenu;
 import com.morphengine.nexus.networking.NexusRecolorPayload;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
@@ -30,7 +31,7 @@ import java.util.Locale;
  * the inventory; and its access, who may do what with it. The access tab
  * puts the slots out of sight, as it needs the room.
  */
-public final class NexusScreen extends PanelScreen<NexusMenu> {
+public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAreas {
 
     private static final int IMAGE_WIDTH = 236;
     private static final int IMAGE_HEIGHT = NexusMenu.INVENTORY_TOP + 84;
@@ -120,6 +121,11 @@ public final class NexusScreen extends PanelScreen<NexusMenu> {
 
     private static int rgbOf(final DyeColor color) {
         return NetworkColoring.colorOf(color).rgb();
+    }
+
+    @Override
+    public List<Rect2i> extraAreas() {
+        return List.of(tabs().area().toRect());
     }
 
     private SideButtons tabs() {

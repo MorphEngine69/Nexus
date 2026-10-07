@@ -38,7 +38,7 @@ import java.util.Locale;
  * @param <M> the terminal's menu
  */
 public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPanel> extends PanelScreen<M>
-        implements FilterScreen {
+        implements FilterScreen, SideAreas {
 
     private final ResourceGridView view = new ResourceGridView();
     private TerminalLayout layout;
@@ -151,11 +151,9 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         graphics.centeredText(font, message, centerX, centerY, PanelStyle.TEXT_LIGHT);
     }
 
-    /**
-     * @return where the buttons beside the panel are, for a recipe viewer to keep clear
-     */
-    public Rect2i sidebarArea() {
-        return sidebar != null ? sidebar.area().toRect() : new Rect2i(leftPos, topPos, 0, 0);
+    @Override
+    public List<Rect2i> extraAreas() {
+        return List.of(sidebar != null ? sidebar.area().toRect() : new Rect2i(leftPos, topPos, 0, 0));
     }
 
     /**
