@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:voltsteel_ingot",
+    "B": "nexus:cell_housing",
+    "C": "nexus:cell_part_4k",
+    "D": "nexus:battery"
+  },
+  "pattern": [
+    " A ",
+    "BCD",
+    " A "
+  ],
+  "result": {
+    "id": "nexus:energy_vault_cell_4k"
+  },
+  "group": "energy_vault_cell"
+}

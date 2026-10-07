@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:cobalt_ingot",
+    "B": "nexus:lumen_ingot",
+    "C": "nexus:machine_casing"
+  },
+  "pattern": [
+    "ABA",
+    "BCB",
+    "ABA"
+  ],
+  "result": {
+    "id": "nexus:advanced_tier_upgrade"
+  }
+}

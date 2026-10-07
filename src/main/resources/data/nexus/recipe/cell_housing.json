@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "minecraft:glass",
+    "B": "nexus:polymer",
+    "C": "minecraft:redstone",
+    "D": "nexus:steel_plate"
+  },
+  "pattern": [
+    "ABA",
+    "C C",
+    "DDD"
+  ],
+  "result": {
+    "id": "nexus:cell_housing"
+  }
+}

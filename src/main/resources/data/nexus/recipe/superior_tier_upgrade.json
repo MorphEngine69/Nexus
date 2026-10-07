@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:mithril_ingot",
+    "B": "nexus:aether_ingot",
+    "C": "nexus:machine_casing"
+  },
+  "pattern": [
+    "ABA",
+    "BCB",
+    "ABA"
+  ],
+  "result": {
+    "id": "nexus:superior_tier_upgrade"
+  }
+}

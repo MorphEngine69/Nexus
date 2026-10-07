@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "minecraft:dispenser",
+    "C": "nexus:cobalt_ingot",
+    "D": "nexus:core"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "AAA"
+  ],
+  "result": {
+    "id": "nexus:placer"
+  }
+}

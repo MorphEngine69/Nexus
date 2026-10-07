@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "minecraft:crafting_table",
+    "C": "nexus:core",
+    "D": "nexus:terminal",
+    "E": "nexus:lumen_ingot"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "AEA"
+  ],
+  "result": {
+    "id": "nexus:crafting_terminal"
+  }
+}

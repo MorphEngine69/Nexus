@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:steel_ingot",
+    "B": "nexus:nexus_crystal",
+    "C": "nexus:machine_casing",
+    "D": "nexus:core"
+  },
+  "pattern": [
+    "ABA",
+    "BCB",
+    "ADA"
+  ],
+  "result": {
+    "id": "nexus:nexus"
+  }
+}

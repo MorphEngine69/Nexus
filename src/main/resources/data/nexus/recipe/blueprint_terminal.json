@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:lumen_ingot",
+    "B": "nexus:blueprint",
+    "C": "nexus:core",
+    "D": "nexus:terminal",
+    "E": "nexus:steel_ingot"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "EEE"
+  ],
+  "result": {
+    "id": "nexus:blueprint_terminal"
+  }
+}

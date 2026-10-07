@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "minecraft:glass",
+    "B": "nexus:steel_plate",
+    "C": "minecraft:redstone"
+  },
+  "pattern": [
+    "AAA",
+    "BCB",
+    " B "
+  ],
+  "result": {
+    "id": "nexus:screen"
+  }
+}

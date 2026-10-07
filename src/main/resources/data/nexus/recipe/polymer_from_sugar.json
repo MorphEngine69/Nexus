@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:biomass",
+    "B": "minecraft:sugar"
+  },
+  "pattern": [
+    "AA",
+    "AB"
+  ],
+  "result": {
+    "id": "nexus:polymer",
+    "count": 2
+  },
+  "group": "polymer"
+}

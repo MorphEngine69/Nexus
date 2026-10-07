@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:hellsteel_ingot",
+    "B": "nexus:battery",
+    "C": "nexus:voltsteel_ingot",
+    "D": "nexus:upgrade_blank"
+  },
+  "pattern": [
+    "ABA",
+    "CDC",
+    "ABA"
+  ],
+  "result": {
+    "id": "nexus:buffer_upgrade"
+  }
+}

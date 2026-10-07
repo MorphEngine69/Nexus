@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "minecraft:paper",
+    "B": "nexus:lumen_ingot",
+    "C": "minecraft:redstone"
+  },
+  "pattern": [
+    "ABA",
+    "ACA",
+    "AAA"
+  ],
+  "result": {
+    "id": "nexus:blueprint",
+    "count": 4
+  }
+}

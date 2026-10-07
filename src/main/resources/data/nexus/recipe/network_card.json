@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "nexus:antenna",
+    "B": "nexus:aether_ingot",
+    "C": "nexus:core",
+    "D": "minecraft:gold_ingot"
+  },
+  "pattern": [
+    " A ",
+    "BCB",
+    "DDD"
+  ],
+  "result": {
+    "id": "nexus:network_card"
+  }
+}
