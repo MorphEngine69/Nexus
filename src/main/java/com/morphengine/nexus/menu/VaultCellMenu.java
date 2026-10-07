@@ -10,10 +10,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
@@ -23,44 +19,17 @@ import org.jspecify.annotations.Nullable;
  * container lists that resource without taking anything. The held cell's slot
  * is locked while the panel is open.
  */
-public final class VaultCellMenu extends AbstractContainerMenu implements RenamablePanel, FilterMenu {
-
-    public static final int FILTER_SLOTS = 9;
-    public static final int FILTER_LEFT = 19;
-    public static final int FILTER_TOP = 62;
-    public static final int INVENTORY_LEFT = 19;
-    public static final int INVENTORY_TOP = 104;
-
-    private static final int SLOT_SPACING = 18;
-    private static final int INVENTORY_ROWS = 3;
-    private static final int ROW_LENGTH = 9;
-    private static final int HOTBAR_OFFSET = 58;
-
-    private final Player player;
-    private final int heldSlot;
+public final class VaultCellMenu extends HeldFilterMenu implements RenamablePanel {
 
     public VaultCellMenu(final int containerId, final Inventory inventory) {
-        super(NexusMenuTypes.VAULT_CELL.get(), containerId);
-        this.player = inventory.player;
-        this.heldSlot = inventory.getSelectedSlot();
-        for (int row = 0; row < INVENTORY_ROWS; row++) {
-            for (int column = 0; column < ROW_LENGTH; column++) {
-                addSlot(new Slot(inventory, column + (row + 1) * ROW_LENGTH,
-                        INVENTORY_LEFT + column * SLOT_SPACING, INVENTORY_TOP + row * SLOT_SPACING));
-            }
-        }
-        for (int column = 0; column < ROW_LENGTH; column++) {
-            final int x = INVENTORY_LEFT + column * SLOT_SPACING;
-            final int y = INVENTORY_TOP + HOTBAR_OFFSET;
-            addSlot(column == heldSlot ? new LockedSlot(inventory, column, x, y) : new Slot(inventory, column, x, y));
-        }
+        super(NexusMenuTypes.VAULT_CELL.get(), containerId, inventory);
     }
 
     /**
      * @return the cell the panel edits, in the main hand
      */
     public ItemStack cell() {
-        return player.getInventory().getItem(heldSlot);
+        return held();
     }
 
     public @Nullable VaultCellItem cellItem() {
@@ -70,11 +39,6 @@ public final class VaultCellMenu extends AbstractContainerMenu implements Renama
     @Override
     public FilterSlots filter() {
         return VaultCellItem.filterOf(cell());
-    }
-
-    @Override
-    public int filterSlotCount() {
-        return FILTER_SLOTS;
     }
 
     /**
@@ -119,26 +83,7 @@ public final class VaultCellMenu extends AbstractContainerMenu implements Renama
     }
 
     @Override
-    public void clicked(final int slotIndex, final int buttonNum, final ContainerInput input, final Player clicker) {
-        if (input == ContainerInput.SWAP && buttonNum == heldSlot) {
-            return;
-        }
-        super.clicked(slotIndex, buttonNum, input, clicker);
-    }
-
-    /**
-     * Shift click on an item lists it in the filter; nothing moves.
-     */
-    @Override
-    public ItemStack quickMoveStack(final Player clicker, final int slotIndex) {
-        if (!clicker.level().isClientSide()) {
-            addToFilter(slots.get(slotIndex).getItem());
-        }
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public boolean stillValid(final Player clicker) {
+    protected boolean holdsItem() {
         return cellItem() != null;
     }
 }

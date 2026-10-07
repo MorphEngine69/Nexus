@@ -31,6 +31,7 @@ import com.morphengine.nexus.client.screen.StorageVaultScreen;
 import com.morphengine.nexus.client.screen.TerminalScreen;
 import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import com.morphengine.nexus.client.screen.VaultCellScreen;
+import com.morphengine.nexus.client.screen.VoidUpgradeScreen;
 import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.TerminalMenu;
@@ -71,6 +72,7 @@ public final class NexusClientSetup {
         event.register(NexusMenuTypes.MACHINE.get(), MachineScreen::new);
         event.register(NexusMenuTypes.STORAGE_VAULT.get(), StorageVaultScreen::new);
         event.register(NexusMenuTypes.VAULT_CELL.get(), VaultCellScreen::new);
+        event.register(NexusMenuTypes.VOID_UPGRADE.get(), VoidUpgradeScreen::new);
         event.register(NexusMenuTypes.TERMINAL.get(), TerminalScreen<TerminalMenu>::new);
         event.register(NexusMenuTypes.CRAFTING_TERMINAL.get(), TerminalScreen<CraftingTerminalMenu>::new);
         event.register(NexusMenuTypes.TRANSFER_DEVICE.get(), TransferDeviceScreen::new);

@@ -50,7 +50,8 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
             addSlot(new CellSlot(cells, slot, CELLS_LEFT + slot % CELL_COLUMNS * SLOT_SPACING,
                     CELLS_TOP + slot / CELL_COLUMNS * SLOT_SPACING));
         }
-        UpgradeColumn.slots(viewer() != null && vault != null ? vault.upgrades() : null, UPGRADES_LEFT, UPGRADES_TOP)
+        UpgradeColumn.slots(viewer() != null && vault != null ? vault.upgrades() : null,
+                StorageVaultBlockEntity.UPGRADE_LIMITS, UPGRADES_LEFT, UPGRADES_TOP)
                 .forEach(this::addSlot);
         addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(priority);
@@ -99,6 +100,7 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
         if (stack.getItem() instanceof VaultCellItem) {
             return shiftClick(slotIndex, PANEL_SLOTS, 0, cellSlots);
         }
-        return shiftClick(slotIndex, PANEL_SLOTS, cellSlots, UpgradeColumn.takes(stack) ? PANEL_SLOTS : cellSlots);
+        final boolean isUpgrade = UpgradeColumn.takes(StorageVaultBlockEntity.UPGRADE_LIMITS, stack);
+        return shiftClick(slotIndex, PANEL_SLOTS, cellSlots, isUpgrade ? PANEL_SLOTS : cellSlots);
     }
 }

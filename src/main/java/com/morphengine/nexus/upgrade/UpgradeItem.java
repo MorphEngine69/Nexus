@@ -13,9 +13,11 @@ import java.util.function.Consumer;
 
 /**
  * An upgrade: goes into the upgrade slots of a device that takes its kind. Its
- * tooltip tells what it does, and whether it is still in development.
+ * tooltip tells what it does, and whether it is still in development. Meant for
+ * extension by an upgrade that also does something in the hand; a subclass
+ * keeps the tooltip by calling {@code super.appendHoverText}.
  */
-public final class UpgradeItem extends Item {
+public class UpgradeItem extends Item {
 
     private final DeferredHolder<NexusUpgradeType, NexusUpgradeType> type;
 
@@ -25,7 +27,7 @@ public final class UpgradeItem extends Item {
         this.type = Objects.requireNonNull(type, "type must not be null");
     }
 
-    public NexusUpgradeType type() {
+    public final NexusUpgradeType type() {
         return type.get();
     }
 

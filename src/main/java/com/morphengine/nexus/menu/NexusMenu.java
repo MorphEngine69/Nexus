@@ -48,7 +48,8 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
     public NexusMenu(final int containerId, final Inventory inventory, final BlockPos pos) {
         super(NexusMenuTypes.NEXUS.get(), containerId, inventory, pos, NexusBlockEntity.class);
         final NexusBlockEntity nexus = blockEntity();
-        UpgradeColumn.slots(viewer() != null && nexus != null ? nexus.upgrades() : null, UPGRADES_LEFT, UPGRADES_TOP)
+        UpgradeColumn.slots(viewer() != null && nexus != null ? nexus.upgrades() : null, DeviceUpgrades.LIMITS,
+                UPGRADES_LEFT, UPGRADES_TOP)
                 .forEach(this::addSlot);
         addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
     }
@@ -134,7 +135,7 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
 
     @Override
     public ItemStack quickMoveStack(final Player player, final int slotIndex) {
-        final boolean isUpgrade = UpgradeColumn.takes(slots.get(slotIndex).getItem());
+        final boolean isUpgrade = UpgradeColumn.takes(DeviceUpgrades.LIMITS, slots.get(slotIndex).getItem());
         return shiftClick(slotIndex, DeviceUpgrades.SIZE, 0, isUpgrade ? DeviceUpgrades.SIZE : 0);
     }
 }
