@@ -519,5 +519,7 @@
   "tooltip.nexus.upgrade.void.empty": "Lista vacía: no destruye nada",
   "tooltip.nexus.upgrade.void.listed": "Destruye lo enumerado: %s",
   "gui.nexus.void.hint": "Se destruye al entrar en la red",
-  "gui.nexus.void.list": "Destruir"
+  "gui.nexus.void.list": "Destruir",
+  "tooltip.nexus.stored_energy": "Almacena %s FE",
+  "tooltip.nexus.stored_fluid": "Almacena %s: %s mB"
 }

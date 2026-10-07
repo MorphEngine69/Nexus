@@ -519,5 +519,7 @@
   "tooltip.nexus.upgrade.void.empty": "List is empty: destroys nothing",
   "tooltip.nexus.upgrade.void.listed": "Destroys %s listed",
   "gui.nexus.void.hint": "Destroyed on entering the network",
-  "gui.nexus.void.list": "Destroy"
+  "gui.nexus.void.list": "Destroy",
+  "tooltip.nexus.stored_energy": "Holds %s FE",
+  "tooltip.nexus.stored_fluid": "Holds %s: %s mB"
 }

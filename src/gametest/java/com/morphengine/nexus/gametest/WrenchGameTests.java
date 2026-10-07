@@ -3,23 +3,38 @@ package com.morphengine.nexus.gametest;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.network.security.Role;
 import com.morphengine.nexus.block.CableBlock;
+import com.morphengine.nexus.block.ExternalVaultBlock;
+import com.morphengine.nexus.block.GeneratorBlock;
+import com.morphengine.nexus.block.MachineBlock;
 import com.morphengine.nexus.block.SideConnections;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TerminalBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
+import com.morphengine.nexus.block.entity.ExternalVaultBlockEntity;
+import com.morphengine.nexus.block.entity.GeneratorBlockEntity;
+import com.morphengine.nexus.block.entity.MachineBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
+import com.morphengine.nexus.generator.GeneratorKind;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
+import com.morphengine.nexus.item.StoredFluids;
 import com.morphengine.nexus.item.WrenchActions;
+import com.morphengine.nexus.machine.InputMode;
+import com.morphengine.nexus.machine.MachineSide;
+import com.morphengine.nexus.processing.MachineFacing;
+import com.morphengine.nexus.processing.MachineKind;
 import com.morphengine.nexus.registry.NexusBlocks;
+import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusItems;
 import com.morphengine.nexus.security.EditResult;
 import com.morphengine.nexus.security.Editor;
 import com.morphengine.nexus.security.SecurityEdit;
+import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.FunctionGameTestInstance;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -39,13 +54,16 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 import java.util.List;
@@ -65,6 +83,8 @@ public final class WrenchGameTests {
     private static final BlockPos DEVICE = new BlockPos(4, 2, 4);
     private static final UUID OWNER = new UUID(0, 1);
     private static final int DROP_SEARCH_RADIUS = 3;
+    private static final long STORED_FE = 4_321;
+    private static final int STORED_FLUID = 2_500;
 
     private static final Map<String, Consumer<GameTestHelper>> TESTS = Map.ofEntries(
             Map.entry("wrench_turns_a_pusher_round_all_six_sides", WrenchGameTests::turnsAroundAllSides),
@@ -77,7 +97,23 @@ public final class WrenchGameTests {
                     WrenchGameTests::dismantleFillsInventory),
             Map.entry("wrench_dismantle_leaves_the_cable_under_a_terminal", WrenchGameTests::dismantleTerminal),
             Map.entry("wrench_dismantle_drops_what_does_not_fit", WrenchGameTests::dismantleOverflowsToTheGround),
-            Map.entry("stranger_cannot_turn_a_device_of_a_network", WrenchGameTests::strangerCannotTurn));
+            Map.entry("stranger_cannot_turn_a_device_of_a_network", WrenchGameTests::strangerCannotTurn),
+            Map.entry("wrench_turns_a_machine_round_the_horizontal", WrenchGameTests::turnsMachine),
+            Map.entry("wrench_turns_a_generator_round_the_horizontal", WrenchGameTests::turnsGenerator),
+            Map.entry("wrench_turns_an_external_vault_round_all_six_sides", WrenchGameTests::turnsExternalVault),
+            Map.entry("a_turned_machine_keeps_its_settings_and_its_sides_follow_the_front",
+                    WrenchGameTests::turnedMachineKeepsSettings),
+            Map.entry("wrench_dismantle_gives_back_a_machine_and_its_upgrades", WrenchGameTests::dismantleMachine),
+            Map.entry("wrench_dismantle_gives_back_a_generator_and_its_contents",
+                    WrenchGameTests::dismantleGenerator),
+            Map.entry("wrench_dismantle_gives_back_an_external_vault_and_its_upgrades",
+                    WrenchGameTests::dismantleExternalVault),
+            Map.entry("a_machine_taken_down_with_the_wrench_keeps_its_energy", WrenchGameTests::machineKeepsEnergy),
+            Map.entry("an_extractor_taken_down_with_the_wrench_keeps_its_fluid",
+                    WrenchGameTests::extractorKeepsFluid),
+            Map.entry("a_generator_taken_down_with_the_wrench_keeps_its_energy_and_fluid",
+                    WrenchGameTests::generatorKeepsEnergyAndFluid),
+            Map.entry("a_machine_without_energy_is_put_up_empty", WrenchGameTests::emptyMachineStaysEmpty));
 
     private WrenchGameTests() {
     }
@@ -251,6 +287,239 @@ public final class WrenchGameTests {
                         Component.literal("a stranger turned a device of the network")))
                 .thenExecute(() -> leave(helper, stranger))
                 .thenSucceed();
+    }
+
+    private static void turnsMachine(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        place(helper, DEVICE, machineFacing(Direction.NORTH));
+
+        for (Direction side : List.of(Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH)) {
+            click(helper, player, DEVICE, false);
+            helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(MachineBlock.FACING), side,
+                    Component.literal("facing of a machine after a turn"));
+        }
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static void turnsGenerator(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        place(helper, DEVICE, generatorFacing(Direction.NORTH));
+
+        for (Direction side : List.of(Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH)) {
+            click(helper, player, DEVICE, false);
+            helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(GeneratorBlock.FACING), side,
+                    Component.literal("facing of a generator after a turn"));
+        }
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static void turnsExternalVault(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        place(helper, DEVICE, externalVaultFacing(Direction.NORTH));
+
+        for (Direction side : List.of(Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP,
+                Direction.DOWN, Direction.NORTH)) {
+            click(helper, player, DEVICE, false);
+            helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(ExternalVaultBlock.FACING), side,
+                    Component.literal("facing of an external vault after a turn"));
+        }
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static void turnedMachineKeepsSettings(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        place(helper, DEVICE, machineFacing(Direction.NORTH));
+        final MachineBlockEntity machine = helper.getBlockEntity(DEVICE, MachineBlockEntity.class);
+        machine.setSideMode(MachineSide.LEFT, SideMode.CLOSED);
+        machine.machine().inventory().setMode(InputMode.SPLIT);
+        helper.assertValueEqual(closedHorizontalSides(machine).size(), 1,
+                Component.literal("sides closed before the turn"));
+
+        click(helper, player, DEVICE, false);
+
+        final Direction facing = helper.getBlockState(DEVICE).getValue(MachineBlock.FACING);
+        final List<Direction> closed = closedHorizontalSides(helper.getBlockEntity(DEVICE, MachineBlockEntity.class));
+        helper.assertValueEqual(closed.size(), 1, Component.literal("sides closed after the turn"));
+        helper.assertValueEqual(MachineFacing.sideOf(facing, closed.getFirst()), MachineSide.LEFT,
+                Component.literal("the side that stayed closed, counted from the new front"));
+        helper.assertValueEqual(machine.machine().inventory().mode(), InputMode.SPLIT,
+                Component.literal("input mode after the turn"));
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static List<Direction> closedHorizontalSides(final MachineBlockEntity machine) {
+        return Direction.Plane.HORIZONTAL.stream().filter(side -> machine.itemHandler(side) == null).toList();
+    }
+
+    private static void dismantleMachine(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        place(helper, DEVICE, machineFacing(Direction.NORTH));
+        final Item machineItem = helper.getBlockState(DEVICE).getBlock().asItem();
+        helper.getBlockEntity(DEVICE, MachineBlockEntity.class).upgrades()
+                .setItem(0, new ItemStack(NexusItems.SPEED_UPGRADE.get()));
+
+        click(helper, player, DEVICE, true);
+
+        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), Component.literal("the machine is still there"));
+        helper.assertTrue(carries(player, machineItem), Component.literal("the machine is not in the inventory"));
+        helper.assertTrue(carries(player, NexusItems.SPEED_UPGRADE.get()),
+                Component.literal("the upgrade is not in the inventory"));
+        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), Component.literal("something fell to the ground"));
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static void dismantleGenerator(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        place(helper, DEVICE, generatorFacing(Direction.NORTH));
+        final Item generatorItem = helper.getBlockState(DEVICE).getBlock().asItem();
+        final GeneratorBlockEntity generator = helper.getBlockEntity(DEVICE, GeneratorBlockEntity.class);
+        generator.input().setItem(0, new ItemStack(Items.COAL, 5));
+        generator.upgrades().setItem(0, new ItemStack(NexusItems.SPEED_UPGRADE.get()));
+
+        click(helper, player, DEVICE, true);
+
+        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), Component.literal("the generator is still there"));
+        helper.assertTrue(carries(player, generatorItem), Component.literal("the generator is not in the inventory"));
+        helper.assertTrue(carries(player, Items.COAL), Component.literal("the fuel is not in the inventory"));
+        helper.assertTrue(carries(player, NexusItems.SPEED_UPGRADE.get()),
+                Component.literal("the upgrade is not in the inventory"));
+        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), Component.literal("something fell to the ground"));
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static void dismantleExternalVault(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        place(helper, DEVICE, externalVaultFacing(Direction.NORTH));
+        helper.getBlockEntity(DEVICE, ExternalVaultBlockEntity.class).upgrades()
+                .setItem(0, new ItemStack(NexusItems.CHUNK_LOADER_UPGRADE.get()));
+
+        click(helper, player, DEVICE, true);
+
+        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), Component.literal("the vault is still there"));
+        helper.assertTrue(carries(player, NexusItems.EXTERNAL_VAULT.get()),
+                Component.literal("the vault is not in the inventory"));
+        helper.assertTrue(carries(player, NexusItems.CHUNK_LOADER_UPGRADE.get()),
+                Component.literal("the upgrade is not in the inventory"));
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static BlockState machineFacing(final Direction facing) {
+        return NexusBlocks.machineTiers(MachineKind.CRUSHER).getFirst().get().defaultBlockState()
+                .setValue(MachineBlock.FACING, facing);
+    }
+
+    private static BlockState generatorFacing(final Direction facing) {
+        return NexusBlocks.GENERATORS.get(GeneratorKind.COAL).get().defaultBlockState()
+                .setValue(GeneratorBlock.FACING, facing);
+    }
+
+    private static BlockState externalVaultFacing(final Direction facing) {
+        return NexusBlocks.EXTERNAL_VAULT.get().defaultBlockState().setValue(ExternalVaultBlock.FACING, facing);
+    }
+
+    private static void machineKeepsEnergy(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        place(helper, DEVICE, machineFacing(Direction.NORTH));
+        final Item machineItem = helper.getBlockState(DEVICE).getBlock().asItem();
+        seed(helper.getBlockEntity(DEVICE, MachineBlockEntity.class), STORED_FE, StoredFluids.EMPTY);
+
+        click(helper, player, DEVICE, true);
+        final ItemStack dropped = carried(player, machineItem);
+        place(helper, DEVICE.east(), machineFacing(Direction.NORTH));
+        helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class).applyComponentsFromItemStack(dropped);
+
+        helper.assertValueEqual(dropped.get(NexusDataComponents.STORED_ENERGY.get()), STORED_FE,
+                Component.literal("energy on the item"));
+        helper.assertValueEqual(helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class)
+                .machine().energy().stored(), STORED_FE, Component.literal("energy in the machine put up again"));
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static void emptyMachineStaysEmpty(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        place(helper, DEVICE, machineFacing(Direction.NORTH));
+        final Item machineItem = helper.getBlockState(DEVICE).getBlock().asItem();
+
+        click(helper, player, DEVICE, true);
+        final ItemStack dropped = carried(player, machineItem);
+        place(helper, DEVICE.east(), machineFacing(Direction.NORTH));
+        helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class).applyComponentsFromItemStack(dropped);
+
+        helper.assertValueEqual(helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class)
+                .machine().energy().stored(), 0L, Component.literal("energy in a machine that held none"));
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static void extractorKeepsFluid(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        final BlockState extractor = NexusBlocks.machineTiers(MachineKind.EXTRACTOR).getFirst().get()
+                .defaultBlockState();
+        place(helper, DEVICE, extractor);
+        final Item extractorItem = extractor.getBlock().asItem();
+        final StoredFluids fluid = new StoredFluids(List.of(new FluidStack(Fluids.WATER, STORED_FLUID)));
+        seed(helper.getBlockEntity(DEVICE, MachineBlockEntity.class), STORED_FE, fluid);
+
+        click(helper, player, DEVICE, true);
+        final ItemStack dropped = carried(player, extractorItem);
+        place(helper, DEVICE.east(), extractor);
+        helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class).applyComponentsFromItemStack(dropped);
+
+        helper.assertValueEqual(dropped.get(NexusDataComponents.STORED_FLUIDS.get()), fluid,
+                Component.literal("fluid on the item"));
+        helper.assertValueEqual(helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class)
+                .collectComponents().get(NexusDataComponents.STORED_FLUIDS.get()), fluid,
+                Component.literal("fluid in the extractor put up again"));
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static void generatorKeepsEnergyAndFluid(final GameTestHelper helper) {
+        final ServerPlayer player = survivalPlayer(helper);
+        final BlockState generator = NexusBlocks.GENERATORS.get(GeneratorKind.STEAM).get().defaultBlockState();
+        place(helper, DEVICE, generator);
+        final Item generatorItem = generator.getBlock().asItem();
+        final StoredFluids fluids = new StoredFluids(List.of(
+                new FluidStack(Fluids.LAVA, STORED_FLUID), new FluidStack(Fluids.WATER, STORED_FLUID)));
+        seed(helper.getBlockEntity(DEVICE, GeneratorBlockEntity.class), STORED_FE, fluids);
+
+        click(helper, player, DEVICE, true);
+        final ItemStack dropped = carried(player, generatorItem);
+        place(helper, DEVICE.east(), generator);
+        helper.getBlockEntity(DEVICE.east(), GeneratorBlockEntity.class).applyComponentsFromItemStack(dropped);
+
+        final DataComponentMap again = helper.getBlockEntity(DEVICE.east(), GeneratorBlockEntity.class)
+                .collectComponents();
+        helper.assertValueEqual(again.get(NexusDataComponents.STORED_ENERGY.get()), STORED_FE,
+                Component.literal("energy in the generator put up again"));
+        helper.assertValueEqual(again.get(NexusDataComponents.STORED_FLUIDS.get()), fluids,
+                Component.literal("fluids in the generator put up again"));
+        leave(helper, player);
+        helper.succeed();
+    }
+
+    private static void seed(final BlockEntity device, final long energy, final StoredFluids fluids) {
+        final ItemStack stack = new ItemStack(Items.STONE);
+        stack.set(NexusDataComponents.STORED_ENERGY.get(), energy);
+        stack.set(NexusDataComponents.STORED_FLUIDS.get(), fluids);
+        device.applyComponentsFromItemStack(stack);
+    }
+
+    private static ItemStack carried(final ServerPlayer player, final Item item) {
+        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+            if (stack.is(item)) {
+                return stack;
+            }
+        }
+        throw new AssertionError("the inventory holds no " + item);
     }
 
     private static void shutStrangersOut(final GameTestHelper helper) {

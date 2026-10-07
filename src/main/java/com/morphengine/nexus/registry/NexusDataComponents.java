@@ -6,6 +6,7 @@ import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.blueprint.EncodedBlueprint;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.item.CellContents;
+import com.morphengine.nexus.item.StoredFluids;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import net.minecraft.core.GlobalPos;
@@ -38,6 +39,16 @@ public final class NexusDataComponents {
     public static final Supplier<DataComponentType<FilterSlots>> DISCARD_FILTER = COMPONENTS.registerComponentType(
             "discard_filter",
             builder -> builder.persistent(FilterSlots.CODEC).networkSynchronized(FilterSlots.STREAM_CODEC));
+
+    /** The FE a machine or a generator held when it was taken down. */
+    public static final Supplier<DataComponentType<Long>> STORED_ENERGY = COMPONENTS.registerComponentType(
+            "stored_energy",
+            builder -> builder.persistent(Codec.LONG).networkSynchronized(ByteBufCodecs.VAR_LONG));
+
+    /** The fluid a machine or a generator held in its tanks when it was taken down. */
+    public static final Supplier<DataComponentType<StoredFluids>> STORED_FLUIDS = COMPONENTS.registerComponentType(
+            "stored_fluids",
+            builder -> builder.persistent(StoredFluids.CODEC).networkSynchronized(StoredFluids.STREAM_CODEC));
 
     /** The recipe encoded on a Blueprint; a blank Blueprint has none. */
     public static final Supplier<DataComponentType<EncodedBlueprint>> ENCODED_BLUEPRINT =

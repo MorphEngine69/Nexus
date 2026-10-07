@@ -519,5 +519,7 @@
   "tooltip.nexus.upgrade.void.empty": "Liste leer: vernichtet nichts",
   "tooltip.nexus.upgrade.void.listed": "Vernichtet Gelistetes: %s",
   "gui.nexus.void.hint": "Wird beim Eintritt vernichtet",
-  "gui.nexus.void.list": "Vernichten"
+  "gui.nexus.void.list": "Vernichten",
+  "tooltip.nexus.stored_energy": "Speichert %s FE",
+  "tooltip.nexus.stored_fluid": "Speichert %s: %s mB"
 }

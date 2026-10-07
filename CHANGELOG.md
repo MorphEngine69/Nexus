@@ -57,6 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as it comes in instead of storing it. Only what arrives after it is installed is destroyed: what
   the network already holds stays, an empty list destroys nothing, and a cell set to take a listed
   resource still gets it first.
+- A machine or a generator that is broken, or taken down with the Wrench, keeps the FE and the fluid it held
+  on its item, which tells what it holds, and has them again when it is put up.
 - The Nexus Crystal in the hand turns slowly and glows.
 - JEI and REI show the recipes of the Crusher, Pulverizer, Compressor, Alloy Smelter
   and Extractor, with the machines of every tier as the stations, and the Crafting

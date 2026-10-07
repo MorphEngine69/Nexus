@@ -26,6 +26,9 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,6 +52,7 @@ public abstract class NetworkDeviceBlockEntity extends BlockEntity
     private final ClickGuard clickGuard = new ClickGuard();
     private final NetworkLink network = new NetworkLink();
     private final DeviceName name = new DeviceName();
+    private final List<ItemComponentPart> itemParts = new ArrayList<>();
     private final DeviceOwner owner = new DeviceOwner();
     private final AccessPolicy ownerOnly = (player, permission) -> owner.isOwnerOrNobody(player);
     /** Built when first needed, again after the owner or the name changes. */
@@ -216,12 +220,26 @@ public abstract class NetworkDeviceBlockEntity extends BlockEntity
     protected final void applyImplicitComponents(final DataComponentGetter components) {
         super.applyImplicitComponents(components);
         name.applyFrom(components);
+        for (ItemComponentPart part : itemParts) {
+            part.applyFrom(components);
+        }
     }
 
     @Override
     protected final void collectImplicitComponents(final DataComponentMap.Builder components) {
         super.collectImplicitComponents(components);
         name.collectInto(components);
+        for (ItemComponentPart part : itemParts) {
+            part.collectInto(components);
+        }
+    }
+
+    /**
+     * Has the device carry {@code part} on its item besides its name. Called once for each part, by the constructor
+     * of the device.
+     */
+    protected final void carryOnItem(final ItemComponentPart part) {
+        itemParts.add(Objects.requireNonNull(part, "part must not be null"));
     }
 
     @Override

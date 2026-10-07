@@ -519,5 +519,7 @@
   "tooltip.nexus.upgrade.void.empty": "Список пуст: ничего не уничтожает",
   "tooltip.nexus.upgrade.void.listed": "Уничтожает перечисленное: %s",
   "gui.nexus.void.hint": "Уничтожается при входе в сеть",
-  "gui.nexus.void.list": "Уничтожать"
+  "gui.nexus.void.list": "Уничтожать",
+  "tooltip.nexus.stored_energy": "Хранит %s FE",
+  "tooltip.nexus.stored_fluid": "Хранит %s: %s мБ"
 }

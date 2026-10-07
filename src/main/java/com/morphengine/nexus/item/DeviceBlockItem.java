@@ -10,11 +10,20 @@ import com.geckolib.renderer.GeoItemRenderer;
 import com.geckolib.util.GeckoLibUtil;
 import com.morphengine.nexus.block.NetworkColoring;
 import com.morphengine.nexus.client.render.DeviceItemRenderer;
+import com.morphengine.nexus.registry.NexusDataComponents;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
 
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -26,6 +35,8 @@ import java.util.function.Consumer;
  */
 public final class DeviceBlockItem extends BlockItem implements GeoItem {
 
+    private static final NumberFormat NUMBERS = NumberFormat.getIntegerInstance();
+
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
     private final Look look;
     private final RawAnimation still;
@@ -34,6 +45,29 @@ public final class DeviceBlockItem extends BlockItem implements GeoItem {
         super(block, properties);
         this.look = Objects.requireNonNull(look, "look must not be null");
         this.still = RawAnimation.begin().thenLoop(look.animation());
+    }
+
+    /**
+     * Tells what a machine or a generator that was taken down still holds: its FE and each fluid in its tanks.
+     */
+    @Override
+    @SuppressWarnings("deprecation")
+    public void appendHoverText(
+            final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display,
+            final Consumer<Component> builder, final TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, builder, flag);
+        final long energy = stack.getOrDefault(NexusDataComponents.STORED_ENERGY.get(), 0L);
+        if (energy > 0) {
+            builder.accept(Component.translatable("tooltip.nexus.stored_energy", NUMBERS.format(energy))
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        for (FluidStack fluid : stack.getOrDefault(NexusDataComponents.STORED_FLUIDS.get(),
+                StoredFluids.EMPTY).tanks()) {
+            if (!fluid.isEmpty()) {
+                builder.accept(Component.translatable("tooltip.nexus.stored_fluid", fluid.getHoverName(),
+                        NUMBERS.format(fluid.getAmount())).withStyle(ChatFormatting.GRAY));
+            }
+        }
     }
 
     @Override
