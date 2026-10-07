@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.1] - 2026-10-08
+
 ### Added
 
+- The mod has a logo and a banner in the mod list.
 - A server config for the world: multipliers for what generators make, what machines use and what operations cost; whether a
   carried Nexus Terminal uses a charge, what opening it costs and what it holds; how far a Nexus Link reaches with each Range
   Upgrade; and how many chunks one network may keep loaded with Chunk Loader Upgrades, by default as many as it likes.
