@@ -7,9 +7,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
 /**
- * Nexus Link panel, tinted with its network's color: the network, the slot
- * for Range and Chunk Loader Upgrades with how far the link reaches, and the
- * inventory.
+ * Nexus Link panel, tinted with its network's color: the network, the slots
+ * for Range, Dimension and Chunk Loader Upgrades with how far the link reaches
+ * and whether it reaches other dimensions, and the inventory.
  */
 public final class NexusLinkScreen extends PanelScreen<NexusLinkMenu> {
 
@@ -39,9 +39,18 @@ public final class NexusLinkScreen extends PanelScreen<NexusLinkMenu> {
         final int y = topPos + NexusLinkMenu.UPGRADE_SLOT_Y;
         graphics.text(font, Component.translatable("gui.nexus.link.range", getMenu().range()), x,
                 y - 1 + (PanelStyle.SLOT_SIZE - font.lineHeight) / 2, PanelStyle.TEXT_LIGHT, false);
-        ChunkLoaderNote.draw(graphics, font, x, y + NexusLinkMenu.UPGRADE_ROW_HEIGHT, imageWidth - TEXT_LEFT - NOTE_GAP,
-                getMenu().pos(), getMenu().holdsChunkLoader());
+        drawBesideSlot(graphics, Component.translatable(getMenu().holdsDimension() ? "gui.nexus.link.dimension.on"
+                : "gui.nexus.link.dimension.off"), y + NexusLinkMenu.UPGRADE_ROW_HEIGHT);
+        ChunkLoaderNote.draw(graphics, font, x, y + 2 * NexusLinkMenu.UPGRADE_ROW_HEIGHT,
+                imageWidth - TEXT_LEFT - NOTE_GAP, getMenu().pos(), getMenu().holdsChunkLoader());
         graphics.text(font, playerInventoryTitle, leftPos + NexusLinkMenu.INVENTORY_LEFT,
                 topPos + NexusLinkMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
+    }
+
+    private void drawBesideSlot(final GuiGraphicsExtractor graphics, final Component text, final int slotTop) {
+        final int width = imageWidth - TEXT_LEFT - NOTE_GAP;
+        final int height = font.split(text, width).size() * font.lineHeight;
+        graphics.textWithWordWrap(font, text, leftPos + TEXT_LEFT, slotTop - 1 + (PanelStyle.SLOT_SIZE - height) / 2,
+                width, PanelStyle.TEXT_LIGHT);
     }
 }

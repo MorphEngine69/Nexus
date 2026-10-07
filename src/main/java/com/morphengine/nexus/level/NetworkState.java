@@ -138,6 +138,7 @@ public final class NetworkState {
         }
         if (gameTime % STATISTICS_INTERVAL_TICKS == 0) {
             refreshStatistics();
+            component(NetworkComponentTypes.ENERGY_ACCOUNT).sample(gameTime);
             refreshStatus(level);
         }
     }

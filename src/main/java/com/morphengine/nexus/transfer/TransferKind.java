@@ -7,6 +7,7 @@ import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.resource.ResourceFilter;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.api.transport.TransferQuota;
+import com.morphengine.nexus.energy.OperationKind;
 import com.morphengine.nexus.transport.PullTask;
 import com.morphengine.nexus.transport.PushTask;
 import com.morphengine.nexus.transport.StorageRoute;
@@ -192,6 +193,14 @@ public enum TransferKind implements StringRepresentable {
      */
     public boolean hasWorldMode() {
         return false;
+    }
+
+    /**
+     * @return what one operation of the device costs the network: the devices that work on the world cost more than
+     *         those that move resources between blocks
+     */
+    public OperationKind operationKind() {
+        return hasWorldMode() ? OperationKind.WORLD : OperationKind.TRANSFER;
     }
 
     /**

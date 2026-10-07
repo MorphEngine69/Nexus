@@ -4,6 +4,8 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.core.Action;
+import com.morphengine.nexus.api.network.DeviceEnergyUse;
+import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.storage.CellSpec;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
@@ -14,10 +16,15 @@ import com.morphengine.nexus.block.entity.GeneratorBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
+import com.morphengine.nexus.energy.OperationKind;
 import com.morphengine.nexus.generator.GeneratorKind;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
+import com.morphengine.nexus.level.EnergyAccountComponent;
 import com.morphengine.nexus.level.NetworkComponentTypes;
+import com.morphengine.nexus.level.NetworkEnergyReport;
+import com.morphengine.nexus.menu.AnalyserView;
+import com.morphengine.nexus.menu.AnalyserViews;
 import com.morphengine.nexus.registry.NexusBlocks;
 import com.morphengine.nexus.registry.NexusItems;
 import com.morphengine.nexus.resource.EnergyKey;
@@ -68,7 +75,10 @@ public final class EnergyGameTests {
     private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     /** What one insert into a Basic Energy Cell takes at most. */
-    private static final int CHARGE = 1000;
+    private static final int CHARGE = (int) EnergyCellTier.BASIC.maxTransfer();
+    /** Enough FE in a cell for a puller to keep moving it for the whole of a report window. */
+    private static final int REPORT_SOURCE_CHARGE = 20_000;
+    private static final int REPORT_WINDOW = 30;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos CELL = NEXUS.south();
     private static final BlockPos VAULT = NEXUS.east();
@@ -78,7 +88,7 @@ public final class EnergyGameTests {
     /** A device away from the network, to see who reaches its energy. */
     private static final BlockPos ISOLATED = new BlockPos(5, 1, 6);
     /** What a Coal Generator makes a tick without upgrades. */
-    private static final long GENERATOR_RATE = 40;
+    private static final long GENERATOR_RATE = GeneratorKind.COAL.outputPerTick();
     private static final TransferSettings ENERGY = TransferSettings.DEFAULT.withResource(TransferResource.ENERGY);
 
     private static final Map<String, Consumer<GameTestHelper>> TESTS = Map.ofEntries(
@@ -88,6 +98,9 @@ public final class EnergyGameTests {
             Map.entry("pusher_keeps_feeding_another_network", EnergyGameTests::pusherKeepsFeedingAnotherNexus),
             Map.entry("nexus_fills_energy_vault_cell_after_energy_cells", EnergyGameTests::nexusFillsVaultCell),
             Map.entry("aborted_nexus_insert_changes_nothing", EnergyGameTests::abortedNexusInsert),
+            Map.entry("puller_shows_in_the_energy_report", EnergyGameTests::pullerShowsInReport),
+            Map.entry("analyser_shows_what_a_puller_supplies_and_pays", EnergyGameTests::analyserShowsPuller),
+            Map.entry("analyser_shows_the_network_of_a_nexus", EnergyGameTests::analyserShowsNexus),
             Map.entry("puller_set_to_items_leaves_energy", EnergyGameTests::pullerSetToItemsLeavesEnergy),
             Map.entry("device_saved_without_resource_takes_its_filters", EnergyGameTests::savedSettingsInferResource),
             Map.entry("network_drains_storage_before_energy_cells", EnergyGameTests::drainsStorageFirst),
@@ -150,9 +163,78 @@ public final class EnergyGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> assertAmount(helper, stored(helper, TARGET), 0, "FE left in the cell beside"))
-                .thenWaitUntil(() -> assertAmount(helper, resourcesEnergy(helper), 2L * CHARGE,
-                        "FE the network lists"))
+                .thenWaitUntil(() -> assertAmount(helper, resourcesEnergy(helper),
+                        2L * CHARGE - OperationKind.TRANSFER.baseCost(), "FE the network lists, less the fee"))
                 .thenSucceed();
+    }
+
+    private static void pullerShowsInReport(final GameTestHelper helper) {
+        buildNetwork(helper);
+        place(helper, TARGET, cell());
+        TestEnergy.fill(helper, TARGET, REPORT_SOURCE_CHARGE);
+        place(helper, DEVICE, device(NexusBlocks.PULLER.get(), Direction.EAST));
+        deviceEntity(helper, DEVICE).changeSettings(ENERGY);
+        final EnergyAccountComponent account = nexus(helper, NEXUS).component(NetworkComponentTypes.ENERGY_ACCOUNT);
+
+        helper.startSequence()
+                .thenIdle(5)
+                .thenExecute(() -> account.report(helper.getLevel().getGameTime()))
+                .thenIdle(REPORT_WINDOW)
+                .thenExecute(() -> {
+                    final DeviceEnergyUse use = pullerUse(helper, account.report(helper.getLevel().getGameTime()));
+                    helper.assertTrue(use.supplied() > 0, Component.literal("the puller supplied nothing: " + use));
+                    helper.assertTrue(use.tolls() > 0, Component.literal("the puller paid no fee: " + use));
+                })
+                .thenSucceed();
+    }
+
+    private static void analyserShowsPuller(final GameTestHelper helper) {
+        buildNetwork(helper);
+        place(helper, TARGET, cell());
+        TestEnergy.fill(helper, TARGET, REPORT_SOURCE_CHARGE);
+        place(helper, DEVICE, device(NexusBlocks.PULLER.get(), Direction.EAST));
+        deviceEntity(helper, DEVICE).changeSettings(ENERGY);
+        final TransferDeviceBlockEntity puller = deviceEntity(helper, DEVICE);
+
+        helper.startSequence()
+                .thenIdle(5)
+                .thenExecute(() -> AnalyserViews.of(puller, helper.getLevel().getGameTime()))
+                .thenIdle(REPORT_WINDOW)
+                .thenExecute(() -> {
+                    final AnalyserView view = AnalyserViews.of(puller, helper.getLevel().getGameTime());
+                    helper.assertValueEqual(view.kind(), AnalyserView.Kind.DEVICE,
+                            Component.literal("what was analysed"));
+                    helper.assertValueEqual(view.role(), DeviceRole.PULLER, Component.literal("role of the device"));
+                    helper.assertTrue(view.use().supplied() > 0, Component.literal("supplied nothing: " + view.use()));
+                    helper.assertTrue(view.network() != null, Component.literal("the puller is in no network"));
+                    helper.assertTrue(view.lines().stream().anyMatch(line -> line.label().toString()
+                            .contains("analyser.throughput")),
+                            Component.literal("no throughput line in " + view.lines()));
+                })
+                .thenSucceed();
+    }
+
+    private static void analyserShowsNexus(final GameTestHelper helper) {
+        buildNetwork(helper);
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(nexus(helper, NEXUS).statistics().devices() > 0,
+                        Component.literal("the network has no devices")))
+                .thenExecute(() -> {
+                    final AnalyserView view = AnalyserViews.of(nexus(helper, NEXUS), helper.getLevel().getGameTime());
+                    helper.assertValueEqual(view.kind(), AnalyserView.Kind.NEXUS,
+                            Component.literal("what was analysed"));
+                    helper.assertTrue(view.energy().devices() > 0, Component.literal("the view counts no devices"));
+                    helper.assertValueEqual(view.energy().energyStored(), (long) CHARGE,
+                            Component.literal("FE the view says the pool holds"));
+                })
+                .thenSucceed();
+    }
+
+    private static DeviceEnergyUse pullerUse(final GameTestHelper helper, final NetworkEnergyReport report) {
+        return report.devices().stream().filter(row -> row.role() == DeviceRole.PULLER).findFirst()
+                .orElseThrow(() -> helper.assertionException(DEVICE, Component.literal("no puller in the report")))
+                .use();
     }
 
     private static void pusherFeedsAnotherNexus(final GameTestHelper helper) {

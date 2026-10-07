@@ -12,6 +12,7 @@ import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
 import com.morphengine.nexus.item.DeviceBlockItem;
 import com.morphengine.nexus.item.NetworkCardItem;
+import com.morphengine.nexus.item.NexusAnalyserItem;
 import com.morphengine.nexus.item.NexusTerminalItem;
 import com.morphengine.nexus.item.TierUpgradeItem;
 import com.morphengine.nexus.item.VaultCellItem;
@@ -114,6 +115,9 @@ public final class NexusItems {
     public static final DeferredItem<WrenchItem> WRENCH =
             ITEMS.registerItem("wrench", properties -> new WrenchItem(properties.stacksTo(1)));
 
+    public static final DeferredItem<NexusAnalyserItem> NEXUS_ANALYSER =
+            ITEMS.registerItem("nexus_analyser", properties -> new NexusAnalyserItem(properties.stacksTo(1)));
+
     public static final Map<DyeColor, DeferredItem<DeviceBlockItem>> CABLES = registerCables();
 
     /** Every Vault Cell, by what it stores and its size. */
@@ -130,6 +134,7 @@ public final class NexusItems {
     public static final DeferredItem<UpgradeItem> SILK_TOUCH_UPGRADE = registerUpgrade(UpgradeTypes.SILK_TOUCH);
     public static final DeferredItem<UpgradeItem> AUTOCRAFTING_UPGRADE = registerUpgrade(UpgradeTypes.AUTOCRAFTING);
     public static final DeferredItem<UpgradeItem> CHUNK_LOADER_UPGRADE = registerUpgrade(UpgradeTypes.CHUNK_LOADER);
+    public static final DeferredItem<UpgradeItem> DIMENSION_UPGRADE = registerUpgrade(UpgradeTypes.DIMENSION);
     public static final DeferredItem<UpgradeItem> VOID_UPGRADE = ITEMS.registerItem(
             UpgradeTypes.VOID.getId().getPath() + "_upgrade",
             properties -> new VoidUpgradeItem(UpgradeTypes.VOID, properties));
@@ -137,7 +142,7 @@ public final class NexusItems {
     /** Every upgrade, those that work first. */
     public static final List<DeferredItem<UpgradeItem>> UPGRADES = List.of(SPEED_UPGRADE, STACK_UPGRADE,
             REGULATOR_UPGRADE, CAPACITY_UPGRADE, EFFICIENCY_UPGRADE, BUFFER_UPGRADE, RANGE_UPGRADE, FORTUNE_UPGRADE,
-            SILK_TOUCH_UPGRADE, AUTOCRAFTING_UPGRADE, CHUNK_LOADER_UPGRADE, VOID_UPGRADE);
+            SILK_TOUCH_UPGRADE, AUTOCRAFTING_UPGRADE, CHUNK_LOADER_UPGRADE, DIMENSION_UPGRADE, VOID_UPGRADE);
 
     /** The still pose of the model that the item of a machine stands in: lit as if at work, nothing moving. */
     private static final String ITEM_POSE = "item";

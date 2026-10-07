@@ -180,8 +180,9 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         if (!area.isEmpty()) {
             return area;
         }
-        if (search != null && search.isOverReset(mouseX, mouseY)) {
-            return List.of(Component.translatable("gui.nexus.terminal.clear_search"));
+        final List<Component> searching = search != null ? search.tooltip(mouseX, mouseY) : List.of();
+        if (!searching.isEmpty()) {
+            return searching;
         }
         if (sidebar != null && sidebar.contains(mouseX, mouseY)) {
             return sidebar.tooltip(settings, mouseX, mouseY);

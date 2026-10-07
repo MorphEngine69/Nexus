@@ -15,8 +15,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Nexus Link panel: the slots for Range and Chunk Loader Upgrades, how far
- * the link reaches with them, and the player's inventory. The range is worked
+ * Nexus Link panel: the slots for Range, Dimension and Chunk Loader Upgrades, how
+ * far the link reaches with them, and the player's inventory. The range is worked
  * out from the slots on either side.
  */
 public final class NexusLinkMenu extends DeviceMenu<NexusLinkBlockEntity> implements NetworkBadgeView {
@@ -25,7 +25,7 @@ public final class NexusLinkMenu extends DeviceMenu<NexusLinkBlockEntity> implem
     public static final int UPGRADE_SLOT_Y = 42;
     public static final int UPGRADE_ROW_HEIGHT = 22;
     public static final int INVENTORY_LEFT = 19;
-    public static final int INVENTORY_TOP = 100;
+    public static final int INVENTORY_TOP = 118;
 
     private static final int PLAYER_SLOTS_START = NexusLinkBlockEntity.UPGRADE_SLOTS;
 
@@ -49,6 +49,13 @@ public final class NexusLinkMenu extends DeviceMenu<NexusLinkBlockEntity> implem
      */
     public boolean holdsChunkLoader() {
         return UpgradeLimits.count(upgrades, UpgradeTypes.CHUNK_LOADER.get()) > 0;
+    }
+
+    /**
+     * @return whether the link holds a Dimension Upgrade now
+     */
+    public boolean holdsDimension() {
+        return NexusLinkBlockEntity.reachesOtherDimensionsWith(upgrades);
     }
 
     /**

@@ -3,9 +3,14 @@ package com.morphengine.nexus.block.entity;
 import com.morphengine.nexus.access.NetworkSecurityData;
 import com.morphengine.nexus.access.PlayerPlaced;
 import com.morphengine.nexus.access.Secured;
+import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.security.AccessPolicy;
 import com.morphengine.nexus.api.network.security.Permission;
+import com.morphengine.nexus.block.NetworkBlock;
+import com.morphengine.nexus.energy.DeviceEnergyMeter;
 import com.morphengine.nexus.level.DeviceActor;
+import com.morphengine.nexus.level.DeviceEnergyRow;
+import com.morphengine.nexus.level.MeteredDevice;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.NetworkLink;
 import com.morphengine.nexus.level.NetworkMember;
@@ -13,12 +18,14 @@ import com.morphengine.nexus.menu.NetworkBadge;
 import com.morphengine.nexus.security.Member;
 import com.morphengine.nexus.security.NetworkSecurity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -47,13 +54,14 @@ import java.util.UUID;
  * the network it was last in, and failing that up to its owner alone.
  */
 public abstract class NetworkDeviceBlockEntity extends BlockEntity
-        implements MenuHost, NetworkMember, Secured, PlayerPlaced {
+        implements MenuHost, NetworkMember, MeteredDevice, Secured, PlayerPlaced {
 
     private final ClickGuard clickGuard = new ClickGuard();
     private final NetworkLink network = new NetworkLink();
     private final DeviceName name = new DeviceName();
     private final List<ItemComponentPart> itemParts = new ArrayList<>();
     private final DeviceOwner owner = new DeviceOwner();
+    private final DeviceEnergyMeter energyMeter = new DeviceEnergyMeter();
     private final AccessPolicy ownerOnly = (player, permission) -> owner.isOwnerOrNobody(player);
     /** Built when first needed, again after the owner or the name changes. */
     private @Nullable DeviceActor actor;
@@ -61,6 +69,20 @@ public abstract class NetworkDeviceBlockEntity extends BlockEntity
 
     protected NetworkDeviceBlockEntity(final BlockEntityType<?> type, final BlockPos pos, final BlockState state) {
         super(type, pos, state);
+    }
+
+    @Override
+    public final DeviceEnergyMeter energyMeter() {
+        return energyMeter;
+    }
+
+    @Override
+    public final DeviceEnergyRow energyRow(final long gameTime) {
+        final DeviceRole role = getBlockState().getBlock() instanceof NetworkBlock block
+                ? block.role() : DeviceRole.OTHER;
+        final Level here = Objects.requireNonNull(level, "a device in a network stands in a level");
+        return new DeviceEnergyRow(GlobalPos.of(here.dimension(), worldPosition), getDisplayName(), role,
+                energyMeter.use(gameTime));
     }
 
     @Override
@@ -163,7 +185,7 @@ public abstract class NetworkDeviceBlockEntity extends BlockEntity
     /**
      * @return the Nexus of the device's network; {@code null} when none is connected
      */
-    protected final @Nullable NetworkController controller() {
+    public final @Nullable NetworkController controller() {
         return network.controller();
     }
 

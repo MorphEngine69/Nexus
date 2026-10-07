@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * The access points of one network, and whether a Nexus Terminal at some place
  * is within reach of any of them: in the same dimension and no farther than
- * its range. Server thread only.
+ * its range, or in another dimension when the access point reaches there. Server thread only.
  */
 public final class WirelessAccessComponent implements NetworkComponent {
 
@@ -33,13 +33,19 @@ public final class WirelessAccessComponent implements NetworkComponent {
      */
     public boolean reaches(final ResourceKey<Level> dimension, final Vec3 at) {
         for (AccessPoint point : points) {
-            final GlobalPos position = point.position();
-            if (!point.isRemoved() && position.dimension().equals(dimension)
-                    && Vec3.atCenterOf(position.pos()).closerThan(at, point.range())) {
+            if (!point.isRemoved() && reachedBy(point, dimension, at)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean reachedBy(final AccessPoint point, final ResourceKey<Level> dimension, final Vec3 at) {
+        final GlobalPos position = point.position();
+        if (!position.dimension().equals(dimension)) {
+            return point.reachesOtherDimensions();
+        }
+        return Vec3.atCenterOf(position.pos()).closerThan(at, point.range());
     }
 
     public boolean hasAccessPoints() {

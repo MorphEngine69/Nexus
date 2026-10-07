@@ -13,10 +13,42 @@ final class EnergyFormat {
 
     private static final long GROUPED_LIMIT = 10_000;
     private static final double STEP = 1000;
+    private static final int TICKS_PER_SECOND = 20;
+    private static final double SHORT_DECIMAL_LIMIT = 10;
     private static final double ROUNDING = 100;
     private static final String[] UNIT_KEYS = {"k", "m", "g", "t", "p", "e"};
 
     private EnergyFormat() {
+    }
+
+    /**
+     * A figure given per second as FE per tick, short enough for a column: one decimal below ten, whole numbers
+     * above, and the short form of {@link #compact} from {@value #GROUPED_LIMIT}; a dash for nothing.
+     */
+    static String perTick(final long perSecond) {
+        if (perSecond <= 0) {
+            return "-";
+        }
+        final double perTick = (double) perSecond / TICKS_PER_SECOND;
+        if (perTick < SHORT_DECIMAL_LIMIT) {
+            return String.format(Locale.ROOT, "%.1f", perTick);
+        }
+        return compact(Math.round(perTick)).getString();
+    }
+
+    /**
+     * A figure given per second as FE per tick with its sign, to two decimals; negative when the device takes more
+     * than it gives.
+     */
+    static String signedPerTick(final long perSecond) {
+        return String.format(Locale.ROOT, "%+,.2f", (double) perSecond / TICKS_PER_SECOND);
+    }
+
+    /**
+     * A figure given per second as FE per tick, to two decimals, for a tooltip.
+     */
+    static String exactPerTick(final long perSecond) {
+        return String.format(Locale.ROOT, "%,.2f", (double) perSecond / TICKS_PER_SECOND);
     }
 
     static String amount(final long rf) {

@@ -3,6 +3,7 @@ package com.morphengine.nexus.menu;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.block.entity.DeviceUpgrades;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
+import com.morphengine.nexus.charging.ItemCharger;
 import com.morphengine.nexus.energy.EnergyRateMeter;
 import com.morphengine.nexus.networking.EnergyCellViewPayload;
 import com.morphengine.nexus.registry.NexusMenuTypes;
@@ -11,6 +12,7 @@ import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.DataSlot;
@@ -20,7 +22,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 /**
  * Panel of one Energy Cell: its own charge and throughput, in the color of its
  * network, its priority in the network's pool with buttons to change it, the
- * upgrade slots and the player's inventory.
+ * upgrade slots, the slot of the item it charges and the player's inventory.
  * The server refreshes the view every {@value #REFRESH_INTERVAL_TICKS} ticks
  * and sends it only when it changed; the priority returns in a data slot.
  */
@@ -35,10 +37,14 @@ public final class EnergyCellMenu extends DeviceMenu<EnergyCellBlockEntity> {
 
     public static final int UPGRADES_LEFT = 208;
     public static final int UPGRADES_TOP = 52;
+    public static final int CHARGE_LEFT = 12;
+    public static final int CHARGE_TOP = 128;
     public static final int INVENTORY_LEFT = 37;
-    public static final int INVENTORY_TOP = 136;
+    public static final int INVENTORY_TOP = 160;
 
     private static final int REFRESH_INTERVAL_TICKS = 20;
+    private static final int CHARGE_SLOT = DeviceUpgrades.SINGLE_SLOT;
+    private static final int PANEL_SLOTS = CHARGE_SLOT + 1;
 
     private final EnergyRateMeter meter = new EnergyRateMeter();
     private final DataSlot priority = DataSlot.standalone();
@@ -50,9 +56,10 @@ public final class EnergyCellMenu extends DeviceMenu<EnergyCellBlockEntity> {
     public EnergyCellMenu(final int containerId, final Inventory inventory, final BlockPos pos) {
         super(NexusMenuTypes.ENERGY_CELL.get(), containerId, inventory, pos, EnergyCellBlockEntity.class);
         final EnergyCellBlockEntity cell = blockEntity();
-        UpgradeColumn.slots(viewer() != null && cell != null ? cell.upgrades() : null, DeviceUpgrades.LIMITS,
-                UPGRADES_LEFT, UPGRADES_TOP)
-                .forEach(this::addSlot);
+        addSlot(UpgradeColumn.single(viewer() != null && cell != null ? cell.upgrades() : null,
+                DeviceUpgrades.LIMITS, UPGRADES_LEFT, UPGRADES_TOP));
+        addSlot(new ChargeSlot(viewer() != null && cell != null ? cell.chargingSlot() : new SimpleContainer(1),
+                CHARGE_LEFT, CHARGE_TOP));
         addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(priority);
         addDataSlot(sides);
@@ -126,7 +133,11 @@ public final class EnergyCellMenu extends DeviceMenu<EnergyCellBlockEntity> {
 
     @Override
     public ItemStack quickMoveStack(final Player player, final int slotIndex) {
-        final boolean isUpgrade = UpgradeColumn.takes(DeviceUpgrades.LIMITS, slots.get(slotIndex).getItem());
-        return shiftClick(slotIndex, DeviceUpgrades.SIZE, 0, isUpgrade ? DeviceUpgrades.SIZE : 0);
+        final ItemStack stack = slots.get(slotIndex).getItem();
+        if (UpgradeColumn.takes(DeviceUpgrades.LIMITS, stack)) {
+            return shiftClick(slotIndex, PANEL_SLOTS, 0, CHARGE_SLOT);
+        }
+        final boolean isChargeable = ItemCharger.isChargeable(stack);
+        return shiftClick(slotIndex, PANEL_SLOTS, CHARGE_SLOT, isChargeable ? PANEL_SLOTS : CHARGE_SLOT);
     }
 }

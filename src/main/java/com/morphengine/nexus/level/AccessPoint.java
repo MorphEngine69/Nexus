@@ -14,7 +14,14 @@ public interface AccessPoint extends NetworkMember {
     GlobalPos position();
 
     /**
-     * @return how far it reaches, in blocks, in its own dimension only
+     * @return how far it reaches, in blocks, in its own dimension
      */
     int range();
+
+    /**
+     * @return whether it also reaches a terminal in another dimension, at any distance
+     */
+    default boolean reachesOtherDimensions() {
+        return false;
+    }
 }

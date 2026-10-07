@@ -2,6 +2,7 @@ package com.morphengine.nexus.registry;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.external.ExternalVaultSettings;
+import com.morphengine.nexus.menu.AnalyserMenu;
 import com.morphengine.nexus.menu.AssemblerMenu;
 import com.morphengine.nexus.menu.BlockTerminalBinding;
 import com.morphengine.nexus.menu.BlueprintTerminalMenu;
@@ -43,6 +44,12 @@ public final class NexusMenuTypes {
             "nexus",
             () -> IMenuTypeExtension.create(
                     (containerId, inventory, buffer) -> new NexusMenu(containerId, inventory, buffer.readBlockPos())));
+
+    public static final Supplier<MenuType<AnalyserMenu>> ANALYSER = MENU_TYPES.register(
+            "analyser",
+            () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buffer) ->
+                            new AnalyserMenu(containerId, inventory, buffer.readBlockPos())));
 
     public static final Supplier<MenuType<EnergyCellMenu>> ENERGY_CELL = MENU_TYPES.register(
             "energy_cell",

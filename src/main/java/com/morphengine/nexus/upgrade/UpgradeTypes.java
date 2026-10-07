@@ -52,6 +52,8 @@ public final class UpgradeTypes {
             TYPES.register("autocrafting", NexusUpgradeType::working);
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> CHUNK_LOADER =
             TYPES.register("chunk_loader", NexusUpgradeType::working);
+    public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> DIMENSION =
+            TYPES.register("dimension", NexusUpgradeType::working);
     public static final DeferredHolder<NexusUpgradeType, NexusUpgradeType> VOID =
             TYPES.register("void", NexusUpgradeType::working);
 

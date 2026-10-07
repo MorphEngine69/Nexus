@@ -86,25 +86,26 @@ final class PortableTerminal implements TerminalHost, Secured {
         return controller.energy().stored() > 0 ? TerminalStatus.ONLINE : TerminalStatus.NO_ENERGY;
     }
 
-    private @Nullable NetworkController onlineController() {
+    @Override
+    public @Nullable NetworkController onlineNetwork() {
         return status() == TerminalStatus.ONLINE ? controller() : null;
     }
 
     @Override
     public @Nullable Storage onlineResources() {
-        final NetworkController controller = onlineController();
+        final NetworkController controller = onlineNetwork();
         return controller != null ? controller.resources() : null;
     }
 
     @Override
     public @Nullable NetworkStorage onlineStorage() {
-        final NetworkController controller = onlineController();
+        final NetworkController controller = onlineNetwork();
         return controller != null ? controller.component(NetworkComponentTypes.STORAGE).storage() : null;
     }
 
     @Override
     public @Nullable AutocraftingComponent onlineAutocrafting() {
-        final NetworkController controller = onlineController();
+        final NetworkController controller = onlineNetwork();
         return controller != null ? controller.component(NetworkComponentTypes.AUTOCRAFTING) : null;
     }
 

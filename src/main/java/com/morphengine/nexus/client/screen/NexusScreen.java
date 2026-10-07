@@ -8,6 +8,7 @@ import com.morphengine.nexus.block.NetworkColoring;
 import com.morphengine.nexus.block.NexusBlock;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.menu.NexusMenu;
+import com.morphengine.nexus.networking.NexusEnergyTabPayload;
 import com.morphengine.nexus.networking.NexusRecolorPayload;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -26,10 +27,11 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The Nexus panel, in two tabs chosen by the buttons left of it: the network,
+ * The Nexus panel, in three tabs chosen by the buttons left of it: the network,
  * with its name in the title, its color, its figures, the upgrade slots and
- * the inventory; and its access, who may do what with it. The access tab
- * puts the slots out of sight, as it needs the room.
+ * the inventory; its energy, which device draws and which supplies how much;
+ * and its access, who may do what with it. The tabs but the first put the slots
+ * out of sight, as they need the room.
  */
 public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAreas {
 
@@ -53,6 +55,7 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
     private final List<int[]> slotPlaces = new ArrayList<>();
     private Tab tab = Tab.NETWORK;
     private @Nullable AccessPanel access;
+    private @Nullable EnergyPanel energy;
     private int colorLabelY;
     private int statsY;
 
@@ -75,6 +78,9 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
         }
         if (access == null && minecraft != null && minecraft.player != null) {
             access = new AccessPanel(getMenu(), font, minecraft.player.getUUID());
+        }
+        if (energy == null) {
+            energy = new EnergyPanel(getMenu(), font);
         }
         showSlots();
     }
@@ -132,6 +138,10 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
         return new SideButtons(leftPos, topPos, Tab.values().length);
     }
 
+    private EnergyLayout energyLayout() {
+        return EnergyLayout.of(leftPos, topPos, imageWidth);
+    }
+
     private AccessLayout accessLayout() {
         return AccessLayout.of(leftPos, topPos, imageWidth);
     }
@@ -146,6 +156,10 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
         }
         if (tab == Tab.ACCESS && access != null) {
             access.draw(graphics, style, accessLayout());
+            return;
+        }
+        if (tab == Tab.ENERGY && energy != null) {
+            energy.draw(graphics, style, energyLayout());
             return;
         }
         drawNetworkTab(graphics, style);
@@ -215,6 +229,11 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
             if (!lines.isEmpty()) {
                 graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
             }
+        } else if (tab == Tab.ENERGY && energy != null) {
+            final List<Component> lines = energy.tooltip(energyLayout(), mouseX, mouseY);
+            if (!lines.isEmpty()) {
+                graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+            }
         } else {
             statLine.showTooltip(graphics, font, mouseX, mouseY);
         }
@@ -224,27 +243,65 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
     public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
         final int button = tabs().buttonAt(event.x(), event.y());
         if (button >= 0) {
-            tab = Tab.values()[button];
-            showSlots();
+            switchTo(Tab.values()[button]);
             return true;
         }
-        if (tab == Tab.ACCESS) {
-            return access != null && access.click(accessLayout(), event.x(), event.y())
+        return switch (tab) {
+            case ENERGY -> energy != null && energy.click(energyLayout(), event.x(), event.y())
                     || super.mouseClicked(event, doubleClick);
-        }
+            case ACCESS -> access != null && access.click(accessLayout(), event.x(), event.y())
+                    || super.mouseClicked(event, doubleClick);
+            case NETWORK -> clickNetworkTab(event) || super.mouseClicked(event, doubleClick);
+        };
+    }
+
+    private boolean clickNetworkTab(final MouseButtonEvent event) {
         for (Swatch swatch : swatches) {
             if (swatch.bounds().contains(event.x(), event.y())) {
                 ClientPacketDistributor.sendToServer(new NexusRecolorPayload(getMenu().pos(), rgbOf(swatch.color())));
                 return true;
             }
         }
-        return super.mouseClicked(event, doubleClick);
+        return false;
     }
 
     @Override
     public boolean mouseScrolled(final double x, final double y, final double scrollX, final double scrollY) {
-        return tab == Tab.ACCESS && access != null && access.scroll(accessLayout(), x, y, scrollY)
-                || super.mouseScrolled(x, y, scrollX, scrollY);
+        return scrollTab(x, y, scrollY) || super.mouseScrolled(x, y, scrollX, scrollY);
+    }
+
+    private boolean scrollTab(final double x, final double y, final double amount) {
+        return switch (tab) {
+            case ACCESS -> access != null && access.scroll(accessLayout(), x, y, amount);
+            case ENERGY -> energy != null && energy.scroll(energyLayout(), x, y, amount);
+            case NETWORK -> false;
+        };
+    }
+
+    @Override
+    public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
+        return tab == Tab.ENERGY && energy != null && energy.drag(energyLayout(), event.y())
+                || super.mouseDragged(event, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(final MouseButtonEvent event) {
+        if (energy != null) {
+            energy.release();
+        }
+        return super.mouseReleased(event);
+    }
+
+    /**
+     * Shows {@code next}, and tells the server whether the energy report is wanted.
+     */
+    private void switchTo(final Tab next) {
+        final boolean wasEnergy = tab == Tab.ENERGY;
+        tab = next;
+        showSlots();
+        if (wasEnergy != (next == Tab.ENERGY)) {
+            ClientPacketDistributor.sendToServer(new NexusEnergyTabPayload(getMenu().containerId, next == Tab.ENERGY));
+        }
     }
 
     private record Swatch(DyeColor color, PanelBounds bounds) {
@@ -254,7 +311,7 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
      * The tabs of the panel, in the order of their buttons.
      */
     private enum Tab {
-        NETWORK, ACCESS;
+        NETWORK, ENERGY, ACCESS;
 
         Identifier icon() {
             return Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus/tab_" + name().toLowerCase(Locale.ROOT));

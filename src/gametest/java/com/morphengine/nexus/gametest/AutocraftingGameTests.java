@@ -3,6 +3,8 @@ package com.morphengine.nexus.gametest;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.automation.BlueprintKind;
 import com.morphengine.nexus.api.automation.CraftingPlan;
+import com.morphengine.nexus.api.core.Action;
+import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.assembler.LockMode;
 import com.morphengine.nexus.block.AssemblerBlock;
@@ -10,6 +12,7 @@ import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
 import com.morphengine.nexus.block.entity.AssemblerBlockEntity;
 import com.morphengine.nexus.block.entity.BlueprintEncoder;
+import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
@@ -20,6 +23,7 @@ import com.morphengine.nexus.blueprint.GridSlot;
 import com.morphengine.nexus.blueprint.ProcessingBlueprint;
 import com.morphengine.nexus.blueprint.ProcessingInput;
 import com.morphengine.nexus.blueprint.Substitution;
+import com.morphengine.nexus.energy.OperationKind;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.item.BlueprintItem;
 import com.morphengine.nexus.item.CellKind;
@@ -76,6 +80,8 @@ public final class AutocraftingGameTests {
 
     private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 300;
+    private static final int NETWORK_FILL = 10_000;
+    private static final int IDLE_TICKS = 60;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos CELL = NEXUS.south();
     private static final BlockPos VAULT = NEXUS.east();
@@ -86,6 +92,9 @@ public final class AutocraftingGameTests {
     private static final Map<String, Consumer<GameTestHelper>> TESTS = Map.ofEntries(
             Map.entry("assembler_crafts_sticks_from_planks", AutocraftingGameTests::assemblerCraftsSticks),
             Map.entry("assembler_processes_in_machine_and_collects", AutocraftingGameTests::assemblerProcesses),
+            Map.entry("assembler_pays_for_every_run", AutocraftingGameTests::assemblerPaysForARun),
+            Map.entry("assembler_waits_when_the_network_cannot_pay_for_a_run",
+                    AutocraftingGameTests::assemblerNeedsEnergyForARun),
             Map.entry("pusher_orders_what_network_lacks", AutocraftingGameTests::pusherOrdersWhatNetworkLacks),
             Map.entry("encoder_writes_crafting_recipe", AutocraftingGameTests::encoderWritesCraftingRecipe),
             Map.entry("assembler_crafts_with_substitute_planks",
@@ -136,6 +145,46 @@ public final class AutocraftingGameTests {
                 .thenExecute(() -> assertAmount(helper, network(helper).amountOf(key(Items.OAK_PLANKS)), 0,
                         "planks left in the network"))
                 .thenSucceed();
+    }
+
+    private static void assemblerPaysForARun(final GameTestHelper helper) {
+        buildNetwork(helper, Direction.UP, stored(Items.OAK_PLANKS, 2));
+        assembler(helper).blueprintSlots().setItem(0, blueprintOf(sticks()));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        autocrafting(helper).blueprints().craftables().contains(key(Items.STICK)),
+                        Component.literal("the network does not know how to craft sticks")))
+                .thenExecute(() -> start(helper, Items.STICK, 4))
+                .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STICK)), 4,
+                        "sticks in the network"))
+                .thenExecute(() -> assertAmount(helper, NETWORK_FILL - poolEnergy(helper),
+                        OperationKind.ASSEMBLER_RUN.baseCost(), "FE the one run cost"))
+                .thenSucceed();
+    }
+
+    private static void assemblerNeedsEnergyForARun(final GameTestHelper helper) {
+        buildNetwork(helper, Direction.UP, stored(Items.OAK_PLANKS, 2));
+        final EnergyBuffer cell = helper.getBlockEntity(CELL, EnergyCellBlockEntity.class).energyBuffer();
+        while (cell.extract(Long.MAX_VALUE, Action.EXECUTE) > 0) {
+            continue;
+        }
+        cell.insert(OperationKind.ASSEMBLER_RUN.baseCost() - 1, Action.EXECUTE);
+        assembler(helper).blueprintSlots().setItem(0, blueprintOf(sticks()));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        autocrafting(helper).blueprints().craftables().contains(key(Items.STICK)),
+                        Component.literal("the network does not know how to craft sticks")))
+                .thenExecute(() -> start(helper, Items.STICK, 4))
+                .thenIdle(IDLE_TICKS)
+                .thenExecute(() -> assertAmount(helper, network(helper).amountOf(key(Items.STICK)), 0,
+                        "sticks made without the FE to pay for the run"))
+                .thenSucceed();
+    }
+
+    private static long poolEnergy(final GameTestHelper helper) {
+        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class).energy().stored();
     }
 
     private static void assemblerProcesses(final GameTestHelper helper) {
@@ -318,7 +367,7 @@ public final class AutocraftingGameTests {
                                      final ResourceAmount contents) {
         place(helper, NEXUS, NexusBlocks.NEXUS.get().defaultBlockState());
         place(helper, CELL, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
-        TestEnergy.charge(helper, CELL, Integer.MAX_VALUE);
+        TestEnergy.fill(helper, CELL, NETWORK_FILL);
         place(helper, VAULT, NexusBlocks.STORAGE_VAULT.get().defaultBlockState()
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
         final ItemStack cell = new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get());

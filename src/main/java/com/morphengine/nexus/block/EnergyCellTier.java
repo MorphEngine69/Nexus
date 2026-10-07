@@ -17,10 +17,10 @@ public record EnergyCellTier(int rank, long capacity, long maxTransfer) {
      * Placeholder balance until the numbers are settled: every tier holds and moves ten times what the one below
      * does.
      */
-    public static final EnergyCellTier BASIC = new EnergyCellTier(1, 100_000, 1_000);
-    public static final EnergyCellTier ADVANCED = new EnergyCellTier(2, 1_000_000, 10_000);
-    public static final EnergyCellTier SUPERIOR = new EnergyCellTier(3, 10_000_000, 100_000);
-    public static final EnergyCellTier QUANTUM = new EnergyCellTier(4, 100_000_000, 1_000_000);
+    public static final EnergyCellTier BASIC = new EnergyCellTier(1, 50_000, 500);
+    public static final EnergyCellTier ADVANCED = new EnergyCellTier(2, 500_000, 5_000);
+    public static final EnergyCellTier SUPERIOR = new EnergyCellTier(3, 5_000_000, 50_000);
+    public static final EnergyCellTier QUANTUM = new EnergyCellTier(4, 50_000_000, 500_000);
 
     public static final Codec<EnergyCellTier> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                     Codec.INT.fieldOf("rank").forGetter(EnergyCellTier::rank),

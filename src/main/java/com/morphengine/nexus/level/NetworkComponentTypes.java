@@ -19,7 +19,16 @@ public final class NetworkComponentTypes {
     public static final NetworkComponentType<WirelessAccessComponent> WIRELESS_ACCESS =
             new NetworkComponentType<>("wireless_access", WirelessAccessComponent::new);
 
-    static final List<NetworkComponentType<?>> ALL = List.of(STORAGE, AUTOCRAFTING, WIRELESS_ACCESS);
+    /** Who draws and who supplies the energy of the network. */
+    public static final NetworkComponentType<EnergyAccountComponent> ENERGY_ACCOUNT =
+            new NetworkComponentType<>("energy_account", EnergyAccountComponent::new);
+
+    /** The blocks that keep chunks loaded for the network. */
+    public static final NetworkComponentType<ChunkLoadersComponent> CHUNK_LOADERS =
+            new NetworkComponentType<>("chunk_loaders", ChunkLoadersComponent::new);
+
+    static final List<NetworkComponentType<?>> ALL =
+            List.of(STORAGE, AUTOCRAFTING, WIRELESS_ACCESS, ENERGY_ACCOUNT, CHUNK_LOADERS);
 
     private NetworkComponentTypes() {
     }

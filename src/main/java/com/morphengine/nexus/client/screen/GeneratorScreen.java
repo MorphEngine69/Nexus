@@ -94,7 +94,7 @@ public final class GeneratorScreen extends PanelScreen<GeneratorMenu> implements
     protected void extractPanel(
             final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final GeneratorView view = getMenu().view();
-        PanelStyle.drawNetwork(graphics, font, view.network(), leftPos, topPos);
+        PanelStyle.drawNetworkOrStandalone(graphics, font, view.network(), leftPos, topPos);
         sides.draw(graphics, font, style, getMenu().sideModes(), mouseX, mouseY);
         for (Slot slot : getMenu().slots) {
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);

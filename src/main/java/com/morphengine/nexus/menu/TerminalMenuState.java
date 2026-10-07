@@ -127,8 +127,9 @@ public final class TerminalMenuState {
             final ServerPlayer player, final AbstractContainerMenu menu, final @Nullable NexusResource resource,
             final GridClick click) {
         final Storage storage = onlineStorage();
-        if (storage != null) {
-            new TerminalActions(player, menu, storage).click(resource, click);
+        final TerminalHost host = binding.host();
+        if (storage != null && host != null && host.affordsTake()) {
+            new TerminalActions(player, menu, storage, host::chargeTake).click(resource, click);
         }
     }
 
@@ -168,7 +169,7 @@ public final class TerminalMenuState {
     public void insert(final ServerPlayer player, final AbstractContainerMenu menu, final ItemStack stack) {
         final Storage storage = onlineStorage();
         if (storage != null) {
-            new TerminalActions(player, menu, storage).insert(stack);
+            new TerminalActions(player, menu, storage, () -> { }).insert(stack);
         }
     }
 }

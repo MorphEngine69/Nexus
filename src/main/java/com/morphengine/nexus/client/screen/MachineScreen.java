@@ -104,7 +104,7 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
     protected void extractPanel(
             final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final MachineView view = getMenu().view();
-        PanelStyle.drawNetwork(graphics, font, view.network(), leftPos, topPos);
+        PanelStyle.drawNetworkOrStandalone(graphics, font, view.network(), leftPos, topPos);
         redstoneButton().draw(graphics, style, 0, redstoneIcon(), redstoneButton().buttonAt(mouseX, mouseY) == 0);
         if (hasModeButton()) {
             modeButton.draw(graphics, style, getMenu().inputMode(), mouseX, mouseY);

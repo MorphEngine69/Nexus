@@ -3,6 +3,7 @@ package com.morphengine.nexus.probe;
 import com.morphengine.nexus.access.NetworkAccess;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.NetworkDeviceBlockEntity;
+import com.morphengine.nexus.block.entity.StandaloneDevice;
 import com.morphengine.nexus.menu.NetworkBadge;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -12,7 +13,8 @@ import java.util.Locale;
 
 /**
  * The lines every device of a network shows: which network it is in, whether that network has energy, who it works for
- * and what stops it. Also the way a label and its value are written, which the other descriptions share.
+ * and what stops it. A device that has no network says so, unless it works without one. Also the way a label and its
+ * value are written, which the other descriptions share.
  */
 final class DeviceProbes {
 
@@ -23,7 +25,9 @@ final class DeviceProbes {
         final ProbeReport.Builder report = ProbeReport.builder();
         final NetworkBadge badge = device.networkBadge();
         if (badge == null) {
-            report.text(Component.translatable("gui.nexus.terminal.no_network").withStyle(ChatFormatting.RED));
+            report.text(device instanceof StandaloneDevice
+                    ? Component.translatable("gui.nexus.standalone").withStyle(ChatFormatting.GRAY)
+                    : Component.translatable("gui.nexus.terminal.no_network").withStyle(ChatFormatting.RED));
             return report.build();
         }
         report.text(network(badge));

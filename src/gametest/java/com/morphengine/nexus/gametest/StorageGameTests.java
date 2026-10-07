@@ -2,14 +2,17 @@ package com.morphengine.nexus.gametest;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.core.Action;
+import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TerminalBlock;
 import com.morphengine.nexus.block.VaultLamp;
+import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.block.entity.TerminalBlockEntity;
+import com.morphengine.nexus.energy.OperationKind;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.item.CellKind;
 import com.morphengine.nexus.item.CellTier;
@@ -85,6 +88,7 @@ public final class StorageGameTests {
             Map.entry("vault_lamps_follow_energy", StorageGameTests::vaultLampsFollowEnergy),
             Map.entry("vault_shows_working_cell", StorageGameTests::vaultShowsWorkingCell),
             Map.entry("terminal_goes_online_with_energy", StorageGameTests::terminalGoesOnlineWithEnergy),
+            Map.entry("terminal_pays_for_a_take_and_goes_dark_without_energy", StorageGameTests::terminalTakeCosts),
             Map.entry("terminal_falls_off_without_cable", StorageGameTests::terminalFallsOffWithoutCable),
             Map.entry("recipe_for_most_crafts_splits_ingredients", StorageGameTests::recipeSplitsIngredients));
 
@@ -262,6 +266,27 @@ public final class StorageGameTests {
                     helper.assertTrue(helper.getBlockState(terminalPos).getValue(TerminalBlock.POWERED),
                             Component.literal("terminal screen is dark with energy in the network"));
                 })
+                .thenSucceed();
+    }
+
+    private static void terminalTakeCosts(final GameTestHelper helper) {
+        final BlockPos cellPos = NEXUS.south();
+        final BlockPos terminalPos = NEXUS.east().above();
+        buildLine(helper, cable());
+        place(helper, cellPos, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
+        place(helper, terminalPos, terminal(Direction.UP));
+        final TerminalBlockEntity terminal = helper.getBlockEntity(terminalPos, TerminalBlockEntity.class);
+        final EnergyBuffer cell = helper.getBlockEntity(cellPos, EnergyCellBlockEntity.class).energyBuffer();
+        final long price = OperationKind.TERMINAL_TAKE.baseCost();
+
+        helper.startSequence()
+                .thenExecute(() -> TestEnergy.charge(helper, cellPos, (int) (2 * price)))
+                .thenWaitUntil(() -> assertStatus(helper, terminalPos, TerminalStatus.ONLINE))
+                .thenExecute(() -> helper.assertTrue(terminal.affordsTake(), Component.literal("cannot afford a take")))
+                .thenExecute(terminal::chargeTake)
+                .thenExecute(() -> helper.assertValueEqual(cell.stored(), price, Component.literal("FE left")))
+                .thenExecute(terminal::chargeTake)
+                .thenExecute(() -> assertStatus(helper, terminalPos, TerminalStatus.NO_ENERGY))
                 .thenSucceed();
     }
 

@@ -3,16 +3,21 @@ package com.morphengine.nexus.block.entity;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellTier;
+import com.morphengine.nexus.charging.ItemCharger;
 import com.morphengine.nexus.energy.ChargeMeter;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.level.EnergyContributor;
 import com.morphengine.nexus.level.NetworkController;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -28,22 +33,25 @@ import org.jspecify.annotations.Nullable;
  * An Energy Cell: an FE buffer that joins the energy pool of its network at
  * its own priority, by default {@value #DEFAULT_PRIORITY}, above the Storage
  * Vaults at theirs, so it fills before the energy cells of the storage and is
- * drained after them.
+ * drained after them. It charges the item in its charging slot from its own
+ * buffer, as fast as it gives energy.
  */
 public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
-        implements EnergyContributor, Renamable {
+        implements UpgradeHolder, EnergyContributor, Renamable {
 
     public static final int DEFAULT_PRIORITY = 10;
 
     private static final String TAG_ENERGY = "energy";
     private static final String TAG_PRIORITY = "priority";
     private static final String TAG_SIDES = "sides";
+    private static final String TAG_CHARGING = "charging";
     private static final int CHARGE_CHECK_INTERVAL_TICKS = 20;
 
     private final SimpleEnergyBuffer buffer;
     private final EnergyHandler handler;
     private final CellSides sides;
     private final DeviceUpgrades upgrades = new DeviceUpgrades(this);
+    private final SimpleContainer chargingSlot = new SimpleContainer(1);
     private long insertedAtLastCheck;
     private long extractedAtLastCheck;
     private int priority = DEFAULT_PRIORITY;
@@ -66,11 +74,15 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
      */
     public static void serverTick(
             final Level level, final BlockPos pos, final BlockState state, final EnergyCellBlockEntity cell) {
+        if (ItemCharger.charge(cell.chargingSlot, cell.buffer) > 0) {
+            cell.setChanged();
+        }
         if (level.getGameTime() % CHARGE_CHECK_INTERVAL_TICKS != 0) {
             return;
         }
         final long inserted = cell.buffer.totalInserted();
         final long extracted = cell.buffer.totalExtracted();
+        cell.recordFlows(inserted, extracted);
         final boolean charging = inserted != cell.insertedAtLastCheck;
         if (charging || extracted != cell.extractedAtLastCheck) {
             cell.setChanged();
@@ -83,6 +95,19 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
                 .setValue(EnergyCellBlock.CHARGE, charge);
         if (shown != state) {
             level.setBlock(pos, shown, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /**
+     * Counts what flowed through the buffer since the last check as the cell's own figures: energy taken in is what the
+     * cell draws, energy given out, to the network or to an item, is what it supplies.
+     */
+    private void recordFlows(final long inserted, final long extracted) {
+        if (inserted > insertedAtLastCheck) {
+            energyMeter().recordDrawn(inserted - insertedAtLastCheck);
+        }
+        if (extracted > extractedAtLastCheck) {
+            energyMeter().recordSupplied(extracted - extractedAtLastCheck);
         }
     }
 
@@ -179,6 +204,13 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
     }
 
     /**
+     * @return the slot of the item the cell charges from its own buffer
+     */
+    public Container chargingSlot() {
+        return chargingSlot;
+    }
+
+    /**
      * Broken, the cell drops its upgrade and lets go of its chunk.
      */
     @Override
@@ -186,6 +218,7 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
         super.preRemoveSideEffects(pos, state);
         if (level != null) {
             upgrades.dropAndRelease(level, pos);
+            Containers.dropContents(level, pos, chargingSlot);
         }
     }
 
@@ -206,6 +239,7 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
         output.putInt(TAG_PRIORITY, priority);
         output.putInt(TAG_SIDES, sides.bits());
         upgrades.save(output);
+        ContainerHelper.saveAllItems(output.child(TAG_CHARGING), chargingSlot.getItems());
     }
 
     @Override
@@ -216,5 +250,6 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
         priority = DevicePriority.clamp(input.getIntOr(TAG_PRIORITY, DEFAULT_PRIORITY));
         sides.restore(input.getIntOr(TAG_SIDES, 0));
         upgrades.load(input);
+        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_CHARGING), chargingSlot.getItems());
     }
 }

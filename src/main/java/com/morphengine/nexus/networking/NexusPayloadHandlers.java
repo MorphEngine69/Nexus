@@ -5,6 +5,7 @@ import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.Renamable;
+import com.morphengine.nexus.menu.AnalyserMenu;
 import com.morphengine.nexus.menu.DevicePanel;
 import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.menu.GeneratorMenu;
@@ -43,6 +44,12 @@ public final class NexusPayloadHandlers {
                 NexusPayloadHandlers::handleAccess);
         registrar.playToClient(NexusStatisticsPayload.TYPE, NexusStatisticsPayload.STREAM_CODEC,
                 NexusPayloadHandlers::handleStatistics);
+        registrar.playToClient(
+                AnalyserViewPayload.TYPE, AnalyserViewPayload.STREAM_CODEC, NexusPayloadHandlers::handleAnalyserView);
+        registrar.playToClient(
+                NexusEnergyPayload.TYPE, NexusEnergyPayload.STREAM_CODEC, NexusPayloadHandlers::handleEnergy);
+        registrar.playToServer(NexusEnergyTabPayload.TYPE, NexusEnergyTabPayload.STREAM_CODEC,
+                NexusPayloadHandlers::handleEnergyTab);
         registrar.playToClient(
                 EnergyCellViewPayload.TYPE, EnergyCellViewPayload.STREAM_CODEC, NexusPayloadHandlers::handleCellView);
         registrar.playToClient(GeneratorViewPayload.TYPE, GeneratorViewPayload.STREAM_CODEC,
@@ -104,6 +111,31 @@ public final class NexusPayloadHandlers {
         context.enqueueWork(() -> {
             if (context.player().containerMenu instanceof NexusMenu menu && menu.containerId == payload.containerId()) {
                 menu.acceptStatistics(payload.statistics());
+            }
+        });
+    }
+
+    private static void handleAnalyserView(final AnalyserViewPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player().containerMenu instanceof AnalyserMenu menu
+                    && menu.containerId == payload.containerId()) {
+                menu.acceptView(payload.view());
+            }
+        });
+    }
+
+    private static void handleEnergy(final NexusEnergyPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player().containerMenu instanceof NexusMenu menu && menu.containerId == payload.containerId()) {
+                menu.acceptEnergy(payload.report());
+            }
+        });
+    }
+
+    private static void handleEnergyTab(final NexusEnergyTabPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player().containerMenu instanceof NexusMenu menu && menu.containerId == payload.containerId()) {
+                menu.showEnergy(payload.shown());
             }
         });
     }

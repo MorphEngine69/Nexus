@@ -2,6 +2,7 @@ package com.morphengine.nexus.block.entity;
 
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.block.GeneratorBlock;
+import com.morphengine.nexus.config.NexusConfig;
 import com.morphengine.nexus.energy.BufferUpgrades;
 import com.morphengine.nexus.energy.EfficiencyUpgrades;
 import com.morphengine.nexus.energy.FuelBurner;
@@ -15,6 +16,7 @@ import com.morphengine.nexus.generator.GeneratorSides;
 import com.morphengine.nexus.generator.GeneratorTanks;
 import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NetworkController;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.machine.MachineSide;
 import com.morphengine.nexus.menu.GeneratorMenu;
 import com.morphengine.nexus.menu.GeneratorView;
@@ -57,7 +59,8 @@ import java.util.Map;
  * {@link GeneratorKind} of its block: items in a fuel slot, or fluids in tanks filled by bucket, by the slot of the
  * panel or by pipe.
  */
-public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity implements Renamable {
+public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity
+        implements UpgradeHolder, Renamable, StandaloneDevice {
 
     /** Placeholder balance, like the other numbers of the generators. */
     public static final int MAX_SPEED_UPGRADES = 4;
@@ -99,6 +102,7 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity implem
         this.kind = ((GeneratorBlock) state.getBlock()).kind();
         this.buffer = new SimpleEnergyBuffer(CAPACITY, maxInsertPerTick(kind), MAX_OUTPUT_PER_SIDE);
         this.burner = new FuelBurner(kind.energyPerTick());
+        this.burner.setSpeed(GeneratorKind.BURN_RATE);
         this.handler = new BufferEnergyHandler(buffer, BufferEnergyHandler.Access.GIVE_ONLY, this::setChanged);
         this.tanks = kind.fuel().tanks().isEmpty() ? null
                 : new GeneratorTanks(kind.fuel().tanks(), GeneratorTanks.CAPACITY_MILLIBUCKETS,
@@ -171,12 +175,12 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity implem
     }
 
     private static long maxInsertPerTick(final GeneratorKind kind) {
-        return EfficiencyUpgrades.yielded(kind.energyPerTick() * (1 + MAX_SPEED_UPGRADES),
+        return EfficiencyUpgrades.yielded(kind.outputPerTick() * (1 + MAX_SPEED_UPGRADES),
                 EfficiencyUpgrades.MAX_UPGRADES);
     }
 
     private void applyUpgrades() {
-        burner.setSpeed(1 + upgrades.count(UpgradeTypes.SPEED));
+        burner.setSpeed(GeneratorKind.BURN_RATE * (1 + upgrades.count(UpgradeTypes.SPEED)));
         burner.setEfficiencyUpgrades(upgrades.count(UpgradeTypes.EFFICIENCY));
         final int bufferUpgrades = upgrades.count(UpgradeTypes.BUFFER);
         buffer.resize(BufferUpgrades.scaled(CAPACITY, bufferUpgrades), maxInsertPerTick(kind), MAX_OUTPUT_PER_SIDE);
@@ -199,6 +203,7 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity implem
     }
 
     private void tick(final ServerLevel level, final BlockPos pos, final BlockState state) {
+        burner.setYieldPercent(NexusConfig.generationPercent());
         if (tanks != null && BucketSlot.drain(input, tanks)) {
             setChanged();
         }
@@ -268,6 +273,7 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity implem
         final long accepted = controller.energy().insert(offered, Action.EXECUTE);
         if (accepted > 0) {
             buffer.extract(accepted, Action.EXECUTE);
+            energyMeter().recordSupplied(accepted);
             setChanged();
         }
     }

@@ -4,6 +4,7 @@ import com.morphengine.nexus.block.WirelessBlock;
 import com.morphengine.nexus.item.NetworkCardItem;
 import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.NetworkChanges;
+import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.level.WirelessLinks;
 import com.morphengine.nexus.menu.NetworkTransmitterMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -40,7 +41,7 @@ import java.util.Objects;
  * appears or goes away. Once a second it works out what its panel shows and
  * lights its block while the link goes through and the network has energy.
  */
-public final class NetworkTransmitterBlockEntity extends AnimatedDeviceBlockEntity implements Renamable {
+public final class NetworkTransmitterBlockEntity extends AnimatedDeviceBlockEntity implements UpgradeHolder, Renamable {
 
     public static final int UPGRADE_SLOTS = 1;
     public static final UpgradeLimits UPGRADE_LIMITS = new UpgradeLimits(Map.of(UpgradeTypes.CHUNK_LOADER, 1));
