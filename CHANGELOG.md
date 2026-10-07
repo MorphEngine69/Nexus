@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   furnace; the Crusher turns raw metal into two dusts, the Pulverizer an ingot into a
   dust and the Compressor an ingot into a plate. Iron, gold and copper get dusts and
   plates too, and dust smelts into an ingot.
+- Ingots of Steel, Cobalt, Mithril and Hellsteel work as armor trim materials on any
+  armor, and any trim pattern can be put on armor of these metals. When armor is
+  trimmed with its own metal, the trim is a darker shade.
+- A bucket used on an Extractor fills with the fluid in its tank.
+- Items of the metals, their alloys, and the dusts and plates of iron, gold and copper
+  carry the common tags other mods use, such as `c:ingots/steel` and `c:dusts/iron`, so
+  recipes of other mods accept them and filters by tag match them.
 - Nexus Ore in stone and deepslate, a deep and rare ore that drops a Nexus Crystal.
 - Parts for crafting: Core, Upgrade Blank, Machine Casing, Battery, Screen, Antenna,
   Cell Housing, a Cell Part for each size of Vault Cell, the ingots of the alloys
