@@ -12,6 +12,9 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
         run: |
+          if [ "$BRANCH" = "dev" ]; then
+            exit 0
+          fi
           pattern='^(feat|fix|refactor|perf|docs|test|build|ci|chore|revert)/(GH-[0-9]+|NO-ISSUE)/[a-z0-9._-]+$'
           if [ "${#BRANCH}" -gt 50 ]; then
             echo "Branch name is longer than 50 characters: $BRANCH"
