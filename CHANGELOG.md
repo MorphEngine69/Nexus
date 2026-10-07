@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A server config for the world: multipliers for what generators make, what machines use and what operations cost; whether a
+  carried Nexus Terminal uses a charge, what opening it costs and what it holds; how far a Nexus Link reaches with each Range
+  Upgrade; and how many chunks one network may keep loaded with Chunk Loader Upgrades, by default as many as it likes.
+- The search of a terminal understands more. `@nexus` finds what a mod adds, by its id or its name, `#ingots` finds by
+  tag, `$text` by the tooltip, `!` or `-` turns a word round, `|` means or, parentheses group and quotes keep spaces
+  in a word. Point at the search box to see them listed.
+- An Energy Cell has a slot that charges any item that stores FE, also items of other mods, from its own energy as
+  fast as the cell gives it.
+- The Nexus Terminal stores FE (100,000) and opening it costs 2,000 FE. Charge it in an Energy Cell; it shows its
+  charge as a bar, green when full and red when empty, and in its tooltip. Without enough charge it does not open.
+- A new tab in the Nexus panel lists the devices of the network with what each draws, supplies and pays in fees, in
+  FE per tick. Sort it by name or any of the figures, narrow it to one kind of device, and scroll it.
+- The Nexus Analyser: use it on a device of a network, or on its Nexus, to open a panel that tells what the block does.
+  A Puller or Pusher shows what it moves, how much each time and how much a second with its upgrades; a machine its
+  speed, the work of each line, what it makes a second and what its tank holds; a generator what it makes and how long
+  its fuel lasts; an Assembler its runs a second and its crafts; an Energy Cell and a Nexus Link their settings. Every
+  block shows what it draws, supplies and pays for its operations, and a Nexus the figures of the whole network.
+- An Assembler takes an Efficiency Upgrade, which takes 30% off the price of every run it hands out.
+- Crafting recipes for every block and item of the mod. The first thing to build is the Coal Generator, from steel
+  ingots, a blast furnace and redstone; next to a Compressor it makes the plates that Batteries, Cores and Machine
+  Casings need, and everything else follows from those.
+- Machines and Energy Cells of a higher tier can also be crafted: a machine of the tier below plus the tier upgrade
+  makes the next tier at a crafting table, one step at a time, so autocrafting can build them. Upgrading in place with
+  the upgrade item still works.
+- A generator or a machine that stands outside any network now says in its panel, in Jade and in The One Probe that it
+  works standalone, instead of telling that it is not connected to a Nexus. Devices that need a network still say so.
+- The first storage and terminal can be built from steel alone: an External Vault beside a chest makes the chest the
+  storage of the network, and the Screen no longer needs Lumen. Vault Cells and the Storage Vault come a step later.
+- Work now costs FE from the network: a Puller, Pusher, Placer or Remover that moves something, an Assembler run,
+  and taking items out at a terminal. A big network and a
+  device with many Speed Upgrades pay more. Nothing is paid while a device has nothing to do.
 - The Nexus Terminal no longer has to be held. Two keys, **O** to open it and **K** to switch its
   mode (both can be changed in the controls), work with a terminal in either hand, in the
   inventory or, when Curios is installed, in any Curios slot.
@@ -53,7 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first and emptied last, so the chest can come before the cells or after them), a filter of the
   items and fluids it may use, as a whitelist or a blacklist, and whether the network may also put
   resources in or only take them out. Changes made to the block by hoppers or by hand reach the
-  network within a second. Devices and crafting move only so much through it in a tick, which up to four Speed
+  network within a second, and within a quarter of a second while a player is at the block; a very large block is read
+  a little less often, at most every two seconds. Devices and crafting move only so much through it in a tick, which up to four Speed
   Upgrades raise; a player at a terminal is not held back. Four upgrade slots also take a Chunk Loader Upgrade,
   which keeps the chunk loaded so the block is read with nobody near, and up to three Capacity Upgrades, nine
   more filter slots each. It does not attach to a block of a network.
@@ -346,8 +378,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   by right-clicking it, then put the card into a transmitter. Everything
   connected to the receiver joins the transmitter's network, however far
   away, even in another dimension, while its chunk is loaded.
-- Nexus Link: lets Nexus Terminals reach its network within 32 blocks, and 32
-  more for every Range Upgrade, up to four.
+- Nexus Link: lets Nexus Terminals reach its network within 64 blocks; every
+  Range Upgrade doubles that, up to 512 blocks with three. A Dimension Upgrade
+  lets terminals in other dimensions reach it from any distance. It has three
+  upgrade slots.
 - Nexus Terminal: a terminal to carry. Right-click a Nexus to bind it, then use
   it anywhere a Nexus Link of that network reaches. Sneak and use it to switch
   between terminal, crafting terminal and blueprint terminal. Its crafting grid
@@ -393,9 +427,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Placers and Removers place and break blocks as the player who owns them, so
   land protection treats their work as that player's.
 - Cables can no longer be moved by pistons.
-- The Nexus Link and the Coal Generator have a second upgrade slot.
-- The Nexus, the Storage Vault and the Energy Cell have a column of four
-  upgrade slots, and the Nexus panel shows your inventory.
+- The Coal Generator has a second upgrade slot.
+- The Storage Vault has a column of four upgrade slots, the Nexus and the Energy Cell one slot for a Chunk Loader
+  Upgrade, and the Nexus panel shows your inventory.
 - The Nexus and Energy Cell panels write large energy figures short, such as
   18.43M or 25.00 млрд in the units of your language; hover a line to see the
   exact figure.
