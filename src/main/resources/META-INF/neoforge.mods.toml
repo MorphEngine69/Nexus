@@ -22,13 +22,13 @@ side = "BOTH"
 [[dependencies.${mod_id}]]
 modId = "minecraft"
 type = "required"
-versionRange = "[${minecraft_version},)"
+versionRange = "[${minecraft_version},26.3)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "geckolib"
 type = "required"
-versionRange = "[${geckolib_version},)"
+versionRange = "${geckolib_version_range}"
 ordering = "NONE"
 side = "BOTH"

@@ -1,15 +1,18 @@
 name: Release
 
+# A release is a tag named {loader}-{minecraft}-v{version}, for example
+# neoforge-26.2-v1.0.0-beta.1. The version is the mod_version of gradle.properties; one with a
+# hyphen, such as 1.0.0-beta.1, is published as a pre-release.
 on:
   push:
-    tags: ['v*']
+    tags: ['neoforge-*-v*']
 
 permissions:
   contents: write
 
 jobs:
   release:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -24,26 +27,36 @@ jobs:
           java-version: 25
 
       - uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-disabled: true
 
-      - name: Verify tag matches the project version
+      - name: Verify the tag matches the project
+        id: version
         run: |
-          tag="${GITHUB_REF_NAME#v}"
-          version=$(sed -n 's/^mod_version=//p' gradle.properties)
-          if [ "$tag" != "$version" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match mod_version=$version"
+          version="${GITHUB_REF_NAME##*-v}"
+          target="${GITHUB_REF_NAME%-v*}"
+          project_version=$(sed -n 's/^mod_version=//p' gradle.properties)
+          minecraft=$(sed -n 's/^minecraft_version=//p' gradle.properties)
+          if [ "$version" != "$project_version" ]; then
+            echo "Tag $GITHUB_REF_NAME has version $version, but mod_version=$project_version"
             exit 1
           fi
+          if [ "$target" != "neoforge-$minecraft" ]; then
+            echo "Tag $GITHUB_REF_NAME targets $target, but this branch builds neoforge-$minecraft"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          case "$version" in
+            *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;;
+            *) echo "prerelease=false" >> "$GITHUB_OUTPUT" ;;
+          esac
 
       - name: Build
         run: ./gradlew build --stacktrace
 
       - name: Extract changelog section
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="${{ steps.version.outputs.version }}"
           awk -v v="$version" '
-            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            index($0, "## [" v "]") == 1 { found = 1; next }
             found && /^## \[/ { exit }
             found { print }
           ' CHANGELOG.md > release-notes.md
@@ -54,6 +67,7 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           body_path: release-notes.md
+          prerelease: ${{ steps.version.outputs.prerelease }}
           files: |
-            nexus-neoforge/build/libs/*.jar
-            !nexus-neoforge/build/libs/*-sources.jar
+            build/libs/*.jar
+            !build/libs/*-sources.jar

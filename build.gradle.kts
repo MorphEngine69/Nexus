@@ -16,6 +16,7 @@ val modProperties = listOf(
     "neoforge_version_range",
     "loader_version_range",
     "geckolib_version",
+    "geckolib_version_range",
 ).associateWith { property(it) as String }
 
 val modId = modProperties.getValue("mod_id")
@@ -25,7 +26,7 @@ group = property("mod_group_id") as String
 version = modVersion
 
 base {
-    archivesName = modId
+    archivesName = "$modId-neoforge-${modProperties.getValue("minecraft_version")}"
 }
 
 // Core modules: plain Java without Minecraft, each built and tested on its own.
