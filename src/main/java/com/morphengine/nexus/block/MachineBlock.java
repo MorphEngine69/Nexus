@@ -1,9 +1,6 @@
 package com.morphengine.nexus.block;
 
 import com.geckolib.animation.RawAnimation;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.access.NetworkAccess;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.security.Permission;
@@ -49,13 +46,6 @@ import java.util.Objects;
  */
 public final class MachineBlock extends NetworkDeviceBlock implements TieredBlock, Turnable {
 
-    public static final MapCodec<MachineBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    MachineKind.CODEC.fieldOf("kind").forGetter(MachineBlock::kind),
-                    Codec.intRange(1, MachineTier.QUANTUM.rank()).fieldOf("tier")
-                            .forGetter(machine -> machine.tier.rank()),
-                    propertiesCodec())
-            .apply(instance, (kind, rank, properties) ->
-                    new MachineBlock(kind, MachineTier.ofRank(rank), properties)));
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     /** What the machine looks like; set only by the server. */
     public static final EnumProperty<MachinePhase> PHASE = EnumProperty.create("phase", MachinePhase.class);
@@ -107,11 +97,6 @@ public final class MachineBlock extends NetworkDeviceBlock implements TieredBloc
     @Override
     protected RenderShape getRenderShape(final BlockState state) {
         return RenderShape.INVISIBLE;
-    }
-
-    @Override
-    protected MapCodec<MachineBlock> codec() {
-        return CODEC;
     }
 
     @Override

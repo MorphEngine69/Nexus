@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.morphengine.nexus.transport.SideConfig;
 import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.ChatFormatting;
@@ -33,7 +34,7 @@ final class SideModePanel<K extends Enum<K>> {
     private static final int MARGIN = 8;
     private static final int COLUMNS = 4;
     private static final int ROWS = 3;
-    private static final int RIGHT_BUTTON = 1;
+    private static final int RIGHT_BUTTON = InputConstants.MOUSE_BUTTON_RIGHT;
     private static final int CLOSED_FILL = 0xFF14151B;
     private static final int CLOSED_SIGN = 0xFF6B6F7A;
     private static final int INPUT_SIGN = 0xFF5FBF6B;

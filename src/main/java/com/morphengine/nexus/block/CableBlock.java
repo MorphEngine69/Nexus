@@ -1,7 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.api.network.Paint;
 import com.morphengine.nexus.level.NetworkChanges;
 import net.minecraft.core.BlockPos;
@@ -33,11 +31,6 @@ public final class CableBlock extends PipeBlock implements NetworkBlock, SimpleW
 
     public static final DyeColor DEFAULT_COLOR = DyeColor.BLUE;
 
-    public static final MapCodec<CableBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    DyeColor.CODEC.fieldOf("color").forGetter(CableBlock::color),
-                    propertiesCodec())
-            .apply(instance, CableBlock::new));
-
     private static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     /** The network has energy: the colored band in the groove glows. Set only by the server. */
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
@@ -66,11 +59,6 @@ public final class CableBlock extends PipeBlock implements NetworkBlock, SimpleW
     @Override
     public boolean isDevice() {
         return false;
-    }
-
-    @Override
-    protected MapCodec<CableBlock> codec() {
-        return CODEC;
     }
 
     @Override

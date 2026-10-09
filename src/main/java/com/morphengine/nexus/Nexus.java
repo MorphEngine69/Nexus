@@ -25,7 +25,7 @@ public final class Nexus {
 
     public Nexus(final IEventBus modBus, final ModContainer container) {
         registerContent(modBus);
-        container.registerConfig(ModConfig.Type.SERVER, NexusConfig.SPEC);
+        container.registerConfig(ModConfig.Type.SYNCED, NexusConfig.SPEC);
     }
 
     private void registerContent(final IEventBus modBus) {

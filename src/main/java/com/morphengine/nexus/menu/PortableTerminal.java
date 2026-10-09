@@ -17,6 +17,7 @@ import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import com.morphengine.nexus.terminal.TerminalStatus;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
@@ -141,7 +142,8 @@ final class PortableTerminal implements TerminalHost, Secured {
         }
         if (encoder != null) {
             for (int slot = 0; slot < encoder.blueprints().getContainerSize(); slot++) {
-                player.getInventory().placeItemBackInInventory(encoder.blueprints().removeItemNoUpdate(slot));
+                player.getInventory().placeItemBackInInventory(
+                        encoder.blueprints().removeItemNoUpdate(slot), Prediction.SERVER_ONLY);
             }
         }
     }

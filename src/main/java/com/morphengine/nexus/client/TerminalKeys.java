@@ -12,7 +12,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * The keys of the Nexus Terminal the player carries: one opens it, one switches its mode. They work wherever the
@@ -24,9 +23,10 @@ public final class TerminalKeys {
     private static final KeyMapping.Category CATEGORY =
             KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus"));
     private static final KeyMapping OPEN =
-            new KeyMapping("key.nexus.open_terminal", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY);
+            new KeyMapping("key.nexus.open_terminal", InputConstants.Type.KEYBOARD, InputConstants.KEY_O, CATEGORY);
     private static final KeyMapping SWITCH_MODE =
-            new KeyMapping("key.nexus.switch_terminal_mode", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, CATEGORY);
+            new KeyMapping(
+                    "key.nexus.switch_terminal_mode", InputConstants.Type.KEYBOARD, InputConstants.KEY_K, CATEGORY);
 
     private TerminalKeys() {
     }

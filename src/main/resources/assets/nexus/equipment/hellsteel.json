@@ -15,5 +15,13 @@
         "texture": "nexus:hellsteel"
       }
     ]
-  }
+  },
+  "trim_overrides": [
+    {
+      "palette": "nexus:trim/hellsteel_darker",
+      "when": {
+        "material": "nexus:hellsteel"
+      }
+    }
+  ]
 }

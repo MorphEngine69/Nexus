@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.block.entity.ExternalVaultBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -34,8 +33,6 @@ import org.jspecify.annotations.Nullable;
  */
 public final class ExternalVaultBlock extends NetworkDeviceBlock implements Turnable {
 
-    public static final MapCodec<ExternalVaultBlock> CODEC = simpleCodec(ExternalVaultBlock::new);
-
     /** The face that touches the block the vault works with; it takes no cable. */
     public static final EnumProperty<Direction> FACING = DirectionalBlock.FACING;
     /** The network has energy: the cable arms glow. Set only by the server. */
@@ -44,11 +41,6 @@ public final class ExternalVaultBlock extends NetworkDeviceBlock implements Turn
     public ExternalVaultBlock(final BlockBehaviour.Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(POWERED, false));
-    }
-
-    @Override
-    protected MapCodec<ExternalVaultBlock> codec() {
-        return CODEC;
     }
 
     @Override

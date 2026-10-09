@@ -1,7 +1,6 @@
 package com.morphengine.nexus.block;
 
 import com.geckolib.animation.RawAnimation;
-import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import net.minecraft.core.BlockPos;
@@ -32,7 +31,6 @@ import org.jspecify.annotations.Nullable;
  */
 public final class CraftingMonitorBlock extends NetworkDeviceBlock implements Turnable {
 
-    public static final MapCodec<CraftingMonitorBlock> CODEC = simpleCodec(CraftingMonitorBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     /** The network has energy. Set only by the server. */
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
@@ -66,11 +64,6 @@ public final class CraftingMonitorBlock extends NetworkDeviceBlock implements Tu
     @Override
     protected RenderShape getRenderShape(final BlockState state) {
         return RenderShape.INVISIBLE;
-    }
-
-    @Override
-    protected MapCodec<CraftingMonitorBlock> codec() {
-        return CODEC;
     }
 
     @Override

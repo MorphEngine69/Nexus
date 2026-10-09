@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.block.entity.NexusNetworks;
 import com.morphengine.nexus.level.NetworkDirectory;
@@ -34,7 +33,6 @@ import org.jspecify.annotations.Nullable;
  */
 public final class NexusBlock extends NetworkDeviceBlock {
 
-    public static final MapCodec<NexusBlock> CODEC = simpleCodec(NexusBlock::new);
     public static final EnumProperty<NexusStatus> STATUS = EnumProperty.create("status", NexusStatus.class);
 
     private static final int CONFLICT_RGB = 0xE0302A;
@@ -53,11 +51,6 @@ public final class NexusBlock extends NetworkDeviceBlock {
      */
     public static boolean isInConflict(final BlockState state) {
         return state.getValue(STATUS) == NexusStatus.CONFLICT;
-    }
-
-    @Override
-    protected MapCodec<NexusBlock> codec() {
-        return CODEC;
     }
 
     @Override
