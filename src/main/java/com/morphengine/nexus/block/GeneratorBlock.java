@@ -1,8 +1,6 @@
 package com.morphengine.nexus.block;
 
 import com.geckolib.animation.RawAnimation;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.access.NetworkAccess;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.GeneratorBlockEntity;
@@ -46,10 +44,6 @@ import java.util.Objects;
  */
 public final class GeneratorBlock extends NetworkDeviceBlock implements Turnable {
 
-    public static final MapCodec<GeneratorBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    GeneratorKind.CODEC.fieldOf("kind").forGetter(GeneratorBlock::kind),
-                    propertiesCodec())
-            .apply(instance, GeneratorBlock::new));
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     /** What the generator looks like; set only by the server. */
     public static final EnumProperty<MachinePhase> PHASE = EnumProperty.create("phase", MachinePhase.class);
@@ -76,11 +70,6 @@ public final class GeneratorBlock extends NetworkDeviceBlock implements Turnable
     @Override
     protected RenderShape getRenderShape(final BlockState state) {
         return RenderShape.INVISIBLE;
-    }
-
-    @Override
-    protected MapCodec<GeneratorBlock> codec() {
-        return CODEC;
     }
 
     @Override

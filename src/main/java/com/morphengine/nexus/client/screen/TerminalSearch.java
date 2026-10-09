@@ -1,11 +1,11 @@
 package com.morphengine.nexus.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -108,7 +108,7 @@ final class TerminalSearch {
      * @return whether the key was used up
      */
     boolean keyPressed(final KeyEvent event) {
-        if (!box.isFocused() || event.key() == GLFW.GLFW_KEY_ESCAPE) {
+        if (!box.isFocused() || event.key() == InputConstants.KEY_ESCAPE) {
             return false;
         }
         final boolean hadText = !box.getValue().isEmpty();

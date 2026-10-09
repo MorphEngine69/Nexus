@@ -15,5 +15,13 @@
         "texture": "nexus:cobalt"
       }
     ]
-  }
+  },
+  "trim_overrides": [
+    {
+      "palette": "nexus:trim/cobalt_darker",
+      "when": {
+        "material": "nexus:cobalt"
+      }
+    }
+  ]
 }

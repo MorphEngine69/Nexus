@@ -1,7 +1,6 @@
 package com.morphengine.nexus.block;
 
 import com.geckolib.animation.RawAnimation;
-import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -30,7 +29,6 @@ import org.jspecify.annotations.Nullable;
  */
 public final class StorageVaultBlock extends NetworkDeviceBlock implements Turnable {
 
-    public static final MapCodec<StorageVaultBlock> CODEC = simpleCodec(StorageVaultBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
@@ -50,11 +48,6 @@ public final class StorageVaultBlock extends NetworkDeviceBlock implements Turna
     @Override
     protected RenderShape getRenderShape(final BlockState state) {
         return RenderShape.INVISIBLE;
-    }
-
-    @Override
-    protected MapCodec<StorageVaultBlock> codec() {
-        return CODEC;
     }
 
     @Override

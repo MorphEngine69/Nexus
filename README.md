@@ -7,8 +7,8 @@
 **Network storage and automation for Minecraft.**
 Build one network or many, fill it with items, fluids and energy, and let it craft, move and place things for you.
 
-![Minecraft](https://img.shields.io/badge/Minecraft-26.2-62b47a?style=flat-square)
-![NeoForge](https://img.shields.io/badge/NeoForge-26.2.0.88-e68c3a?style=flat-square)
+![Minecraft](https://img.shields.io/badge/Minecraft-26.3-62b47a?style=flat-square)
+![NeoForge](https://img.shields.io/badge/NeoForge-26.3.0.58--beta-e68c3a?style=flat-square)
 ![Java](https://img.shields.io/badge/Java-25-5382a1?style=flat-square)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-blue?style=flat-square)](LICENSE)
 [![API: MIT](https://img.shields.io/badge/API-MIT-green?style=flat-square)](LICENSE-API)
@@ -98,8 +98,8 @@ English, Russian, Spanish, German and French.
 
 | | |
 |---|---|
-| Minecraft | 26.2 |
-| NeoForge | 26.2.0.57 or newer (any 26.2 build) |
+| Minecraft | 26.3 |
+| NeoForge | 26.3.0.58-beta or newer (any 26.3 build) |
 | Java | 25 |
 | [GeckoLib](https://github.com/bernie-g/geckolib) | 5.5.1 or newer (5.5.x) |
 

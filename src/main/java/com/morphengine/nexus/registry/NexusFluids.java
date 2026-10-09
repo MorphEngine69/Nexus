@@ -76,6 +76,6 @@ public final class NexusFluids {
 
     private static BlockBehaviour.Properties liquid(final BlockBehaviour.Properties properties) {
         return properties.mapColor(MapColor.COLOR_GREEN).replaceable().noCollision().strength(LIQUID_HARDNESS)
-                .pushReaction(PushReaction.DESTROY).noLootTable().liquid().sound(SoundType.EMPTY);
+                .pushReaction(PushReaction.POPPED).noLootTable().liquid().sound(SoundType.EMPTY);
     }
 }

@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.morphengine.nexus.menu.TerminalPanel;
 import com.morphengine.nexus.networking.CraftRequestPayload;
 import com.morphengine.nexus.resource.NexusResource;
@@ -16,7 +17,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -270,7 +270,8 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
     @Override
     public boolean keyPressed(final KeyEvent event) {
         final PlanPreview plan = currentPlan();
-        final boolean confirms = event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER;
+        final boolean confirms =
+                event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER;
         if (confirms && plan != null && plan.isComplete()) {
             send(CraftRequest.START);
             return true;

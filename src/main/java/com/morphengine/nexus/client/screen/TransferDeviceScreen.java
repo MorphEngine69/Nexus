@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.resource.FilterMode;
 import com.morphengine.nexus.filter.FilterSlots;
@@ -22,7 +23,6 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -176,7 +176,7 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu>
     public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
         final int button = sideButtons().buttonAt(event.x(), event.y());
         if (button >= 0) {
-            press(controls().get(button), event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+            press(controls().get(button), event.button() == InputConstants.MOUSE_BUTTON_RIGHT);
             return true;
         }
         return filterGrid.click(event) || super.mouseClicked(event, doubleClick);

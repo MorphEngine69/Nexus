@@ -1,8 +1,6 @@
 package com.morphengine.nexus.block;
 
 import com.geckolib.animation.RawAnimation;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.block.entity.NetworkReceiverBlockEntity;
 import com.morphengine.nexus.block.entity.NetworkTransmitterBlockEntity;
 import com.morphengine.nexus.block.entity.NexusLinkBlockEntity;
@@ -29,11 +27,6 @@ import org.jspecify.annotations.Nullable;
  * its animation while it does its job.
  */
 public final class WirelessBlock extends NetworkDeviceBlock {
-
-    public static final MapCodec<WirelessBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    WirelessKind.CODEC.fieldOf("kind").forGetter(WirelessBlock::kind),
-                    propertiesCodec())
-            .apply(instance, WirelessBlock::new));
 
     /**
      * It does its job: a transmitter reaches its receiver, a receiver is
@@ -78,11 +71,6 @@ public final class WirelessBlock extends NetworkDeviceBlock {
     @Override
     protected RenderShape getRenderShape(final BlockState state) {
         return RenderShape.INVISIBLE;
-    }
-
-    @Override
-    protected MapCodec<WirelessBlock> codec() {
-        return CODEC;
     }
 
     @Override

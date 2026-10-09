@@ -1,7 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.block.entity.TransferDeviceBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -29,7 +27,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
-
 /**
  * A Puller or Pusher: a head on the face that touches the block it works with,
  * and a cable arm reaching out to every network block on its other sides, lit
@@ -38,11 +35,6 @@ import org.jspecify.annotations.Nullable;
  * it. Placed against a block, it faces that block.
  */
 public final class TransferDeviceBlock extends NetworkDeviceBlock implements Turnable {
-
-    public static final MapCodec<TransferDeviceBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    TransferKind.CODEC.fieldOf("kind").forGetter(TransferDeviceBlock::kind),
-                    propertiesCodec())
-            .apply(instance, TransferDeviceBlock::new));
 
     /** The face that touches the block the device works with; it takes no cable. */
     public static final EnumProperty<Direction> FACING = DirectionalBlock.FACING;
@@ -59,11 +51,6 @@ public final class TransferDeviceBlock extends NetworkDeviceBlock implements Tur
 
     public TransferKind kind() {
         return kind;
-    }
-
-    @Override
-    protected MapCodec<TransferDeviceBlock> codec() {
-        return CODEC;
     }
 
     @Override

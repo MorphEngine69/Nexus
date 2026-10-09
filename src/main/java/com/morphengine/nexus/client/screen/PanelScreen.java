@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.access.NetworkAccess;
 import com.morphengine.nexus.api.network.security.Permission;
@@ -20,7 +21,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -205,8 +205,8 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
             return super.keyPressed(event);
         }
         switch (event.key()) {
-            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> commitTitle();
-            case GLFW.GLFW_KEY_ESCAPE -> stopEditingTitle();
+            case InputConstants.KEY_RETURN, InputConstants.KEY_NUMPADENTER -> commitTitle();
+            case InputConstants.KEY_ESCAPE -> stopEditingTitle();
             default -> editor.keyPressed(event);
         }
         return true;

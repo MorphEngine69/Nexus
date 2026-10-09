@@ -12,6 +12,7 @@ val modProperties = listOf(
     "mod_authors",
     "mod_description",
     "minecraft_version",
+    "minecraft_version_range",
     "neoforge_version",
     "neoforge_version_range",
     "loader_version_range",
@@ -215,10 +216,6 @@ dependencies {
     compileOnly("maven.modrinth:jade:${property("jade_version")}")
     compileOnly("mcjty.theoneprobe:theoneprobe:${property("top_version")}:api")
     compileOnly("maven.modrinth:curios:${property("curios_version")}")
-    // Curios sends packets to every player it sees, and the mock players of the game tests have no connection.
-    if (gradle.startParameter.taskNames.any { it.endsWith("runClient") }) {
-        runtimeOnly("maven.modrinth:curios:${property("curios_version")}")
-    }
 }
 
 tasks.processResources {

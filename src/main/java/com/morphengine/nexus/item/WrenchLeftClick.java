@@ -4,6 +4,7 @@ import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.NetworkBlock;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -32,7 +33,7 @@ final class WrenchLeftClick {
         }
         final InteractionResult result = WrenchActions.turn(event.getLevel(), event.getPos(), event.getEntity(), side);
         if (result.consumesAction()) {
-            event.getEntity().swing(event.getHand());
+            event.getEntity().swing(event.getHand(), SwingAnimation.DEFAULT, false);
         }
     }
 }

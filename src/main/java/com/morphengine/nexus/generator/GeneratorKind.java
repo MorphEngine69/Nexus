@@ -29,7 +29,7 @@ public enum GeneratorKind implements StringRepresentable {
     /** Burns coal, charcoal and coal blocks, as the first generator of the mod did. */
     COAL("coal_generator",
             new ItemFuel(stack -> stack.is(NexusTags.COAL_GENERATOR_FUELS),
-                    (level, stack) -> level.fuelValues().burnDuration(stack)),
+                    FuelBurnTimes::of),
             GeneratorBalance.COAL_ENERGY_PER_TICK, GeneratorBalance.COAL_LIGHT, true),
 
     /** Burns nether stars, one for a long time. */

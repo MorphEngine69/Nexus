@@ -1,10 +1,7 @@
 {
-  "asset_name": "cobalt",
   "description": {
     "color": "#4F78C9",
     "translate": "trim_material.nexus.cobalt"
   },
-  "override_armor_assets": {
-    "nexus:cobalt": "cobalt_darker"
-  }
+  "palette_id": "nexus:trim/cobalt"
 }

@@ -15,5 +15,13 @@
         "texture": "nexus:steel"
       }
     ]
-  }
+  },
+  "trim_overrides": [
+    {
+      "palette": "nexus:trim/steel_darker",
+      "when": {
+        "material": "nexus:steel"
+      }
+    }
+  ]
 }
