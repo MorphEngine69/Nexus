@@ -1,10 +1,12 @@
 {
   "asset_name": "cobalt",
+  "ingredient": "nexus:cobalt_ingot",
+  "item_model_index": 0.2,
   "description": {
     "color": "#4F78C9",
     "translate": "trim_material.nexus.cobalt"
   },
-  "override_armor_assets": {
+  "override_armor_materials": {
     "nexus:cobalt": "cobalt_darker"
   }
 }

@@ -38,15 +38,10 @@ import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.storage.NetworkStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.DyeColor;
@@ -60,8 +55,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -78,7 +74,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class AutocraftingGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 300;
     private static final int NETWORK_FILL = 10_000;
     private static final int IDLE_TICKS = 60;
@@ -112,21 +108,16 @@ public final class AutocraftingGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(AutocraftingGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "autocrafting"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void assemblerCraftsSticks(final GameTestHelper helper) {
@@ -136,12 +127,12 @@ public final class AutocraftingGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         autocrafting(helper).blueprints().craftables().contains(key(Items.STICK)),
-                        Component.literal("the network does not know how to craft sticks")))
+                        String.valueOf("the network does not know how to craft sticks")))
                 .thenExecute(() -> start(helper, Items.STICK, 4))
                 .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STICK)), 4,
                         "sticks in the network"))
                 .thenWaitUntil(() -> helper.assertTrue(autocrafting(helper).statuses().isEmpty(),
-                        Component.literal("the task is still kept")))
+                        String.valueOf("the task is still kept")))
                 .thenExecute(() -> assertAmount(helper, network(helper).amountOf(key(Items.OAK_PLANKS)), 0,
                         "planks left in the network"))
                 .thenSucceed();
@@ -154,7 +145,7 @@ public final class AutocraftingGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         autocrafting(helper).blueprints().craftables().contains(key(Items.STICK)),
-                        Component.literal("the network does not know how to craft sticks")))
+                        String.valueOf("the network does not know how to craft sticks")))
                 .thenExecute(() -> start(helper, Items.STICK, 4))
                 .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STICK)), 4,
                         "sticks in the network"))
@@ -165,7 +156,7 @@ public final class AutocraftingGameTests {
 
     private static void assemblerNeedsEnergyForARun(final GameTestHelper helper) {
         buildNetwork(helper, Direction.UP, stored(Items.OAK_PLANKS, 2));
-        final EnergyBuffer cell = helper.getBlockEntity(CELL, EnergyCellBlockEntity.class).energyBuffer();
+        final EnergyBuffer cell = helper.<EnergyCellBlockEntity>getBlockEntity(CELL).energyBuffer();
         while (cell.extract(Long.MAX_VALUE, Action.EXECUTE) > 0) {
             continue;
         }
@@ -175,7 +166,7 @@ public final class AutocraftingGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         autocrafting(helper).blueprints().craftables().contains(key(Items.STICK)),
-                        Component.literal("the network does not know how to craft sticks")))
+                        String.valueOf("the network does not know how to craft sticks")))
                 .thenExecute(() -> start(helper, Items.STICK, 4))
                 .thenIdle(IDLE_TICKS)
                 .thenExecute(() -> assertAmount(helper, network(helper).amountOf(key(Items.STICK)), 0,
@@ -184,7 +175,7 @@ public final class AutocraftingGameTests {
     }
 
     private static long poolEnergy(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class).energy().stored();
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS).energy().stored();
     }
 
     private static void assemblerProcesses(final GameTestHelper helper) {
@@ -197,7 +188,7 @@ public final class AutocraftingGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         autocrafting(helper).blueprints().craftables().contains(key(Items.STONE)),
-                        Component.literal("the network does not know how to make stone")))
+                        String.valueOf("the network does not know how to make stone")))
                 .thenExecute(() -> start(helper, Items.STONE, 2))
                 .thenWaitUntil(() -> assertAmount(helper, count(container(helper, MACHINE), Items.COBBLESTONE), 2,
                         "cobblestone handed to the machine"))
@@ -208,7 +199,7 @@ public final class AutocraftingGameTests {
                 .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STONE)), 2,
                         "stone taken back into the network"))
                 .thenWaitUntil(() -> helper.assertTrue(autocrafting(helper).statuses().isEmpty(),
-                        Component.literal("the task is still kept")))
+                        String.valueOf("the task is still kept")))
                 .thenSucceed();
     }
 
@@ -220,13 +211,13 @@ public final class AutocraftingGameTests {
         place(helper, chest, Blocks.CHEST.defaultBlockState());
         place(helper, pusher, NexusBlocks.PUSHER.get().defaultBlockState()
                 .setValue(TransferDeviceBlock.FACING, Direction.SOUTH));
-        final TransferDeviceBlockEntity device = helper.getBlockEntity(pusher, TransferDeviceBlockEntity.class);
+        final TransferDeviceBlockEntity device = helper.<TransferDeviceBlockEntity>getBlockEntity(pusher);
         device.changeSettings(device.settings().withFilter(FilterSlots.EMPTY.with(0, key(Items.STICK))));
         device.upgrades().setItem(0, new ItemStack(NexusItems.AUTOCRAFTING_UPGRADE.get()));
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(count(container(helper, chest), Items.STICK) > 0,
-                        Component.literal("the Pusher delivered no crafted sticks")))
+                        String.valueOf("the Pusher delivered no crafted sticks")))
                 .thenSucceed();
     }
 
@@ -240,9 +231,9 @@ public final class AutocraftingGameTests {
         final EncodedBlueprint written = BlueprintItem.encodedOn(encoder.blueprints()
                 .getItem(BlueprintEncoder.OUTPUT_SLOT));
         helper.assertTrue(encoded && written != null && written.kind() == BlueprintKind.CRAFTING,
-                Component.literal("no crafting blueprint came out of the encoder"));
+                String.valueOf("no crafting blueprint came out of the encoder"));
         helper.assertTrue(written.blueprint().primaryOutput().equals(new ResourceAmount(key(Items.STICK), 4)),
-                Component.literal("the blueprint gives " + written.blueprint().primaryOutput()));
+                String.valueOf("the blueprint gives " + written.blueprint().primaryOutput()));
         assertAmount(helper, encoder.blueprints().getItem(BlueprintEncoder.BLANK_SLOT).getCount(), 2,
                 "blank Blueprints left");
         helper.succeed();
@@ -254,13 +245,13 @@ public final class AutocraftingGameTests {
         encoder.blueprints().setItem(BlueprintEncoder.BLANK_SLOT, new ItemStack(NexusItems.BLUEPRINT.get()));
         encoder.changeDraft(BlueprintDraft.EMPTY.withSubstitution(Substitution.ALLOWED)
                 .with(0, key(Items.OAK_PLANKS)).with(3, key(Items.OAK_PLANKS)));
-        helper.assertTrue(encoder.encode(helper.getLevel()), Component.literal("the encoder wrote nothing"));
+        helper.assertTrue(encoder.encode(helper.getLevel()), String.valueOf("the encoder wrote nothing"));
         assembler(helper).blueprintSlots().setItem(0, encoder.blueprints().getItem(BlueprintEncoder.OUTPUT_SLOT));
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         autocrafting(helper).blueprints().craftables().contains(key(Items.STICK)),
-                        Component.literal("the network does not know how to craft sticks")))
+                        String.valueOf("the network does not know how to craft sticks")))
                 .thenExecute(() -> start(helper, Items.STICK, 4))
                 .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STICK)), 4,
                         "sticks crafted from spruce planks"))
@@ -280,7 +271,7 @@ public final class AutocraftingGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         autocrafting(helper).blueprints().craftables().contains(key(Items.CHARCOAL)),
-                        Component.literal("the network does not know how to make charcoal")))
+                        String.valueOf("the network does not know how to make charcoal")))
                 .thenExecute(() -> start(helper, Items.CHARCOAL, 1))
                 .thenWaitUntil(() -> assertAmount(helper, count(container(helper, MACHINE), Items.BIRCH_PLANKS), 1,
                         "birch planks handed to the machine for oak planks"))
@@ -300,7 +291,7 @@ public final class AutocraftingGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         autocrafting(helper).blueprints().craftables().contains(key(Items.STONE)),
-                        Component.literal("the network does not know how to make stone")))
+                        String.valueOf("the network does not know how to make stone")))
                 .thenExecute(() -> start(helper, Items.STONE, 2))
                 .thenWaitUntil(() -> assertAmount(helper, count(container(helper, chest), Items.COBBLESTONE), 2,
                         "cobblestone handed to the machine at the end of the chain"))
@@ -323,13 +314,13 @@ public final class AutocraftingGameTests {
         place(helper, MACHINE, NexusBlocks.ASSEMBLER.get().defaultBlockState()
                 .setValue(AssemblerBlock.FACING, Direction.WEST));
         assembler(helper).blueprintSlots().setItem(0, blueprintOf(sticks()));
-        helper.getBlockEntity(MACHINE, AssemblerBlockEntity.class).blueprintSlots()
+        helper.<AssemblerBlockEntity>getBlockEntity(MACHINE).blueprintSlots()
                 .setItem(0, blueprintOf(craftingTable()));
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         autocrafting(helper).blueprints().craftables().contains(key(Items.CRAFTING_TABLE)),
-                        Component.literal("the network does not know how to craft a crafting table")))
+                        String.valueOf("the network does not know how to craft a crafting table")))
                 .thenExecute(() -> start(helper, Items.STICK, 4))
                 .thenExecute(() -> start(helper, Items.CRAFTING_TABLE, 1))
                 .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STICK)), 4,
@@ -350,7 +341,7 @@ public final class AutocraftingGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
                         autocrafting(helper).blueprints().craftables().contains(key(Items.STONE)),
-                        Component.literal("the network does not know how to make stone")))
+                        String.valueOf("the network does not know how to make stone")))
                 .thenExecute(() -> start(helper, Items.STONE, 3))
                 .thenWaitUntil(() -> assertAmount(helper, count(container(helper, MACHINE), Items.COBBLESTONE), 1,
                         "cobblestone handed to the locked machine"))
@@ -372,7 +363,7 @@ public final class AutocraftingGameTests {
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
         final ItemStack cell = new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get());
         VaultCellItem.saveContents(cell, List.of(contents));
-        helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class).cells().setItem(0, cell);
+        helper.<StorageVaultBlockEntity>getBlockEntity(VAULT).cells().setItem(0, cell);
         place(helper, CABLE, NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
         place(helper, ASSEMBLER, NexusBlocks.ASSEMBLER.get().defaultBlockState()
                 .setValue(AssemblerBlock.FACING, assemblerFacing));
@@ -385,7 +376,7 @@ public final class AutocraftingGameTests {
     private static void start(final GameTestHelper helper, final Item item, final long amount) {
         final CraftingPlan plan = autocrafting(helper).plan(key(item), amount, network(helper));
         helper.assertTrue(autocrafting(helper).start(plan, "test"),
-                Component.literal("the plan did not start, missing " + plan.missing()));
+                String.valueOf("the plan did not start, missing " + plan.missing()));
     }
 
     private static CraftingBlueprint sticks() {
@@ -408,20 +399,20 @@ public final class AutocraftingGameTests {
     }
 
     private static AssemblerBlockEntity assembler(final GameTestHelper helper) {
-        return helper.getBlockEntity(ASSEMBLER, AssemblerBlockEntity.class);
+        return helper.<AssemblerBlockEntity>getBlockEntity(ASSEMBLER);
     }
 
     private static AutocraftingComponent autocrafting(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class).component(NetworkComponentTypes.AUTOCRAFTING);
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS).component(NetworkComponentTypes.AUTOCRAFTING);
     }
 
     private static NetworkStorage network(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class)
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS)
                 .component(NetworkComponentTypes.STORAGE).storage();
     }
 
     private static Container container(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, BaseContainerBlockEntity.class);
+        return helper.<BaseContainerBlockEntity>getBlockEntity(pos);
     }
 
     private static int count(final Container container, final Item item) {
@@ -436,7 +427,7 @@ public final class AutocraftingGameTests {
 
     private static void assertAmount(final GameTestHelper helper, final long actual, final long expected,
                                      final String what) {
-        helper.assertTrue(actual == expected, Component.literal(what + ": " + actual + ", expected " + expected));
+        helper.assertTrue(actual == expected, String.valueOf(what + ": " + actual + ", expected " + expected));
     }
 
     private static ItemKey key(final Item item) {

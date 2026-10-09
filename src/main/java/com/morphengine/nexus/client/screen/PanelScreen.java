@@ -4,21 +4,20 @@ import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.access.NetworkAccess;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.Renamable;
+import com.morphengine.nexus.client.input.KeyEvent;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.DeviceMenu;
 import com.morphengine.nexus.menu.GuardedMenu;
 import com.morphengine.nexus.menu.PanelMenu;
 import com.morphengine.nexus.menu.RenamablePanel;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -44,7 +43,8 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
     private static final int MARKER_SIZE = 12;
     private static final int MARKER_TOP = 2;
     private static final int ALERT_RGB = 0xFFE8605A;
-    private static final Identifier LOCK = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus/tab_access");
+    private static final ResourceLocation LOCK = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID,
+            "nexus/tab_access");
     private static final List<Permission> PANEL_PERMISSIONS = List.of(Permission.INSERT, Permission.EXTRACT,
             Permission.AUTOCRAFTING, Permission.CONFIGURE);
 
@@ -54,7 +54,9 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
 
     protected PanelScreen(
             final M menu, final Inventory inventory, final Component title, final int width, final int height) {
-        super(menu, inventory, title, width, height);
+        super(menu, inventory, title);
+        this.imageWidth = width;
+        this.imageHeight = height;
         this.shownTitle = title;
     }
 
@@ -89,11 +91,11 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
     /**
      * Draws everything below the header.
      */
-    protected abstract void extractPanel(GuiGraphicsExtractor graphics, PanelStyle style, int mouseX, int mouseY);
+    protected abstract void extractPanel(GuiGraphics graphics, PanelStyle style, int mouseX, int mouseY);
 
     @Override
-    public final void extractBackground(
-            final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float partialTick) {
+    protected final void renderBg(
+            final GuiGraphics graphics, final float partialTick, final int mouseX, final int mouseY) {
         final PanelStyle style = style();
         style.drawFrame(graphics, font, panelBounds(), titleEditor != null ? Component.empty() : panelTitle());
         if (closeButton != null) {
@@ -113,15 +115,15 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
      * everything here, a red mark when the device stands still because its
      * owner lacks a permission.
      */
-    private void drawMarkers(final GuiGraphicsExtractor graphics) {
+    private void drawMarkers(final GuiGraphics graphics) {
         if (!lacking().isEmpty()) {
             final PanelBounds lock = lockBounds();
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, LOCK, lock.left(), lock.top(), lock.width(),
+            graphics.blitSprite(LOCK, lock.left(), lock.top(), lock.width(),
                     lock.height());
         }
         if (halted() != null) {
             final PanelBounds alert = alertBounds();
-            graphics.text(font, Component.literal("!"), alert.left() + (alert.width() - font.width("!")) / 2,
+            graphics.drawString(font, Component.literal("!"), alert.left() + (alert.width() - font.width("!")) / 2,
                     alert.top() + 2, ALERT_RGB, false);
         }
     }
@@ -156,8 +158,14 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
     }
 
     @Override
-    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
-        super.extractTooltip(graphics, mouseX, mouseY);
+    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
+        renderTooltip(graphics, mouseX, mouseY);
+    }
+
+    @Override
+    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
         final List<Permission> lacking = lacking();
         final Permission halted = halted();
         if (!lacking.isEmpty() && lockBounds().contains(mouseX, mouseY)) {
@@ -166,15 +174,15 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
             for (Permission permission : lacking) {
                 lines.add(Component.literal("- ").append(NetworkAccess.nameOf(permission)));
             }
-            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+            graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
         } else if (halted != null && alertBounds().contains(mouseX, mouseY)) {
-            graphics.setComponentTooltipForNextFrame(font, List.of(Component.translatable("gui.nexus.access.halted",
+            graphics.renderComponentTooltip(font, List.of(Component.translatable("gui.nexus.access.halted",
                     NetworkAccess.nameOf(halted))), mouseX, mouseY);
         }
     }
 
     @Override
-    protected final void extractLabels(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
+    protected final void renderLabels(final GuiGraphics graphics, final int mouseX, final int mouseY) {
     }
 
     private PanelBounds titleBounds() {
@@ -183,7 +191,8 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         if (closeButton != null && closeButton.contains(event.x(), event.y())) {
             onClose();
             return true;
@@ -195,19 +204,20 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
             startEditingTitle();
             return true;
         }
-        return super.mouseClicked(event, doubleClick);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean keyPressed(final KeyEvent event) {
+    public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
+        final KeyEvent event = new KeyEvent(keyCode, scanCode, modifiers);
         final EditBox editor = titleEditor;
         if (editor == null) {
-            return super.keyPressed(event);
+            return super.keyPressed(keyCode, scanCode, modifiers);
         }
         switch (event.key()) {
             case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> commitTitle();
             case GLFW.GLFW_KEY_ESCAPE -> stopEditingTitle();
-            default -> editor.keyPressed(event);
+            default -> editor.keyPressed(keyCode, scanCode, modifiers);
         }
         return true;
     }
@@ -243,7 +253,7 @@ abstract class PanelScreen<M extends AbstractContainerMenu & PanelMenu> extends 
             return;
         }
         if (getMenu() instanceof RenamablePanel renamable) {
-            ClientPacketDistributor.sendToServer(renamable.renamePayload(name));
+            PacketDistributor.sendToServer(renamable.renamePayload(name));
         }
         shownTitle = name.isEmpty() ? getMenu().defaultTitle() : Component.literal(name);
     }

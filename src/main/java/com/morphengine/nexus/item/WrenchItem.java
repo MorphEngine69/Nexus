@@ -8,9 +8,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -38,8 +38,9 @@ public final class WrenchItem extends Item {
     @Override
     @SuppressWarnings("deprecation")
     public void appendHoverText(
-            final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display,
-            final Consumer<Component> builder, final TooltipFlag flag) {
+            final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip,
+            final TooltipFlag flag) {
+        final Consumer<Component> builder = tooltip::add;
         for (String line : new String[] {"turn", "front", "dismantle"}) {
             builder.accept(Component.translatable("tooltip.nexus.wrench." + line).withStyle(ChatFormatting.GRAY));
         }

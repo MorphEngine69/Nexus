@@ -1,12 +1,12 @@
 package com.morphengine.nexus.block.entity;
 
-import net.minecraft.core.component.DataComponentGetter;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -51,7 +51,7 @@ final class DeviceName {
         custom = input.read(TAG, ComponentSerialization.CODEC).orElse(null);
     }
 
-    void applyFrom(final DataComponentGetter components) {
+    void applyFrom(final ComponentSource components) {
         custom = components.get(DataComponents.CUSTOM_NAME);
     }
 
@@ -59,7 +59,7 @@ final class DeviceName {
         components.set(DataComponents.CUSTOM_NAME, custom);
     }
 
-    static void removeFrom(final ValueOutput output) {
-        output.discard(TAG);
+    static void removeFrom(final CompoundTag tag) {
+        tag.remove(TAG);
     }
 }

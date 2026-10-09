@@ -2,5 +2,13 @@
   "parent": "minecraft:item/generated",
   "textures": {
     "layer0": "nexus:item/blueprint"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "nexus:encoded": 1
+      },
+      "model": "nexus:item/blueprint_encoded"
+    }
+  ]
 }

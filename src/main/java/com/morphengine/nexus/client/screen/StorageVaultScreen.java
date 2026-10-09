@@ -2,10 +2,10 @@ package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.block.VaultLamp;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.NetworkBadge;
 import com.morphengine.nexus.menu.StorageVaultMenu;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -49,7 +49,7 @@ public final class StorageVaultScreen extends PanelScreen<StorageVaultMenu> {
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final NetworkBadge network = getMenu().badge();
         PanelStyle.drawNetwork(graphics, font, network, leftPos, topPos);
         priority.draw(graphics, font, style, getMenu().priority());
@@ -57,14 +57,14 @@ public final class StorageVaultScreen extends PanelScreen<StorageVaultMenu> {
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
         }
         drawLamps(graphics);
-        graphics.text(font, playerInventoryTitle, leftPos + StorageVaultMenu.INVENTORY_LEFT,
+        graphics.drawString(font, playerInventoryTitle, leftPos + StorageVaultMenu.INVENTORY_LEFT,
                 topPos + StorageVaultMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 
     /**
      * A lamp at the right edge of each cell slot, as on the vault's front.
      */
-    private void drawLamps(final GuiGraphicsExtractor graphics) {
+    private void drawLamps(final GuiGraphics graphics) {
         final StorageVaultBlockEntity vault = getMenu().blockEntity();
         if (vault == null) {
             return;
@@ -79,8 +79,9 @@ public final class StorageVaultScreen extends PanelScreen<StorageVaultMenu> {
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         return minecraft != null && priority.click(minecraft, getMenu().containerId, event.x(), event.y())
-                || super.mouseClicked(event, doubleClick);
+                || super.mouseClicked(mouseX, mouseY, button);
     }
 }

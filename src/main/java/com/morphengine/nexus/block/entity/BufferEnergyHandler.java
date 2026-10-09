@@ -2,17 +2,13 @@ package com.morphengine.nexus.block.entity;
 
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
-import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 /**
- * Exposes a {@link SimpleEnergyBuffer} through NeoForge's transactional energy
- * API. Changes are applied at once and undone from a snapshot if the
- * transaction is aborted; {@code onCommit} runs when the outermost transaction
- * commits.
+ * Exposes a {@link SimpleEnergyBuffer} as an energy storage of the game. Changes are applied at once;
+ * {@code onCommit} runs when energy actually moved.
  */
-final class BufferEnergyHandler extends SnapshotJournal<SimpleEnergyBuffer.Snapshot> implements EnergyHandler {
+final class BufferEnergyHandler implements IEnergyStorage {
 
     private final SimpleEnergyBuffer buffer;
     private final Access access;
@@ -25,54 +21,47 @@ final class BufferEnergyHandler extends SnapshotJournal<SimpleEnergyBuffer.Snaps
     }
 
     @Override
-    public long getAmountAsLong() {
-        return buffer.stored();
-    }
-
-    @Override
-    public long getCapacityAsLong() {
-        return buffer.capacity();
-    }
-
-    @Override
-    public int insert(final int amount, final TransactionContext transaction) {
-        if (access == Access.GIVE_ONLY) {
+    public int receiveEnergy(final int amount, final boolean simulate) {
+        if (access == Access.GIVE_ONLY || amount <= 0) {
             return 0;
         }
-        final long accepted = buffer.insert(amount, Action.SIMULATE);
-        if (accepted > 0) {
-            updateSnapshots(transaction);
-            buffer.insert(accepted, Action.EXECUTE);
+        final long accepted = buffer.insert(amount, simulate ? Action.SIMULATE : Action.EXECUTE);
+        if (accepted > 0 && !simulate) {
+            onCommit.run();
         }
         return (int) accepted;
     }
 
     @Override
-    public int extract(final int amount, final TransactionContext transaction) {
-        if (access == Access.RECEIVE_ONLY) {
+    public int extractEnergy(final int amount, final boolean simulate) {
+        if (access == Access.RECEIVE_ONLY || amount <= 0) {
             return 0;
         }
-        final long removed = buffer.extract(amount, Action.SIMULATE);
-        if (removed > 0) {
-            updateSnapshots(transaction);
-            buffer.extract(removed, Action.EXECUTE);
+        final long removed = buffer.extract(amount, simulate ? Action.SIMULATE : Action.EXECUTE);
+        if (removed > 0 && !simulate) {
+            onCommit.run();
         }
         return (int) removed;
     }
 
     @Override
-    protected SimpleEnergyBuffer.Snapshot createSnapshot() {
-        return buffer.snapshot();
+    public int getEnergyStored() {
+        return (int) Math.min(buffer.stored(), Integer.MAX_VALUE);
     }
 
     @Override
-    protected void revertToSnapshot(final SimpleEnergyBuffer.Snapshot snapshot) {
-        buffer.restore(snapshot);
+    public int getMaxEnergyStored() {
+        return (int) Math.min(buffer.capacity(), Integer.MAX_VALUE);
     }
 
     @Override
-    protected void onRootCommit(final SimpleEnergyBuffer.Snapshot originalState) {
-        onCommit.run();
+    public boolean canExtract() {
+        return access != Access.RECEIVE_ONLY;
+    }
+
+    @Override
+    public boolean canReceive() {
+        return access != Access.GIVE_ONLY;
     }
 
     /**

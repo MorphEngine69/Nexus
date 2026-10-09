@@ -4,11 +4,11 @@ import com.morphengine.nexus.api.machine.MachineRecipe;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.resource.FluidKey;
 import com.morphengine.nexus.resource.ItemKey;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 import java.util.List;
 import java.util.Optional;

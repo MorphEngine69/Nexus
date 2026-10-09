@@ -56,12 +56,12 @@ public final class CookingRecipes implements LevelRecipes {
             return Optional.empty();
         }
         final AbstractCookingRecipe recipe = holder.get().value();
-        final ItemStack result = recipe.assemble(input);
+        final ItemStack result = recipe.assemble(input, level.registryAccess());
         if (result.isEmpty()) {
             return Optional.empty();
         }
         return Optional.of(MachineRecipe.of(new ResourceAmount(key, 1),
-                new ResourceAmount(ItemKey.of(result), result.getCount()), Math.max(1, recipe.cookingTime()),
+                new ResourceAmount(ItemKey.of(result), result.getCount()), Math.max(1, recipe.getCookingTime()),
                 energyPerTick));
     }
 }

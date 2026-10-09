@@ -2,7 +2,7 @@ package com.morphengine.nexus.resource;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 
 import java.util.ArrayList;
@@ -17,15 +17,15 @@ import java.util.function.Function;
 final class ResourceTags {
 
     /** The shared {@code c:} tags first, as those other mods fill in too, then by id. */
-    private static final Comparator<Identifier> COMMON_FIRST = Comparator
-            .comparing((Identifier id) -> !id.getNamespace().equals("c"))
-            .thenComparing(Identifier::toString);
+    private static final Comparator<ResourceLocation> COMMON_FIRST = Comparator
+            .comparing((ResourceLocation id) -> !id.getNamespace().equals("c"))
+            .thenComparing(ResourceLocation::toString);
 
     private ResourceTags() {
     }
 
-    static <T> List<Identifier> tagsOf(final Holder<T> entry) {
-        final List<Identifier> tags = new ArrayList<>();
+    static <T> List<ResourceLocation> tagsOf(final Holder<T> entry) {
+        final List<ResourceLocation> tags = new ArrayList<>();
         entry.tags().forEach(tag -> tags.add(tag.location()));
         tags.sort(COMMON_FIRST);
         return List.copyOf(tags);
@@ -35,7 +35,7 @@ final class ResourceTags {
      * @param toResource the resource of an entry in the tag
      * @return a resource for every entry in the tag, in its order; empty for an unknown tag
      */
-    static <T> List<NexusResource> membersOf(final Registry<T> registry, final Identifier tag,
+    static <T> List<NexusResource> membersOf(final Registry<T> registry, final ResourceLocation tag,
                                              final Function<Holder<T>, NexusResource> toResource) {
         final List<NexusResource> members = new ArrayList<>();
         for (Holder<T> entry : registry.getTagOrEmpty(TagKey.create(registry.key(), tag))) {

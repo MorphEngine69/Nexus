@@ -1,7 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:mithril_block"
+    {
+      "item": "nexus:mithril_block"
+    }
   ],
   "result": {
     "id": "nexus:mithril_ingot",

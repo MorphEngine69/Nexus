@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:hellsteel_ingot",
-    "B": "minecraft:nether_star",
-    "C": "nexus:voltsteel_ingot",
-    "D": "nexus:machine_casing"
+    "A": {
+      "item": "nexus:hellsteel_ingot"
+    },
+    "B": {
+      "item": "minecraft:nether_star"
+    },
+    "C": {
+      "item": "nexus:voltsteel_ingot"
+    },
+    "D": {
+      "item": "nexus:machine_casing"
+    }
   },
   "pattern": [
     "ABA",

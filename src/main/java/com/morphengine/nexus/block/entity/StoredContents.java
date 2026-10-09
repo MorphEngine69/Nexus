@@ -3,7 +3,6 @@ package com.morphengine.nexus.block.entity;
 import com.morphengine.nexus.energy.SimpleEnergyBuffer;
 import com.morphengine.nexus.item.StoredFluids;
 import com.morphengine.nexus.registry.NexusDataComponents;
-import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import org.jspecify.annotations.Nullable;
 
@@ -36,7 +35,7 @@ public final class StoredContents implements ItemComponentPart {
     }
 
     @Override
-    public void applyFrom(final DataComponentGetter components) {
+    public void applyFrom(final ComponentSource components) {
         final long stored = components.getOrDefault(NexusDataComponents.STORED_ENERGY.get(), 0L);
         energy.restore(SimpleEnergyBuffer.Snapshot.storing(Math.clamp(stored, 0, energy.capacity())));
         if (fluids != null) {

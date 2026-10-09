@@ -1,6 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 /**
  * A 16x16 icon of one resource, ready to draw.
@@ -14,5 +14,5 @@ interface ResourceIcon {
     /**
      * Draws the icon with its top left corner at {@code (x, y)}.
      */
-    void draw(GuiGraphicsExtractor graphics, int x, int y);
+    void draw(GuiGraphics graphics, int x, int y);
 }

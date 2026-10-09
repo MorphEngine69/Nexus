@@ -1,6 +1,7 @@
 package com.morphengine.nexus.block.entity;
 
-import com.geckolib.animation.RawAnimation;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -8,14 +9,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
-import net.minecraft.world.level.storage.ValueInput;
+import software.bernie.geckolib.animation.RawAnimation;
 
 import java.util.function.Function;
 
@@ -122,10 +120,11 @@ public abstract class ShowcaseDeviceBlockEntity extends AnimatedDeviceBlockEntit
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         shown.replaceAll(place -> ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_SHOWN), shown);
+        input.loadItems(TAG_SHOWN, shown);
         cycleActive = input.getBooleanOr(TAG_CYCLE_ACTIVE, false);
         cycleProgress = input.getFloatOr(TAG_CYCLE_PROGRESS, 0);
         cycleRate = input.getFloatOr(TAG_CYCLE_RATE, 0);
@@ -134,12 +133,13 @@ public abstract class ShowcaseDeviceBlockEntity extends AnimatedDeviceBlockEntit
 
     @Override
     public final CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
-        final TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
-        ContainerHelper.saveAllItems(output.child(TAG_SHOWN), shown);
+        final CompoundTag tag = new CompoundTag();
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        output.saveItems(TAG_SHOWN, shown);
         output.putBoolean(TAG_CYCLE_ACTIVE, cycleActive);
         output.putFloat(TAG_CYCLE_PROGRESS, cycleProgress);
         output.putFloat(TAG_CYCLE_RATE, cycleRate);
-        return output.buildResult();
+        return tag;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.client.input.KeyEvent;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.TerminalPanel;
 import com.morphengine.nexus.networking.CraftRequestPayload;
 import com.morphengine.nexus.resource.NexusResource;
@@ -7,14 +9,12 @@ import com.morphengine.nexus.resource.NexusResources;
 import com.morphengine.nexus.terminal.CraftRequest;
 import com.morphengine.nexus.terminal.PlanPreview;
 import com.morphengine.nexus.terminal.TerminalContents;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -118,7 +118,7 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
         if (contents().planRevision() != seenPlanRevision) {
             seenPlanRevision = contents().planRevision();
             if (contents().planOutcome() == CraftRequest.START && minecraft != null) {
-                minecraft.gui.setScreen(parent);
+                minecraft.setScreen(parent);
             } else if (contents().planOutcome() == CraftRequest.CRAFT_LESS) {
                 takeAmountOf(contents().plan());
             }
@@ -140,7 +140,7 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
     }
 
     private void send(final CraftRequest request) {
-        ClientPacketDistributor.sendToServer(new CraftRequestPayload(menu.containerId, resource, amount, request));
+        PacketDistributor.sendToServer(new CraftRequestPayload(menu.containerId, resource, amount, request));
     }
 
     /**
@@ -154,8 +154,9 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
     }
 
     @Override
-    public void extractRenderState(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
-                                   final float partialTick) {
+    public void renderBackground(
+            final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
         final PanelStyle style = PanelStyle.of(menu.badge());
         final CraftRequestButtons buttons = buttons();
         style.drawFrame(graphics, font, buttons.panel(), title);
@@ -172,16 +173,15 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
         }
         style.drawButton(graphics, font, buttons.start(), Component.translatable(plan != null && plan.isComplete()
                 ? "gui.nexus.craft.start" : "gui.nexus.craft.cannot_start"));
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
-    private void drawPlan(final GuiGraphicsExtractor graphics, final PanelStyle style) {
+    private void drawPlan(final GuiGraphics graphics, final PanelStyle style) {
         final int rowsLeft = left() + PanelStyle.PADDING;
         final PlanPreview plan = currentPlan();
         if (plan == null) {
             final Component waiting = Component.translatable(amount > 0 ? "gui.nexus.craft.planning"
                     : "gui.nexus.craft.no_amount");
-            graphics.text(font, waiting, rowsLeft, top() + PLAN_TOP + TEXT_INSET, PanelStyle.TEXT_DIM, false);
+            graphics.drawString(font, waiting, rowsLeft, top() + PLAN_TOP + TEXT_INSET, PanelStyle.TEXT_DIM, false);
             return;
         }
         final List<PlanRow> rows = PlanRow.rowsOf(plan);
@@ -193,7 +193,7 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
         }
     }
 
-    private void drawRow(final GuiGraphicsExtractor graphics, final PlanRow row, final int x, final int y) {
+    private void drawRow(final GuiGraphics graphics, final PlanRow row, final int x, final int y) {
         final NexusResource shown = NexusResources.of(row.resource());
         ResourceRenderers.icon(shown).draw(graphics, x + 1, y + 1);
         final int textLeft = x + PanelStyle.SLOT_SIZE + TEXT_INSET;
@@ -205,13 +205,13 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
         drawAmount(graphics, "gui.nexus.craft.missing", row.missing(), shown, column, textTop, MISSING_RGB);
     }
 
-    private int drawAmount(final GuiGraphicsExtractor graphics, final String key, final long value,
+    private int drawAmount(final GuiGraphics graphics, final String key, final long value,
                            final NexusResource shown, final int x, final int y, final int color) {
         if (value <= 0) {
             return x;
         }
         final Component text = Component.translatable(key, shown.type().unit().compact(value));
-        graphics.text(font, text, x, y, color, false);
+        graphics.drawString(font, text, x, y, color, false);
         return x + font.width(text) + TEXT_GAP;
     }
 
@@ -223,10 +223,11 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         final CraftRequestButtons buttons = buttons();
         return clickStep(buttons, event.x(), event.y()) || clickAction(buttons, event.x(), event.y())
-                || super.mouseClicked(event, doubleClick);
+                || super.mouseClicked(mouseX, mouseY, button);
     }
 
     private boolean clickStep(final CraftRequestButtons buttons, final double x, final double y) {
@@ -268,20 +269,21 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
     }
 
     @Override
-    public boolean keyPressed(final KeyEvent event) {
+    public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
+        final KeyEvent event = new KeyEvent(keyCode, scanCode, modifiers);
         final PlanPreview plan = currentPlan();
         final boolean confirms = event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER;
         if (confirms && plan != null && plan.isComplete()) {
             send(CraftRequest.START);
             return true;
         }
-        return super.keyPressed(event);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
     public void onClose() {
         if (minecraft != null) {
-            minecraft.gui.setScreen(parent);
+            minecraft.setScreen(parent);
         }
     }
 

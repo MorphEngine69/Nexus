@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -102,6 +103,6 @@ public final class NexusMaterials {
         return NexusBlocks.BLOCKS.registerBlock(id,
                 properties -> new DropExperienceBlock(
                         UniformInt.of(NEXUS_ORE_MIN_EXPERIENCE, NEXUS_ORE_MAX_EXPERIENCE), properties),
-                feel::apply);
+                feel.apply(BlockBehaviour.Properties.of()));
     }
 }

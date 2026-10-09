@@ -1,12 +1,9 @@
 package com.morphengine.nexus.client.integration.rei;
 
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
-import me.shedaniel.rei.api.common.display.Display;
-import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
-import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.Nullable;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +17,7 @@ final class MachineDisplay extends BasicDisplay {
 
     MachineDisplay(
             final CategoryIdentifier<MachineDisplay> category, final List<EntryIngredient> inputs,
-            final List<EntryIngredient> outputs, final Identifier recipeId) {
+            final List<EntryIngredient> outputs, final ResourceLocation recipeId) {
         super(inputs, outputs, Optional.of(recipeId));
         this.category = category;
     }
@@ -28,13 +25,5 @@ final class MachineDisplay extends BasicDisplay {
     @Override
     public CategoryIdentifier<?> getCategoryIdentifier() {
         return category;
-    }
-
-    /**
-     * @return {@code null}: the display is made on the client from the recipes it knows and is never synced
-     */
-    @Override
-    public @Nullable DisplaySerializer<? extends Display> getSerializer() {
-        return null;
     }
 }

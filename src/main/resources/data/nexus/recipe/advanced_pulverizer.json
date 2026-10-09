@@ -1,8 +1,12 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:basic_pulverizer",
-    "nexus:advanced_tier_upgrade"
+    {
+      "item": "nexus:basic_pulverizer"
+    },
+    {
+      "item": "nexus:advanced_tier_upgrade"
+    }
   ],
   "result": {
     "id": "nexus:advanced_pulverizer"

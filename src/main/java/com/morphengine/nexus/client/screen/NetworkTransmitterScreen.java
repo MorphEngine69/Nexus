@@ -3,7 +3,7 @@ package com.morphengine.nexus.client.screen;
 import com.morphengine.nexus.block.entity.TransmitterStatus;
 import com.morphengine.nexus.item.NetworkCardItem;
 import com.morphengine.nexus.menu.NetworkTransmitterMenu;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
@@ -38,7 +38,7 @@ public final class NetworkTransmitterScreen extends PanelScreen<NetworkTransmitt
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         PanelStyle.drawNetwork(graphics, font, getMenu().badge(), leftPos, topPos);
         for (Slot slot : getMenu().slots) {
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
@@ -46,17 +46,17 @@ public final class NetworkTransmitterScreen extends PanelScreen<NetworkTransmitt
         final int x = leftPos + TEXT_LEFT;
         final int y = topPos + NetworkTransmitterMenu.CARD_SLOT_Y;
         final TransmitterStatus status = getMenu().status();
-        graphics.text(font, Component.translatable("gui.nexus.transmitter." + status.getSerializedName()), x, y,
+        graphics.drawString(font, Component.translatable("gui.nexus.transmitter." + status.getSerializedName()), x, y,
                 colorOf(status), false);
         final GlobalPos receiver = NetworkCardItem.receiverOf(getMenu().card());
         if (receiver != null) {
             final BlockPos pos = receiver.pos();
-            graphics.text(font, Component.translatable("gui.nexus.transmitter.receiver", pos.getX(), pos.getY(),
+            graphics.drawString(font, Component.translatable("gui.nexus.transmitter.receiver", pos.getX(), pos.getY(),
                     pos.getZ()), x, y + LINE_HEIGHT, PanelStyle.TEXT_DIM, false);
         }
         ChunkLoaderNote.draw(graphics, font, x, topPos + NetworkTransmitterMenu.UPGRADE_SLOT_Y,
                 imageWidth - TEXT_LEFT - TEXT_RIGHT_GAP, getMenu().pos(), getMenu().holdsChunkLoader());
-        graphics.text(font, playerInventoryTitle, leftPos + NetworkTransmitterMenu.INVENTORY_LEFT,
+        graphics.drawString(font, playerInventoryTitle, leftPos + NetworkTransmitterMenu.INVENTORY_LEFT,
                 topPos + NetworkTransmitterMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 

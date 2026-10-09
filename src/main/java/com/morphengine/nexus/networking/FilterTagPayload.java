@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Client to server: the player moved a slot of the filter in the panel they
@@ -17,7 +17,7 @@ import net.minecraft.resources.Identifier;
 public record FilterTagPayload(int containerId, int slot, int step) implements CustomPacketPayload {
 
     public static final Type<FilterTagPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "filter_tag"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "filter_tag"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, FilterTagPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, FilterTagPayload::containerId,

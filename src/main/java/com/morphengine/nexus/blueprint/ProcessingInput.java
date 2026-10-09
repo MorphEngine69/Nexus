@@ -9,7 +9,7 @@ import com.morphengine.nexus.resource.NexusResources;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -25,18 +25,18 @@ import java.util.Optional;
  * @param tag the tag of items or fluids, such as {@code c:ores/iron};
  *            {@code null} when the input takes nothing but its resource
  */
-public record ProcessingInput(ResourceAmount amount, @Nullable Identifier tag) {
+public record ProcessingInput(ResourceAmount amount, @Nullable ResourceLocation tag) {
 
     /** Saved with the fields of the amount, so inputs saved before tags existed read as they were. */
     public static final Codec<ProcessingInput> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                     NexusResources.CODEC.fieldOf("resource").forGetter(ProcessingInput::resource),
                     Codec.LONG.fieldOf("amount").forGetter(input -> input.amount().amount()),
-                    Identifier.CODEC.optionalFieldOf("tag").forGetter(ProcessingInput::tagIfAny))
+                    ResourceLocation.CODEC.optionalFieldOf("tag").forGetter(ProcessingInput::tagIfAny))
             .apply(instance, ProcessingInput::of));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ProcessingInput> STREAM_CODEC = StreamCodec.composite(
             NexusResources.AMOUNT_STREAM_CODEC, ProcessingInput::amount,
-            ByteBufCodecs.optional(Identifier.STREAM_CODEC), ProcessingInput::tagIfAny,
+            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), ProcessingInput::tagIfAny,
             (amount, tag) -> new ProcessingInput(amount, tag.orElse(null)));
 
     public ProcessingInput {
@@ -51,7 +51,7 @@ public record ProcessingInput(ResourceAmount amount, @Nullable Identifier tag) {
     }
 
     private static ProcessingInput of(final NexusResource resource, final long amount,
-                                      final Optional<Identifier> tag) {
+                                      final Optional<ResourceLocation> tag) {
         return new ProcessingInput(new ResourceAmount(resource, amount), tag.orElse(null));
     }
 
@@ -59,7 +59,7 @@ public record ProcessingInput(ResourceAmount amount, @Nullable Identifier tag) {
         return NexusResources.of(amount.resource());
     }
 
-    private Optional<Identifier> tagIfAny() {
+    private Optional<ResourceLocation> tagIfAny() {
         return Optional.ofNullable(tag);
     }
 

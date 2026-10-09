@@ -1,5 +1,6 @@
 package com.morphengine.nexus.networking;
 
+import com.morphengine.nexus.access.NameAndId;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.network.security.PermissionState;
 import com.morphengine.nexus.api.network.security.Role;
@@ -13,7 +14,6 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.server.players.NameAndId;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import java.util.EnumMap;

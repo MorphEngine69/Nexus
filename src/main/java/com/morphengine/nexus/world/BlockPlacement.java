@@ -15,7 +15,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -89,7 +88,7 @@ final class BlockPlacement implements Storage {
         final int count = (int) Math.min(amount, item.maxStackSize());
         if (action.isExecute()) {
             final Vec3 at = space.centre();
-            final Vec3 motion = Vec3.atLowerCornerOf(space.face().getUnitVec3i()).scale(THROW_SPEED);
+            final Vec3 motion = Vec3.atLowerCornerOf(space.face().getNormal()).scale(THROW_SPEED);
             space.level().addFreshEntity(new ItemEntity(space.level(), at.x, at.y, at.z, item.toStack(count),
                     motion.x, motion.y, motion.z));
         }
@@ -122,7 +121,7 @@ final class BlockPlacement implements Storage {
 
     private boolean boilsAway(final Fluid fluid) {
         return fluid.is(FluidTags.WATER)
-                && space.level().environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, space.pos());
+                && space.level().dimensionType().ultraWarm();
     }
 
     @Override

@@ -1,13 +1,7 @@
 package com.morphengine.nexus.client.render;
 
-import com.geckolib.constant.dataticket.DataTicket;
-import com.geckolib.renderer.base.BoneSnapshots;
-import com.geckolib.renderer.base.GeoRenderState;
-import com.morphengine.nexus.block.NetworkColoring;
-import com.morphengine.nexus.block.NetworkDeviceBlock;
 import com.morphengine.nexus.block.SideConnections;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -15,15 +9,10 @@ import org.joml.Vector3f;
 import java.util.List;
 
 /**
- * What a device renderer reads from the block state when it draws a frame: the
- * color of the network, whether the device is lit, and the sides with a port.
- * An item has no block state and shows the standard color, lit, with no cable.
+ * What a device renderer works out from the block state when it draws a frame: the sides with a port, and which bones
+ * to show for them. An item has no block state and shows no cable.
  */
 final class DeviceRenderData {
-
-    static final DataTicket<DyeColor> NETWORK_COLOR = DataTicket.create("device_network_color", DyeColor.class);
-    static final DataTicket<Boolean> LIT = DataTicket.create("device_lit", Boolean.class);
-    static final DataTicket<Integer> PORTS = DataTicket.create("device_ports", Integer.class);
 
     private static final String PORT_BONE_PREFIX = "port_";
     private static final int SIDES = Direction.values().length;
@@ -34,10 +23,11 @@ final class DeviceRenderData {
     private DeviceRenderData() {
     }
 
-    static void capture(final BlockState state, final GeoRenderState renderState, final boolean lit) {
-        renderState.addGeckolibData(NETWORK_COLOR, state.getValue(NetworkDeviceBlock.NETWORK_COLOR));
-        renderState.addGeckolibData(LIT, lit);
-        renderState.addGeckolibData(PORTS, SideConnections.hasSides(state) ? SideConnections.attachedMask(state) : 0);
+    /**
+     * @return the sides of the block with a port, one bit for each by {@link Direction#ordinal()}
+     */
+    static int portsOf(final BlockState state) {
+        return SideConnections.hasSides(state) ? SideConnections.attachedMask(state) : 0;
     }
 
     /**
@@ -65,7 +55,7 @@ final class DeviceRenderData {
                 final Vector3f normal = new Vector3f(side.getStepX(), side.getStepY(), side.getStepZ());
                 undo.transform(normal);
                 table[facing.ordinal()][side.ordinal()] =
-                        Direction.getApproximateNearest(normal.x(), normal.y(), normal.z());
+                        Direction.getNearest(normal.x(), normal.y(), normal.z());
             }
         }
         return table;
@@ -85,38 +75,26 @@ final class DeviceRenderData {
         };
     }
 
-    static DyeColor colorOf(final GeoRenderState renderState) {
-        return renderState.getOrDefaultGeckolibData(NETWORK_COLOR, NetworkColoring.UNCONNECTED);
-    }
-
-    static boolean isLit(final GeoRenderState renderState) {
-        return renderState.getOrDefaultGeckolibData(LIT, true);
-    }
-
-    static int portsOf(final GeoRenderState renderState) {
-        return renderState.getOrDefaultGeckolibData(PORTS, 0);
-    }
-
     /**
      * Shows the port bone of every side set in {@code ports}, one bit per side
      * by {@link Direction#ordinal()}, and hides the rest. A model without the
      * bone of a side simply has no port there.
      */
-    static void showPorts(final BoneSnapshots snapshots, final int ports) {
+    static void showPorts(final Bones bones, final int ports) {
         for (Direction side : Direction.values()) {
             final boolean attached = (ports & 1 << side.ordinal()) != 0;
-            snapshots.ifPresent(PORT_BONE_PREFIX + side.getName(), bone -> bone.skipRender(!attached));
+            bones.hide(PORT_BONE_PREFIX + side.getName(), !attached);
         }
     }
 
     /**
      * Hides, on every side with a port, the bones {@code <prefix>_<side>}: what the port stands in place of.
      */
-    static void hideUnderPorts(final BoneSnapshots snapshots, final int ports, final List<String> prefixes) {
+    static void hideUnderPorts(final Bones bones, final int ports, final List<String> prefixes) {
         for (String prefix : prefixes) {
             for (Direction side : Direction.values()) {
                 final boolean covered = (ports & 1 << side.ordinal()) != 0;
-                snapshots.ifPresent(prefix + "_" + side.getName(), bone -> bone.skipRender(covered));
+                bones.hide(prefix + "_" + side.getName(), covered);
             }
         }
     }
@@ -124,9 +102,9 @@ final class DeviceRenderData {
     /**
      * Hides the bones in {@code names} unless the device is lit.
      */
-    static void hideUnlessLit(final BoneSnapshots snapshots, final boolean lit, final List<String> names) {
+    static void hideUnlessLit(final Bones bones, final boolean lit, final List<String> names) {
         for (String name : names) {
-            snapshots.ifPresent(name, bone -> bone.skipRender(!lit));
+            bones.hide(name, !lit);
         }
     }
 
@@ -134,17 +112,17 @@ final class DeviceRenderData {
      * Hides the bones that only the item shows, such as the coupling and arm
      * that a head has beside it in the world.
      */
-    static void hideItemBones(final BoneSnapshots snapshots) {
-        skipItemBones(snapshots, true);
+    static void hideItemBones(final Bones bones) {
+        setItemBonesHidden(bones, true);
     }
 
-    static void showItemBones(final BoneSnapshots snapshots) {
-        skipItemBones(snapshots, false);
+    static void showItemBones(final Bones bones) {
+        setItemBonesHidden(bones, false);
     }
 
-    private static void skipItemBones(final BoneSnapshots snapshots, final boolean skip) {
+    private static void setItemBonesHidden(final Bones bones, final boolean hidden) {
         for (String name : ITEM_BONES) {
-            snapshots.ifPresent(name, bone -> bone.skipRender(skip));
+            bones.hide(name, hidden);
         }
     }
 }

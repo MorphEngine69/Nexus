@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:steel_ingot",
-    "B": "nexus:cell_housing",
-    "C": "nexus:cell_part_1k",
-    "D": "minecraft:chest"
+    "A": {
+      "item": "nexus:steel_ingot"
+    },
+    "B": {
+      "item": "nexus:cell_housing"
+    },
+    "C": {
+      "item": "nexus:cell_part_1k"
+    },
+    "D": {
+      "item": "minecraft:chest"
+    }
   },
   "pattern": [
     " A ",

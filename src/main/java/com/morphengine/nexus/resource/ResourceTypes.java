@@ -2,8 +2,8 @@ package com.morphengine.nexus.resource;
 
 import com.morphengine.nexus.Nexus;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -19,7 +19,7 @@ import net.neoforged.neoforge.registries.RegistryBuilder;
 public final class ResourceTypes {
 
     public static final ResourceKey<Registry<NexusResourceType<?>>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "resource_type"));
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "resource_type"));
 
     public static final Registry<NexusResourceType<?>> REGISTRY = new RegistryBuilder<>(REGISTRY_KEY).create();
 
@@ -42,8 +42,8 @@ public final class ResourceTypes {
      * @return the registry id of {@code type}
      * @throws IllegalArgumentException if the type is not registered
      */
-    public static Identifier idOf(final NexusResourceType<?> type) {
-        final Identifier id = REGISTRY.getKey(type);
+    public static ResourceLocation idOf(final NexusResourceType<?> type) {
+        final ResourceLocation id = REGISTRY.getKey(type);
         if (id == null) {
             throw new IllegalArgumentException("resource type is not registered: " + type);
         }

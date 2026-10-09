@@ -1,9 +1,9 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.client.input.KeyEvent;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
@@ -45,7 +45,7 @@ final class TerminalSearch {
                 frame.width() - INSET * 2 - resetSize, frame.height() - INSET, hint);
         box.setBordered(false);
         box.setTextColor(PanelStyle.TEXT_LIGHT);
-        box.setHint(hint);
+        box.setHint(hint.copy().withColor(PanelStyle.TEXT_DIM));
         box.setValue(text);
     }
 
@@ -72,10 +72,10 @@ final class TerminalSearch {
         return !box.getValue().isEmpty() && reset.contains(x, y);
     }
 
-    void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+    void draw(final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         graphics.fill(frame.left(), frame.top(), frame.left() + frame.width(), frame.top() + frame.height(),
                 style.track());
-        graphics.outline(frame.left(), frame.top(), frame.width(), frame.height(), style.border());
+        graphics.renderOutline(frame.left(), frame.top(), frame.width(), frame.height(), style.border());
         if (box.getValue().isEmpty()) {
             return;
         }
@@ -112,7 +112,7 @@ final class TerminalSearch {
             return false;
         }
         final boolean hadText = !box.getValue().isEmpty();
-        box.keyPressed(event);
+        box.keyPressed(event.key(), event.scanCode(), event.modifiers());
         if (hadText && box.getValue().isEmpty()) {
             box.setFocused(false);
         }

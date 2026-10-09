@@ -19,15 +19,10 @@ import com.morphengine.nexus.processing.MachinePhase;
 import com.morphengine.nexus.registry.NexusBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -37,16 +32,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class NexusGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final long CELL_CAPACITY = EnergyCellTier.BASIC.capacity();
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
@@ -75,21 +71,16 @@ public final class NexusGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(NexusGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "default"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void cableRunJoinsEnergyCell(final GameTestHelper helper) {
@@ -152,13 +143,13 @@ public final class NexusGameTests {
                 .thenExecute(() -> {
                     try (Transaction transaction = Transaction.openRoot()) {
                         final int accepted = TestEnergy.handler(helper, cellPos).insert(500, transaction);
-                        helper.assertTrue(accepted == 500, Component.literal("cell accepted " + accepted + " of 500"));
+                        helper.assertTrue(accepted == 500, String.valueOf("cell accepted " + accepted + " of 500"));
                         transaction.commit();
                     }
                 })
                 .thenWaitUntil(() -> {
                     final long stored = nexus(helper).statistics().energyStored();
-                    helper.assertTrue(stored == 500, Component.literal("pool stores " + stored + ", expected 500"));
+                    helper.assertTrue(stored == 500, String.valueOf("pool stores " + stored + ", expected 500"));
                 })
                 .thenSucceed();
     }
@@ -173,7 +164,7 @@ public final class NexusGameTests {
                         TestEnergy.handler(helper, cellPos).insert(500, transaction);
                     }
                     final long stored = cellEntity(helper, cellPos).energyBuffer().stored();
-                    helper.assertTrue(stored == 0, Component.literal("aborted insert left " + stored + " FE"));
+                    helper.assertTrue(stored == 0, String.valueOf("aborted insert left " + stored + " FE"));
                 })
                 .thenSucceed();
     }
@@ -188,11 +179,11 @@ public final class NexusGameTests {
                 .thenWaitUntil(() -> {
                     final NetworkBadge badge = cellEntity(helper, cellPos).networkBadge();
                     helper.assertTrue(badge != null && badge.color().equals(red),
-                            Component.literal("cell sees network " + badge));
+                            String.valueOf("cell sees network " + badge));
                 })
                 .thenExecute(() -> helper.destroyBlock(NEXUS.east()))
                 .thenWaitUntil(() -> helper.assertTrue(cellEntity(helper, cellPos).networkBadge() == null,
-                        Component.literal("cell still sees a network after its cable was broken")))
+                        String.valueOf("cell still sees a network after its cable was broken")))
                 .thenSucceed();
     }
 
@@ -203,14 +194,14 @@ public final class NexusGameTests {
         place(helper, cellPos, cell());
 
         helper.startSequence()
-                .thenExecute(() -> helper.getBlockEntity(generatorPos, GeneratorBlockEntity.class)
+                .thenExecute(() -> helper.<GeneratorBlockEntity>getBlockEntity(generatorPos)
                         .input().setItem(0, new ItemStack(Items.CHARCOAL, 2)))
                 .thenWaitUntil(() -> {
                     final long stored = cellEntity(helper, cellPos).energyBuffer().stored();
                     final boolean lit =
                             helper.getBlockState(generatorPos).getValue(GeneratorBlock.PHASE) == MachinePhase.ACTIVE;
                     helper.assertTrue(stored > 0 && lit,
-                            Component.literal("cell holds " + stored + " FE, generator lit=" + lit));
+                            String.valueOf("cell holds " + stored + " FE, generator lit=" + lit));
                 })
                 .thenSucceed();
     }
@@ -253,11 +244,11 @@ public final class NexusGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> assertStatistics(helper, 2, CELL_CAPACITY))
-                .thenExecute(() -> helper.getBlockEntity(generatorPos, GeneratorBlockEntity.class)
+                .thenExecute(() -> helper.<GeneratorBlockEntity>getBlockEntity(generatorPos)
                         .input().setItem(0, new ItemStack(Items.CHARCOAL, 1)))
                 .thenWaitUntil(() -> {
                     final long stored = cellEntity(helper, cellPos).energyBuffer().stored();
-                    helper.assertTrue(stored > 0, Component.literal("cell away from the generator holds no FE"));
+                    helper.assertTrue(stored > 0, String.valueOf("cell away from the generator holds no FE"));
                 })
                 .thenSucceed();
     }
@@ -286,9 +277,9 @@ public final class NexusGameTests {
                 .thenExecute(() -> helper.destroyBlock(NEXUS))
                 .thenWaitUntil(() -> {
                     final NetworkStatistics statistics =
-                            helper.getBlockEntity(second, NexusBlockEntity.class).statistics();
+                            helper.<NexusBlockEntity>getBlockEntity(second).statistics();
                     helper.assertTrue(statistics.devices() == 1,
-                            Component.literal("remaining Nexus leads " + statistics.devices() + " devices"));
+                            String.valueOf("remaining Nexus leads " + statistics.devices() + " devices"));
                     assertStatus(helper, second, NexusStatus.NO_ENERGY);
                 })
                 .thenSucceed();
@@ -317,12 +308,12 @@ public final class NexusGameTests {
     private static void assertStatus(final GameTestHelper helper, final BlockPos pos, final NexusStatus expected) {
         final NexusStatus shown = helper.getBlockState(pos).getValue(NexusBlock.STATUS);
         helper.assertTrue(shown == expected,
-                Component.literal("Nexus at " + pos + " shows " + shown + ", expected " + expected));
+                String.valueOf("Nexus at " + pos + " shows " + shown + ", expected " + expected));
     }
 
     private static void assertPowered(final GameTestHelper helper, final BlockPos pos, final boolean expected) {
         final boolean powered = helper.getBlockState(pos).getValue(CableBlock.POWERED);
-        helper.assertTrue(powered == expected, Component.literal("cable at " + pos + " powered=" + powered));
+        helper.assertTrue(powered == expected, String.valueOf("cable at " + pos + " powered=" + powered));
     }
 
     private static BlockState generator(final Direction facing) {
@@ -333,11 +324,11 @@ public final class NexusGameTests {
     private static void assertNetworkColor(final GameTestHelper helper, final BlockPos pos, final DyeColor expected) {
         final DyeColor shown = helper.getBlockState(pos).getValue(NetworkDeviceBlock.NETWORK_COLOR);
         helper.assertTrue(shown == expected,
-                Component.literal("device at " + pos + " shows " + shown + ", expected " + expected));
+                String.valueOf("device at " + pos + " shows " + shown + ", expected " + expected));
     }
 
     private static EnergyCellBlockEntity cellEntity(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, EnergyCellBlockEntity.class);
+        return helper.<EnergyCellBlockEntity>getBlockEntity(pos);
     }
 
     private static void buildLine(final GameTestHelper helper, final BlockState... eastOfNexus) {
@@ -364,13 +355,13 @@ public final class NexusGameTests {
     }
 
     private static NexusBlockEntity nexus(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class);
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS);
     }
 
     private static void assertStatistics(final GameTestHelper helper, final int devices, final long capacity) {
         final NetworkStatistics statistics = nexus(helper).statistics();
         helper.assertTrue(statistics.devices() == devices && statistics.energyCapacity() == capacity,
-                Component.literal("expected " + devices + " devices and " + capacity + " FE capacity, got "
+                String.valueOf("expected " + devices + " devices and " + capacity + " FE capacity, got "
                         + statistics));
     }
 
@@ -379,6 +370,6 @@ public final class NexusGameTests {
         final BlockState state = helper.getBlockState(pos);
         final boolean attached = state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side));
         helper.assertTrue(attached == expected,
-                Component.literal(state.getBlock().getName().getString() + " " + side + " attached=" + attached));
+                String.valueOf(state.getBlock().getName().getString() + " " + side + " attached=" + attached));
     }
 }

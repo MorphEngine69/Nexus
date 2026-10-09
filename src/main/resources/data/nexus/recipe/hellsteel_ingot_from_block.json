@@ -1,7 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:hellsteel_block"
+    {
+      "item": "nexus:hellsteel_block"
+    }
   ],
   "result": {
     "id": "nexus:hellsteel_ingot",

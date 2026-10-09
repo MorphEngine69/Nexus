@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Client to server: a recipe viewer lays a recipe out as the draft of the
@@ -15,7 +15,7 @@ import net.minecraft.resources.Identifier;
 public record BlueprintRecipePayload(int containerId, BlueprintDraft draft) implements CustomPacketPayload {
 
     public static final Type<BlueprintRecipePayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "blueprint_recipe"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "blueprint_recipe"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, BlueprintRecipePayload> STREAM_CODEC =
             StreamCodec.composite(

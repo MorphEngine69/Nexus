@@ -6,7 +6,7 @@ import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -19,9 +19,9 @@ import java.util.Objects;
  */
 final class CellSides {
 
-    private final EnergyHandler fullAccess;
-    private final EnergyHandler receiveOnly;
-    private final EnergyHandler giveOnly;
+    private final IEnergyStorage fullAccess;
+    private final IEnergyStorage receiveOnly;
+    private final IEnergyStorage giveOnly;
     private SideConfig<Direction> config = SideConfig.closed(Direction.class);
 
     /**
@@ -29,7 +29,7 @@ final class CellSides {
      * @param receiveOnly the handler that only puts FE in
      * @param giveOnly    the handler that only takes FE out
      */
-    CellSides(final EnergyHandler fullAccess, final EnergyHandler receiveOnly, final EnergyHandler giveOnly) {
+    CellSides(final IEnergyStorage fullAccess, final IEnergyStorage receiveOnly, final IEnergyStorage giveOnly) {
         this.fullAccess = Objects.requireNonNull(fullAccess, "fullAccess must not be null");
         this.receiveOnly = Objects.requireNonNull(receiveOnly, "receiveOnly must not be null");
         this.giveOnly = Objects.requireNonNull(giveOnly, "giveOnly must not be null");
@@ -62,14 +62,14 @@ final class CellSides {
      * @return what the cell shows a block that asks from {@code side}: the full handler to a block of a network, the
      *         handler the mode of the side allows to any other, and {@code null} when that side is closed
      */
-    @Nullable EnergyHandler handlerFor(final Level level, final BlockPos pos, final @Nullable Direction side) {
+    @Nullable IEnergyStorage handlerFor(final Level level, final BlockPos pos, final @Nullable Direction side) {
         if (side == null) {
             return null;
         }
         return NetworkNeighbours.hasNetworkBlockBeyond(level, pos, side) ? fullAccess : handlerFor(config.mode(side));
     }
 
-    private @Nullable EnergyHandler handlerFor(final SideMode mode) {
+    private @Nullable IEnergyStorage handlerFor(final SideMode mode) {
         return switch (mode) {
             case CLOSED -> null;
             case INPUT -> receiveOnly;

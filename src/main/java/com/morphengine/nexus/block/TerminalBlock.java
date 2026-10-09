@@ -11,7 +11,6 @@ import com.morphengine.nexus.terminal.TerminalKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -19,8 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -39,7 +38,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
@@ -63,7 +61,7 @@ public final class TerminalBlock extends BaseEntityBlock implements NetworkBlock
     /** The network has energy: the screen glows. Set only by the server. */
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
-    private static final Map<Direction, VoxelShape> SHAPES = Shapes.rotateAll(Block.box(3, 3, 14, 13, 13, 16));
+    private static final Map<Direction, VoxelShape> SHAPES = ShapeRotations.rotateAll(Block.box(3, 3, 14, 13, 13, 16));
 
     private final TerminalKind kind;
 
@@ -124,13 +122,11 @@ public final class TerminalBlock extends BaseEntityBlock implements NetworkBlock
     @Override
     protected BlockState updateShape(
             final BlockState state,
-            final LevelReader level,
-            final ScheduledTickAccess ticks,
-            final BlockPos pos,
             final Direction directionToNeighbour,
-            final BlockPos neighbourPos,
             final BlockState neighbourState,
-            final RandomSource random) {
+            final LevelAccessor level,
+            final BlockPos pos,
+            final BlockPos neighbourPos) {
         final boolean supportChanged = directionToNeighbour == state.getValue(FACING).getOpposite();
         return supportChanged && !canSurvive(state, level, pos) ? Blocks.AIR.defaultBlockState() : state;
     }
@@ -152,10 +148,13 @@ public final class TerminalBlock extends BaseEntityBlock implements NetworkBlock
     }
 
     @Override
-    protected void affectNeighborsAfterRemoval(
-            final BlockState state, final ServerLevel level, final BlockPos pos, final boolean movedByPiston) {
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
-        NetworkChanges.blockRemoved(level, pos);
+    protected void onRemove(
+            final BlockState state, final Level level, final BlockPos pos, final BlockState newState,
+            final boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
+            NetworkChanges.blockRemoved(serverLevel, pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

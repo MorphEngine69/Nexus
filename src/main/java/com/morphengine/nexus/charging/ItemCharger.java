@@ -5,10 +5,7 @@ import com.morphengine.nexus.api.energy.EnergyBuffer;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -38,24 +35,17 @@ public final class ItemCharger {
     public static long charge(final Container slot, final EnergyBuffer source) {
         Objects.requireNonNull(slot, "slot must not be null");
         Objects.requireNonNull(source, "source must not be null");
-        final EnergyHandler item = slot.getItem(0).isEmpty() ? null : handlerOf(slot);
+        final ItemStack stack = slot.getItem(0);
+        final IEnergyStorage item = stack.isEmpty() || stack.getCount() != 1 ? null : handlerOf(stack);
         final int offered = (int) Math.min(Integer.MAX_VALUE, source.extract(Integer.MAX_VALUE, Action.SIMULATE));
         if (item == null || offered <= 0) {
             return 0;
         }
-        try (Transaction transaction = Transaction.openRoot()) {
-            final int taken = item.insert(offered, transaction);
-            transaction.commit();
-            return taken > 0 ? source.extract(taken, Action.EXECUTE) : 0;
-        }
+        final int taken = item.receiveEnergy(offered, false);
+        return taken > 0 ? source.extract(taken, Action.EXECUTE) : 0;
     }
 
-    private static @Nullable EnergyHandler handlerOf(final Container slot) {
-        return ItemAccess.forHandlerIndexStrict(VanillaContainerWrapper.of(slot), 0).oneByOne()
-                .getCapability(Capabilities.Energy.ITEM);
-    }
-
-    private static @Nullable EnergyHandler handlerOf(final ItemStack stack) {
-        return ItemAccess.forStack(stack).getCapability(Capabilities.Energy.ITEM);
+    private static @Nullable IEnergyStorage handlerOf(final ItemStack stack) {
+        return stack.getCapability(Capabilities.EnergyStorage.ITEM);
     }
 }

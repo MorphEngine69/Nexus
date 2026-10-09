@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public record BlueprintDraftPayload(int containerId, BlueprintDraft draft, List<
         implements CustomPacketPayload {
 
     public static final Type<BlueprintDraftPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "blueprint_draft"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "blueprint_draft"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, BlueprintDraftPayload> STREAM_CODEC =
             StreamCodec.composite(

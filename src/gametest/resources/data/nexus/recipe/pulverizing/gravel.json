@@ -1,6 +1,8 @@
 {
   "type": "nexus:pulverizing",
-  "ingredient": "minecraft:gravel",
+  "ingredient": {
+    "item": "minecraft:gravel"
+  },
   "result": {
     "id": "minecraft:sand"
   }

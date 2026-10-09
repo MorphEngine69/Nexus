@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
@@ -22,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animation.RawAnimation;
 
 /**
  * Storage Vault: a rack of {@value StorageVaultBlockEntity#SLOTS} cell bays on its

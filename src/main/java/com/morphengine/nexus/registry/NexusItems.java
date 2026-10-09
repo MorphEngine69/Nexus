@@ -214,7 +214,7 @@ public final class NexusItems {
     private static DeferredItem<DeviceBlockItem> deviceItem(
             final DeferredBlock<?> block, final DeviceBlockItem.Look look) {
         return ITEMS.registerItem(block.getId().getPath(), properties -> new DeviceBlockItem(
-                block.get(), properties.useBlockDescriptionPrefix(), look));
+                block.get(), properties, look));
     }
 
     /**

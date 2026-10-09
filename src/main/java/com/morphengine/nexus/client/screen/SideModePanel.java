@@ -5,7 +5,7 @@ import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
@@ -79,7 +79,7 @@ final class SideModePanel<K extends Enum<K>> {
     }
 
     void draw(
-            final GuiGraphicsExtractor graphics, final Font font, final PanelStyle style,
+            final GuiGraphics graphics, final Font font, final PanelStyle style,
             final SideConfig<K> modes, final int mouseX, final int mouseY) {
         drawButton(graphics, style, mouseX, mouseY);
         if (!open) {
@@ -91,7 +91,7 @@ final class SideModePanel<K extends Enum<K>> {
             final SideMode mode = modes.mode(side);
             graphics.fill(square.left(), square.top(), square.left() + SQUARE, square.top() + SQUARE,
                     mode == SideMode.CLOSED ? CLOSED_FILL : style.buttonFill());
-            graphics.outline(square.left(), square.top(), SQUARE, SQUARE,
+            graphics.renderOutline(square.left(), square.top(), SQUARE, SQUARE,
                     square.contains(mouseX, mouseY) ? PanelStyle.TEXT_LIGHT : style.border());
             drawSign(graphics, square, mode, style.accent());
         }
@@ -125,16 +125,16 @@ final class SideModePanel<K extends Enum<K>> {
     }
 
     void showTooltip(
-            final GuiGraphicsExtractor graphics, final Font font, final SideConfig<K> modes,
+            final GuiGraphics graphics, final Font font, final SideConfig<K> modes,
             final int mouseX, final int mouseY) {
         if (button.contains(mouseX, mouseY)) {
-            graphics.setComponentTooltipForNextFrame(font, List.of(Component.translatable("gui.nexus.sides"),
+            graphics.renderComponentTooltip(font, List.of(Component.translatable("gui.nexus.sides"),
                     Component.translatable("gui.nexus.sides.hint").withStyle(ChatFormatting.GRAY)), mouseX, mouseY);
             return;
         }
         final @Nullable K side = open ? sideAt(mouseX, mouseY) : null;
         if (side != null) {
-            graphics.setComponentTooltipForNextFrame(font, List.of(
+            graphics.renderComponentTooltip(font, List.of(
                     Component.translatable("gui.nexus.side.tooltip", Component.translatable(
                             "gui.nexus.side." + nameOf.apply(side)), modeName(modes.mode(side))),
                     Component.translatable("gui.nexus.side.hint").withStyle(ChatFormatting.GRAY)),
@@ -143,10 +143,10 @@ final class SideModePanel<K extends Enum<K>> {
     }
 
     private void drawButton(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         graphics.fill(button.left(), button.top(), button.left() + BUTTON_SIZE, button.top() + BUTTON_SIZE,
                 style.buttonFill());
-        graphics.outline(button.left(), button.top(), BUTTON_SIZE, BUTTON_SIZE,
+        graphics.renderOutline(button.left(), button.top(), BUTTON_SIZE, BUTTON_SIZE,
                 open || button.contains(mouseX, mouseY) ? PanelStyle.TEXT_LIGHT : style.border());
         final int color = open ? style.accent() : PanelStyle.TEXT_DIM;
         for (int[] cell : ICON) {
@@ -176,7 +176,7 @@ final class SideModePanel<K extends Enum<K>> {
     }
 
     private static void drawSign(
-            final GuiGraphicsExtractor graphics, final PanelBounds square, final SideMode mode, final int accent) {
+            final GuiGraphics graphics, final PanelBounds square, final SideMode mode, final int accent) {
         switch (mode) {
             case CLOSED -> drawCross(graphics, square);
             case INPUT -> drawArrow(graphics, square, false, INPUT_SIGN);
@@ -185,7 +185,7 @@ final class SideModePanel<K extends Enum<K>> {
         }
     }
 
-    private static void drawCross(final GuiGraphicsExtractor graphics, final PanelBounds square) {
+    private static void drawCross(final GuiGraphics graphics, final PanelBounds square) {
         final int size = SQUARE - 2 * SIGN_TOP;
         for (int step = 0; step < size; step++) {
             graphics.fill(square.left() + SIGN_TOP + step, square.top() + SIGN_TOP + step,
@@ -199,7 +199,7 @@ final class SideModePanel<K extends Enum<K>> {
      * An arrow that points out of the square, up, or into it, down.
      */
     private static void drawArrow(
-            final GuiGraphicsExtractor graphics, final PanelBounds square, final boolean up, final int color) {
+            final GuiGraphics graphics, final PanelBounds square, final boolean up, final int color) {
         final int middle = square.left() + SIGN_CENTRE;
         final int total = HEAD_ROWS + SHAFT_ROWS;
         for (int row = 0; row < total; row++) {
@@ -210,7 +210,7 @@ final class SideModePanel<K extends Enum<K>> {
         }
     }
 
-    private static void drawDiamond(final GuiGraphicsExtractor graphics, final PanelBounds square, final int color) {
+    private static void drawDiamond(final GuiGraphics graphics, final PanelBounds square, final int color) {
         final int middle = square.left() + SIGN_CENTRE;
         for (int row = 0; row < 2 * HEAD_ROWS; row++) {
             final int half = row < HEAD_ROWS ? row + 1 : 2 * HEAD_ROWS - row;

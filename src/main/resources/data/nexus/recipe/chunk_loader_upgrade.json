@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:hellsteel_ingot",
-    "B": "minecraft:ender_eye",
-    "C": "nexus:aether_ingot",
-    "D": "nexus:upgrade_blank"
+    "A": {
+      "item": "nexus:hellsteel_ingot"
+    },
+    "B": {
+      "item": "minecraft:ender_eye"
+    },
+    "C": {
+      "item": "nexus:aether_ingot"
+    },
+    "D": {
+      "item": "nexus:upgrade_blank"
+    }
   },
   "pattern": [
     "ABA",

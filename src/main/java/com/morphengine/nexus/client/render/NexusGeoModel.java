@@ -1,8 +1,9 @@
 package com.morphengine.nexus.client.render;
 
-import com.geckolib.animatable.GeoAnimatable;
-import com.geckolib.renderer.base.GeoRenderState;
+import com.morphengine.nexus.block.NexusBlock;
 import com.morphengine.nexus.block.NexusStatus;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import software.bernie.geckolib.animatable.GeoAnimatable;
 
 /**
  * The Nexus model: a Nexus in conflict wears a texture of its own.
@@ -16,8 +17,10 @@ public final class NexusGeoModel<T extends GeoAnimatable> extends DeviceGeoModel
     }
 
     @Override
-    protected String textureName(final GeoRenderState renderState) {
-        return NexusRenderData.statusOf(renderState) == NexusStatus.CONFLICT
-                ? CONFLICT_TEXTURE : super.textureName(renderState);
+    protected String textureName(final T animatable) {
+        final boolean inConflict = animatable instanceof BlockEntity entity
+                && entity.getBlockState().hasProperty(NexusBlock.STATUS)
+                && entity.getBlockState().getValue(NexusBlock.STATUS) == NexusStatus.CONFLICT;
+        return inConflict ? CONFLICT_TEXTURE : super.textureName(animatable);
     }
 }

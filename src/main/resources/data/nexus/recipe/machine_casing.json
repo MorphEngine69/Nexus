@@ -1,8 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:steel_plate",
-    "B": "minecraft:blast_furnace"
+    "A": {
+      "item": "nexus:steel_plate"
+    },
+    "B": {
+      "item": "minecraft:blast_furnace"
+    }
   },
   "pattern": [
     "AAA",

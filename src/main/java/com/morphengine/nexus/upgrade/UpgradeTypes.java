@@ -2,8 +2,8 @@ package com.morphengine.nexus.upgrade;
 
 import com.morphengine.nexus.Nexus;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -24,7 +24,7 @@ import net.neoforged.neoforge.registries.RegistryBuilder;
 public final class UpgradeTypes {
 
     public static final ResourceKey<Registry<NexusUpgradeType>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "upgrade_type"));
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "upgrade_type"));
 
     public static final Registry<NexusUpgradeType> REGISTRY = new RegistryBuilder<>(REGISTRY_KEY).create();
 

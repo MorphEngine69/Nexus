@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import org.jspecify.annotations.Nullable;
 
@@ -22,7 +22,7 @@ public record TerminalClickPayload(int containerId, @Nullable NexusResource reso
         implements CustomPacketPayload {
 
     public static final Type<TerminalClickPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "terminal_click"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "terminal_click"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalClickPayload> STREAM_CODEC =
             StreamCodec.composite(

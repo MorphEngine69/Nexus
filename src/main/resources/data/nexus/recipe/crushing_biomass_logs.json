@@ -1,6 +1,8 @@
 {
   "type": "nexus:crushing",
-  "ingredient": "#minecraft:logs",
+  "ingredient": {
+    "tag": "minecraft:logs"
+  },
   "result": {
     "id": "nexus:biomass",
     "count": 3

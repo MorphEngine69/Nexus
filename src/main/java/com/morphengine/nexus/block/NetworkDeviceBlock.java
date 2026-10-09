@@ -3,11 +3,11 @@ package com.morphengine.nexus.block;
 import com.morphengine.nexus.api.network.Paint;
 import com.morphengine.nexus.block.entity.MenuHost;
 import com.morphengine.nexus.block.entity.MenuHosts;
+import com.morphengine.nexus.block.entity.RemovalEffects;
 import com.morphengine.nexus.level.NetworkChanges;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -16,10 +16,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -48,6 +48,11 @@ public abstract class NetworkDeviceBlock extends BaseEntityBlock implements Netw
         super(properties);
         registerDefaultState(SideConnections.detached(stateDefinition.any())
                 .setValue(NETWORK_COLOR, NetworkColoring.UNCONNECTED));
+    }
+
+    @Override
+    protected RenderShape getRenderShape(final BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
@@ -86,13 +91,11 @@ public abstract class NetworkDeviceBlock extends BaseEntityBlock implements Netw
     @Override
     protected BlockState updateShape(
             final BlockState state,
-            final LevelReader level,
-            final ScheduledTickAccess ticks,
-            final BlockPos pos,
             final Direction directionToNeighbour,
-            final BlockPos neighbourPos,
             final BlockState neighbourState,
-            final RandomSource random) {
+            final LevelAccessor level,
+            final BlockPos pos,
+            final BlockPos neighbourPos) {
         return SideConnections.withSide(state, directionToNeighbour,
                 showsPortTo(state, directionToNeighbour, neighbourState));
     }
@@ -113,11 +116,33 @@ public abstract class NetworkDeviceBlock extends BaseEntityBlock implements Netw
         NetworkChanges.blockPlaced(level, pos, state, oldState);
     }
 
+    /**
+     * Whether this block, put where {@code oldState} stood, takes over the block entity that was there instead of
+     * having it removed. A device turned into one of another tier keeps all that it holds.
+     */
+    protected boolean shouldChangedStateKeepBlockEntity(final BlockState oldState) {
+        return false;
+    }
+
     @Override
-    protected void affectNeighborsAfterRemoval(
-            final BlockState state, final ServerLevel level, final BlockPos pos, final boolean movedByPiston) {
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
-        NetworkChanges.blockRemoved(level, pos);
+    protected void onRemove(
+            final BlockState state, final Level level, final BlockPos pos, final BlockState newState,
+            final boolean movedByPiston) {
+        if (state.is(newState.getBlock())) {
+            super.onRemove(state, level, pos, newState, movedByPiston);
+            return;
+        }
+        final boolean keepsEntity = newState.getBlock() instanceof NetworkDeviceBlock successor
+                && successor.shouldChangedStateKeepBlockEntity(state);
+        if (level instanceof ServerLevel serverLevel) {
+            if (!keepsEntity && level.getBlockEntity(pos) instanceof RemovalEffects device) {
+                device.preRemoveSideEffects(pos, state);
+            }
+            NetworkChanges.blockRemoved(serverLevel, pos);
+        }
+        if (!keepsEntity) {
+            super.onRemove(state, level, pos, newState, movedByPiston);
+        }
     }
 
     @Override

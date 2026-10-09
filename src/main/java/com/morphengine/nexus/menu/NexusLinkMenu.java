@@ -41,7 +41,7 @@ public final class NexusLinkMenu extends DeviceMenu<NexusLinkBlockEntity> implem
         for (int slot = 0; slot < NexusLinkBlockEntity.UPGRADE_SLOTS; slot++) {
             addSlot(new UpgradeSlot(upgrades, slot, UPGRADE_SLOT_X, UPGRADE_SLOT_Y + slot * UPGRADE_ROW_HEIGHT));
         }
-        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
+        InventorySlots.add(this::addSlot, inventory, INVENTORY_LEFT, INVENTORY_TOP);
     }
 
     /**

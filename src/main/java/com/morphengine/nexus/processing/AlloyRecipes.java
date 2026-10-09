@@ -52,7 +52,7 @@ public final class AlloyRecipes implements LevelRecipes {
         for (ItemStack used : recipe.pick(input)) {
             inputs.add(new ResourceAmount(ItemKey.of(used), used.getCount()));
         }
-        final ItemStack result = recipe.assemble(input);
+        final ItemStack result = recipe.assemble(input, level.registryAccess());
         return result.isEmpty() ? Optional.empty() : Optional.of(new MachineRecipe(inputs,
                 new ResourceAmount(ItemKey.of(result), result.getCount()), ticks, energyPerTick));
     }
@@ -60,7 +60,7 @@ public final class AlloyRecipes implements LevelRecipes {
     @Override
     public boolean usesItem(final ServerLevel level, final ItemKey key) {
         final ItemStack stack = key.toStack(1);
-        return level.getServer().getRecipeManager().recipeMap().byType(type.get()).stream()
+        return level.getServer().getRecipeManager().getAllRecipesFor(type.get()).stream()
                 .anyMatch(holder -> holder.value().usesItem(stack));
     }
 }

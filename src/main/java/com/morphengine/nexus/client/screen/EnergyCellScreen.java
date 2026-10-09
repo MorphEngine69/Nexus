@@ -1,10 +1,10 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.EnergyCellMenu;
 import com.morphengine.nexus.menu.EnergyCellView;
 import com.morphengine.nexus.menu.NetworkBadge;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -65,7 +65,7 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> implemen
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final EnergyCellView view = getMenu().view();
         final NetworkBadge network = view.network();
         final int x = leftPos + PanelStyle.PADDING;
@@ -90,25 +90,26 @@ public final class EnergyCellScreen extends PanelScreen<EnergyCellMenu> implemen
         for (Slot slot : getMenu().slots) {
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
         }
-        graphics.text(font, Component.translatable("gui.nexus.energy_cell.charging"),
+        graphics.drawString(font, Component.translatable("gui.nexus.energy_cell.charging"),
                 leftPos + EnergyCellMenu.CHARGE_LEFT + PanelStyle.SLOT_SIZE + GAP / 2,
                 topPos + EnergyCellMenu.CHARGE_TOP + (PanelStyle.SLOT_SIZE - font.lineHeight) / 2,
                 PanelStyle.TEXT_DIM, false);
-        graphics.text(font, playerInventoryTitle, leftPos + EnergyCellMenu.INVENTORY_LEFT,
+        graphics.drawString(font, playerInventoryTitle, leftPos + EnergyCellMenu.INVENTORY_LEFT,
                 topPos + EnergyCellMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 
     @Override
-    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
-        super.extractTooltip(graphics, mouseX, mouseY);
+    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
         statLine.showTooltip(graphics, font, mouseX, mouseY);
         sides.showTooltip(graphics, font, getMenu().sideModes(), mouseX, mouseY);
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         return minecraft != null && (priority.click(minecraft, getMenu().containerId, event.x(), event.y())
                 || sides.click(minecraft, getMenu().containerId, event.x(), event.y(), event.button()))
-                || super.mouseClicked(event, doubleClick);
+                || super.mouseClicked(mouseX, mouseY, button);
     }
 }

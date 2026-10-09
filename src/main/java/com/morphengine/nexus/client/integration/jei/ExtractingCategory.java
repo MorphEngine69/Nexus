@@ -7,7 +7,7 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.category.AbstractRecipeCategory;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.ItemLike;
@@ -40,16 +40,16 @@ final class ExtractingCategory extends AbstractRecipeCategory<RecipeHolder<Extra
             final IRecipeLayoutBuilder builder, final RecipeHolder<ExtractingRecipe> holder,
             final IFocusGroup focuses) {
         final ExtractingRecipe recipe = holder.value();
-        builder.addInputSlot(INPUT_X, SLOT_Y).setStandardSlotBackground().add(recipe.ingredient());
+        builder.addInputSlot(INPUT_X, SLOT_Y).setStandardSlotBackground().addIngredients(recipe.ingredient());
         builder.addOutputSlot(OUTPUT_X, SLOT_Y)
                 .setFluidRenderer(FluidType.BUCKET_VOLUME, false, TANK_SIZE, TANK_SIZE)
-                .add(recipe.fluid(), recipe.amount());
+                .addFluidStack(recipe.fluid(), recipe.amount());
     }
 
     @Override
     public void draw(
             final RecipeHolder<ExtractingRecipe> holder, final IRecipeSlotsView slots,
-            final GuiGraphicsExtractor graphics, final double mouseX, final double mouseY) {
+            final GuiGraphics graphics, final double mouseX, final double mouseY) {
         arrow.draw(graphics, ARROW_X, SLOT_Y);
     }
 }

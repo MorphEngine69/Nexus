@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
@@ -25,12 +25,12 @@ class ProbeTextProvider implements StreamServerDataProvider<BlockAccessor, List<
 
     static final ProbeTextProvider SERVER = new ProbeTextProvider();
 
-    private static final Identifier UID = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "probe");
+    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "probe");
     private static final StreamCodec<RegistryFriendlyByteBuf, List<Component>> CODEC =
             ComponentSerialization.STREAM_CODEC.apply(ByteBufCodecs.list());
 
     @Override
-    public Identifier getUid() {
+    public ResourceLocation getUid() {
         return UID;
     }
 

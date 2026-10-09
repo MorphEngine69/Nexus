@@ -266,10 +266,11 @@ public final class ResourceQuery {
         private Node unary() {
             final Token token = tokens.get(at++);
             return switch (token) {
-                case Negation _ -> at < tokens.size() ? new Not(unary()) : new Everything();
-                case Open _ -> group();
+                case Negation ignoredNegation -> at < tokens.size() ? new Not(unary()) : new Everything();
+                case Open ignoredOpen -> group();
                 case WordToken word -> new Word(word.field(), word.text());
-                case Bar _, Close _ -> new Everything();
+                case Bar ignoredBar -> new Everything();
+                case Close ignoredClose -> new Everything();
             };
         }
 

@@ -32,15 +32,11 @@ import com.morphengine.nexus.transfer.TransferResource;
 import com.morphengine.nexus.transfer.TransferSettings;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestAssertException;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -51,12 +47,13 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -72,7 +69,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class EnergyGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     /** What one insert into a Basic Energy Cell takes at most. */
     private static final int CHARGE = (int) EnergyCellTier.BASIC.maxTransfer();
@@ -124,21 +121,16 @@ public final class EnergyGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(EnergyGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "energy"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void pusherChargesBlockBesideIt(final GameTestHelper helper) {
@@ -182,8 +174,8 @@ public final class EnergyGameTests {
                 .thenIdle(REPORT_WINDOW)
                 .thenExecute(() -> {
                     final DeviceEnergyUse use = pullerUse(helper, account.report(helper.getLevel().getGameTime()));
-                    helper.assertTrue(use.supplied() > 0, Component.literal("the puller supplied nothing: " + use));
-                    helper.assertTrue(use.tolls() > 0, Component.literal("the puller paid no fee: " + use));
+                    helper.assertTrue(use.supplied() > 0, String.valueOf("the puller supplied nothing: " + use));
+                    helper.assertTrue(use.tolls() > 0, String.valueOf("the puller paid no fee: " + use));
                 })
                 .thenSucceed();
     }
@@ -203,13 +195,13 @@ public final class EnergyGameTests {
                 .thenExecute(() -> {
                     final AnalyserView view = AnalyserViews.of(puller, helper.getLevel().getGameTime());
                     helper.assertValueEqual(view.kind(), AnalyserView.Kind.DEVICE,
-                            Component.literal("what was analysed"));
-                    helper.assertValueEqual(view.role(), DeviceRole.PULLER, Component.literal("role of the device"));
-                    helper.assertTrue(view.use().supplied() > 0, Component.literal("supplied nothing: " + view.use()));
-                    helper.assertTrue(view.network() != null, Component.literal("the puller is in no network"));
+                            String.valueOf("what was analysed"));
+                    helper.assertValueEqual(view.role(), DeviceRole.PULLER, String.valueOf("role of the device"));
+                    helper.assertTrue(view.use().supplied() > 0, String.valueOf("supplied nothing: " + view.use()));
+                    helper.assertTrue(view.network() != null, String.valueOf("the puller is in no network"));
                     helper.assertTrue(view.lines().stream().anyMatch(line -> line.label().toString()
                             .contains("analyser.throughput")),
-                            Component.literal("no throughput line in " + view.lines()));
+                            String.valueOf("no throughput line in " + view.lines()));
                 })
                 .thenSucceed();
     }
@@ -219,21 +211,21 @@ public final class EnergyGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(nexus(helper, NEXUS).statistics().devices() > 0,
-                        Component.literal("the network has no devices")))
+                        String.valueOf("the network has no devices")))
                 .thenExecute(() -> {
                     final AnalyserView view = AnalyserViews.of(nexus(helper, NEXUS), helper.getLevel().getGameTime());
                     helper.assertValueEqual(view.kind(), AnalyserView.Kind.NEXUS,
-                            Component.literal("what was analysed"));
-                    helper.assertTrue(view.energy().devices() > 0, Component.literal("the view counts no devices"));
+                            String.valueOf("what was analysed"));
+                    helper.assertTrue(view.energy().devices() > 0, String.valueOf("the view counts no devices"));
                     helper.assertValueEqual(view.energy().energyStored(), (long) CHARGE,
-                            Component.literal("FE the view says the pool holds"));
+                            String.valueOf("FE the view says the pool holds"));
                 })
                 .thenSucceed();
     }
 
     private static DeviceEnergyUse pullerUse(final GameTestHelper helper, final NetworkEnergyReport report) {
         return report.devices().stream().filter(row -> row.role() == DeviceRole.PULLER).findFirst()
-                .orElseThrow(() -> helper.assertionException(DEVICE, Component.literal("no puller in the report")))
+                .orElseThrow(() -> new GameTestAssertException("no puller in the report"))
                 .use();
     }
 
@@ -255,7 +247,7 @@ public final class EnergyGameTests {
 
     private static void pusherKeepsFeedingAnotherNexus(final GameTestHelper helper) {
         buildNetwork(helper);
-        final EnergyCellBlockEntity source = helper.getBlockEntity(CELL, EnergyCellBlockEntity.class);
+        final EnergyCellBlockEntity source = helper.<EnergyCellBlockEntity>getBlockEntity(CELL);
         for (int i = 0; i < 30; i++) {
             source.energyBuffer().insert(CHARGE, Action.EXECUTE);
         }
@@ -267,7 +259,7 @@ public final class EnergyGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(stored(helper, otherCell) >= 12 * CHARGE,
-                        Component.literal("the other network's cell holds only " + stored(helper, otherCell)
+                        String.valueOf("the other network's cell holds only " + stored(helper, otherCell)
                                 + " FE, the source still " + stored(helper, CELL))))
                 .thenSucceed();
     }
@@ -310,7 +302,7 @@ public final class EnergyGameTests {
     private static void lowPriorityCellFillsLast(final GameTestHelper helper) {
         buildNetwork(helper);
         vault(helper).cells().setItem(0, energyVaultCell());
-        helper.getBlockEntity(CELL, EnergyCellBlockEntity.class).setEnergyPriority(-1);
+        helper.<EnergyCellBlockEntity>getBlockEntity(CELL).setEnergyPriority(-1);
 
         helper.startSequence()
                 .thenWaitUntil(() -> assertVaultCellInPool(helper))
@@ -323,7 +315,7 @@ public final class EnergyGameTests {
 
     private static void fasterGenerator(final GameTestHelper helper) {
         place(helper, NEXUS, NexusBlocks.GENERATORS.get(GeneratorKind.COAL).get().defaultBlockState());
-        final GeneratorBlockEntity generator = helper.getBlockEntity(NEXUS, GeneratorBlockEntity.class);
+        final GeneratorBlockEntity generator = helper.<GeneratorBlockEntity>getBlockEntity(NEXUS);
         generator.input().setItem(0, new ItemStack(Items.COAL));
         generator.upgrades().setItem(0, new ItemStack(NexusItems.SPEED_UPGRADE.get(), 2));
 
@@ -368,9 +360,9 @@ public final class EnergyGameTests {
         final TransferSettings settings = TransferSettings.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(saved))
                 .getOrThrow();
         helper.assertTrue(settings.resource() == TransferResource.ENERGY,
-                Component.literal("settings saved with FE listed read as " + settings.resource()));
+                String.valueOf("settings saved with FE listed read as " + settings.resource()));
         helper.assertTrue(TransferSettings.DEFAULT.resource() == TransferResource.ITEM,
-                Component.literal("a new device moves " + TransferSettings.DEFAULT.resource()));
+                String.valueOf("a new device moves " + TransferSettings.DEFAULT.resource()));
         helper.succeed();
     }
 
@@ -398,7 +390,7 @@ public final class EnergyGameTests {
     }
 
     private static long stored(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, EnergyCellBlockEntity.class).energyBuffer().stored();
+        return helper.<EnergyCellBlockEntity>getBlockEntity(pos).energyBuffer().stored();
     }
 
     private static long resourcesEnergy(final GameTestHelper helper) {
@@ -415,15 +407,15 @@ public final class EnergyGameTests {
 
     private static void assertAmount(final GameTestHelper helper, final long actual, final long expected,
                                      final String what) {
-        helper.assertTrue(actual == expected, Component.literal(what + ": " + actual + ", expected " + expected));
+        helper.assertTrue(actual == expected, String.valueOf(what + ": " + actual + ", expected " + expected));
     }
 
     private static NexusBlockEntity nexus(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, NexusBlockEntity.class);
+        return helper.<NexusBlockEntity>getBlockEntity(pos);
     }
 
     private static StorageVaultBlockEntity vault(final GameTestHelper helper) {
-        return helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class);
+        return helper.<StorageVaultBlockEntity>getBlockEntity(VAULT);
     }
 
     private static void cellTiersHoldTheirCapacity(final GameTestHelper helper) {
@@ -434,10 +426,10 @@ public final class EnergyGameTests {
             place(helper, pos, block.defaultBlockState());
 
             final EnergyCellTier tier = block.tier();
-            final long capacity = helper.getBlockEntity(pos, EnergyCellBlockEntity.class).energyBuffer().capacity();
-            helper.assertValueEqual(capacity, tier.capacity(), Component.literal("capacity of the cell at " + pos));
-            helper.assertValueEqual(tier.rank(), index + 1, Component.literal("rank of the cell at " + pos));
-            helper.assertTrue(capacity > previous, Component.literal("a tier holds more than the one below it"));
+            final long capacity = helper.<EnergyCellBlockEntity>getBlockEntity(pos).energyBuffer().capacity();
+            helper.assertValueEqual(capacity, tier.capacity(), String.valueOf("capacity of the cell at " + pos));
+            helper.assertValueEqual(tier.rank(), index + 1, String.valueOf("rank of the cell at " + pos));
+            helper.assertTrue(capacity > previous, String.valueOf("a tier holds more than the one below it"));
             previous = capacity;
         }
         helper.succeed();
@@ -451,10 +443,10 @@ public final class EnergyGameTests {
 
         for (Direction side : Direction.values()) {
             helper.assertTrue(energyAt(helper, ISOLATED, side) == null,
-                    Component.literal("a block of another mod reaches the device from the " + side));
+                    String.valueOf("a block of another mod reaches the device from the " + side));
         }
         helper.assertTrue(energyAt(helper, ISOLATED, null) == null,
-                Component.literal("a request that names no side reaches the device"));
+                String.valueOf("a request that names no side reaches the device"));
         helper.succeed();
     }
 
@@ -468,7 +460,7 @@ public final class EnergyGameTests {
         for (Direction side : Direction.values()) {
             final boolean expected = side == Direction.NORTH;
             helper.assertTrue((energyAt(helper, ISOLATED, side) != null) == expected,
-                    Component.literal("the device " + (expected ? "is closed to" : "is open to") + " the " + side));
+                    String.valueOf("the device " + (expected ? "is closed to" : "is open to") + " the " + side));
         }
         helper.succeed();
     }
@@ -476,30 +468,31 @@ public final class EnergyGameTests {
     private static void followsItsNeighbour(final GameTestHelper helper, final BlockState device) {
         place(helper, ISOLATED, device);
         place(helper, ISOLATED.north(), NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
-        final BlockCapabilityCache<EnergyHandler, Direction> asked = BlockCapabilityCache.create(
-                Capabilities.Energy.BLOCK, helper.getLevel(), helper.absolutePos(ISOLATED), Direction.NORTH);
-        helper.assertTrue(asked.getCapability() != null, Component.literal("closed to a block of a network"));
+        final BlockCapabilityCache<IEnergyStorage, Direction> asked = BlockCapabilityCache.create(
+                Capabilities.EnergyStorage.BLOCK, helper.getLevel(), helper.absolutePos(ISOLATED), Direction.NORTH);
+        helper.assertTrue(asked.getCapability() != null, String.valueOf("closed to a block of a network"));
 
         helper.startSequence()
                 .thenExecute(() -> place(helper, ISOLATED.north(), Blocks.STONE.defaultBlockState()))
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertTrue(asked.getCapability() == null,
-                        Component.literal("open to a block that is no longer of a network")))
+                        String.valueOf("open to a block that is no longer of a network")))
                 .thenExecute(() -> place(helper, ISOLATED.north(),
                         NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState()))
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertTrue(asked.getCapability() != null,
-                        Component.literal("closed to a block of a network that came back")))
+                        String.valueOf("closed to a block of a network that came back")))
                 .thenSucceed();
     }
 
     private static @Nullable EnergyHandler energyAt(
             final GameTestHelper helper, final BlockPos pos, final @Nullable Direction side) {
-        return helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), side);
+        return EnergyHandler.of(
+                helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(pos), side));
     }
 
     private static TransferDeviceBlockEntity deviceEntity(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, TransferDeviceBlockEntity.class);
+        return helper.<TransferDeviceBlockEntity>getBlockEntity(pos);
     }
 
     private static ItemStack energyVaultCell() {

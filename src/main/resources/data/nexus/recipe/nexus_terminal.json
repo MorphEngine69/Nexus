@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:antenna",
-    "B": "nexus:aether_ingot",
-    "C": "nexus:blueprint_terminal",
-    "D": "nexus:battery"
+    "A": {
+      "item": "nexus:antenna"
+    },
+    "B": {
+      "item": "nexus:aether_ingot"
+    },
+    "C": {
+      "item": "nexus:blueprint_terminal"
+    },
+    "D": {
+      "item": "nexus:battery"
+    }
   },
   "pattern": [
     " A ",

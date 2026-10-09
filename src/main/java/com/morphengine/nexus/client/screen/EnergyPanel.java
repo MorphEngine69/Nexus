@@ -7,7 +7,7 @@ import com.morphengine.nexus.level.DeviceEnergyRow;
 import com.morphengine.nexus.level.NetworkEnergyReport;
 import com.morphengine.nexus.menu.NexusMenu;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
@@ -48,7 +48,7 @@ final class EnergyPanel {
         this.font = font;
     }
 
-    void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final EnergyLayout layout) {
+    void draw(final GuiGraphics graphics, final PanelStyle style, final EnergyLayout layout) {
         refresh();
         drawSummary(graphics, style, layout);
         for (EnergySort column : EnergySort.values()) {
@@ -125,7 +125,7 @@ final class EnergyPanel {
                 Component.translatable("gui.nexus.energy.role." + row.role().name().toLowerCase(Locale.ROOT))
                         .withColor(PanelStyle.TEXT_DIM),
                 Component.translatable("gui.nexus.energy.tip.position", pos.getX(), pos.getY(), pos.getZ(),
-                        row.position().dimension().identifier().toString()).withColor(PanelStyle.TEXT_DIM),
+                        row.position().dimension().location().toString()).withColor(PanelStyle.TEXT_DIM),
                 Component.translatable("gui.nexus.energy.tip.drawn", EnergyFormat.exactPerTick(use.drawn())),
                 Component.translatable("gui.nexus.energy.tip.supplied", EnergyFormat.exactPerTick(use.supplied())),
                 Component.translatable("gui.nexus.energy.tip.tolls", EnergyFormat.exactPerTick(use.tolls())));
@@ -175,9 +175,9 @@ final class EnergyPanel {
         scroll = Math.min(scroll, maxScroll());
     }
 
-    private void drawSummary(final GuiGraphicsExtractor graphics, final PanelStyle style, final EnergyLayout layout) {
+    private void drawSummary(final GuiGraphics graphics, final PanelStyle style, final EnergyLayout layout) {
         final NetworkStatistics pool = menu.statistics();
-        graphics.textWithWordWrap(font, Component.translatable("gui.nexus.energy.summary",
+        graphics.drawWordWrap(font, Component.translatable("gui.nexus.energy.summary",
                 EnergyFormat.perTick(pool.energyOutput() * TICKS_PER_SECOND),
                 EnergyFormat.perTick(pool.energyInput() * TICKS_PER_SECOND)), layout.left(),
                 layout.summaryY(), layout.width(), PanelStyle.TEXT_LIGHT);
@@ -188,7 +188,7 @@ final class EnergyPanel {
     }
 
     private void drawHeader(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final PanelBounds bounds,
+            final GuiGraphics graphics, final PanelStyle style, final PanelBounds bounds,
             final EnergySort column) {
         style.drawButton(graphics, font, bounds, column.label());
         if (column == sort) {
@@ -197,12 +197,12 @@ final class EnergyPanel {
         }
     }
 
-    private void drawList(final GuiGraphicsExtractor graphics, final PanelStyle style, final EnergyLayout layout) {
+    private void drawList(final GuiGraphics graphics, final PanelStyle style, final EnergyLayout layout) {
         final PanelBounds list = layout.list();
         graphics.fill(list.left(), list.top(), list.left() + list.width(), list.top() + list.height(), style.track());
-        graphics.outline(list.left(), list.top(), list.width(), list.height(), style.border());
+        graphics.renderOutline(list.left(), list.top(), list.width(), list.height(), style.border());
         if (rows.isEmpty()) {
-            graphics.text(font, Component.translatable("gui.nexus.energy.empty"), list.left() + TEXT_INSET,
+            graphics.drawString(font, Component.translatable("gui.nexus.energy.empty"), list.left() + TEXT_INSET,
                     list.top() + TEXT_INSET, PanelStyle.TEXT_DIM, false);
             return;
         }
@@ -214,7 +214,7 @@ final class EnergyPanel {
         }
     }
 
-    private void drawScrollbar(final GuiGraphicsExtractor graphics, final PanelStyle style, final PanelBounds track) {
+    private void drawScrollbar(final GuiGraphics graphics, final PanelStyle style, final PanelBounds track) {
         graphics.fill(track.left(), track.top(), track.left() + track.width(), track.top() + track.height(),
                 style.buttonFill());
         final int thumb = thumbHeight(track);
@@ -223,28 +223,28 @@ final class EnergyPanel {
     }
 
     private void drawRow(
-            final GuiGraphicsExtractor graphics, final EnergyLayout layout, final int y, final DeviceEnergyRow row) {
+            final GuiGraphics graphics, final EnergyLayout layout, final int y, final DeviceEnergyRow row) {
         final PanelBounds name = layout.column(EnergySort.NAME, y, 0);
-        graphics.text(font, font.plainSubstrByWidth(row.name().getString(), name.width() - ROW_INSET * 2),
+        graphics.drawString(font, font.plainSubstrByWidth(row.name().getString(), name.width() - ROW_INSET * 2),
                 name.left() + ROW_INSET, y + ROW_INSET, PanelStyle.TEXT_LIGHT, false);
         drawFigure(graphics, layout.column(EnergySort.DRAWN, y, 0), row.use().drawn());
         drawFigure(graphics, layout.column(EnergySort.SUPPLIED, y, 0), row.use().supplied());
         drawFigure(graphics, layout.column(EnergySort.TOLLS, y, 0), row.use().tolls());
     }
 
-    private void drawFigure(final GuiGraphicsExtractor graphics, final PanelBounds column, final long perSecond) {
+    private void drawFigure(final GuiGraphics graphics, final PanelBounds column, final long perSecond) {
         final String text = EnergyFormat.perTick(perSecond);
-        graphics.text(font, text, column.left() + column.width() - font.width(text) - ROW_INSET, column.top()
+        graphics.drawString(font, text, column.left() + column.width() - font.width(text) - ROW_INSET, column.top()
                 + ROW_INSET, perSecond > 0 ? PanelStyle.TEXT_LIGHT : PanelStyle.TEXT_DIM, false);
     }
 
-    private void drawFooter(final GuiGraphicsExtractor graphics, final EnergyLayout layout) {
+    private void drawFooter(final GuiGraphics graphics, final EnergyLayout layout) {
         final DeviceEnergyUse portable = menu.energy().portableTerminals();
-        graphics.text(font, Component.translatable("gui.nexus.energy.portable",
+        graphics.drawString(font, Component.translatable("gui.nexus.energy.portable",
                 EnergyFormat.perTick(portable.tolls())), layout.left(), layout.footerY(), PanelStyle.TEXT_DIM, false);
         if (isScrollable()) {
             final String position = (scroll + 1) + "-" + Math.min(rows.size(), scroll + ROWS) + " / " + rows.size();
-            graphics.text(font, position, layout.right() - font.width(position), layout.footerY(),
+            graphics.drawString(font, position, layout.right() - font.width(position), layout.footerY(),
                     PanelStyle.TEXT_DIM, false);
         }
     }

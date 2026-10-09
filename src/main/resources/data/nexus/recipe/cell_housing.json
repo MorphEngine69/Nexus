@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "minecraft:glass",
-    "B": "nexus:polymer",
-    "C": "minecraft:redstone",
-    "D": "nexus:steel_plate"
+    "A": {
+      "item": "minecraft:glass"
+    },
+    "B": {
+      "item": "nexus:polymer"
+    },
+    "C": {
+      "item": "minecraft:redstone"
+    },
+    "D": {
+      "item": "nexus:steel_plate"
+    }
   },
   "pattern": [
     "ABA",

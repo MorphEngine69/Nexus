@@ -2,13 +2,19 @@
   "type": "nexus:alloying",
   "ingredients": [
     {
-      "ingredient": "nexus:cobalt_ingot"
+      "ingredient": {
+        "item": "nexus:cobalt_ingot"
+      }
     },
     {
-      "ingredient": "minecraft:quartz"
+      "ingredient": {
+        "item": "minecraft:quartz"
+      }
     },
     {
-      "ingredient": "minecraft:lapis_lazuli"
+      "ingredient": {
+        "item": "minecraft:lapis_lazuli"
+      }
     }
   ],
   "result": {

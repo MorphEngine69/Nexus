@@ -37,21 +37,26 @@ import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.TerminalMenu;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
+import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusFluids;
+import com.morphengine.nexus.registry.NexusItems;
 import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.transfer.TransferKind;
-import net.minecraft.client.renderer.block.FluidModel;
-import net.minecraft.client.resources.model.sprite.Material;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
-import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -91,16 +96,39 @@ public final class NexusClientSetup {
     }
 
     @SubscribeEvent
-    static void registerBlockStateModels(final RegisterBlockStateModels event) {
-        event.registerModel(CableArmsModel.ID, CableArmsModel.Unbaked.CODEC);
+    static void registerGeometryLoaders(final ModelEvent.RegisterGeometryLoaders event) {
+        event.register(CableArmsModel.ID, CableArmsModel.Loader.INSTANCE);
     }
 
     @SubscribeEvent
-    static void registerFluidModels(final RegisterFluidModelsEvent event) {
-        final Material still = new Material(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "block/biofuel_still"));
-        final Material flowing = new Material(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "block/biofuel_flow"));
-        event.register(new FluidModel.Unbaked(still, flowing, null, null), NexusFluids.BIOFUEL.get(),
-                NexusFluids.BIOFUEL_FLOWING.get());
+    static void registerFluidExtensions(final RegisterClientExtensionsEvent event) {
+        final ResourceLocation still = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "block/biofuel_still");
+        final ResourceLocation flowing = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "block/biofuel_flow");
+        event.registerFluidType(new IClientFluidTypeExtensions() {
+            @Override
+            public ResourceLocation getStillTexture() {
+                return still;
+            }
+
+            @Override
+            public ResourceLocation getFlowingTexture() {
+                return flowing;
+            }
+        }, NexusFluids.BIOFUEL_TYPE.get());
+    }
+
+    @SubscribeEvent
+    static void registerItemProperties(final FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            addFlag(NexusItems.BLUEPRINT.get(), "encoded", NexusDataComponents.ENCODED_BLUEPRINT.get());
+            addFlag(NexusItems.NETWORK_CARD.get(), "linked", NexusDataComponents.LINKED_RECEIVER.get());
+            addFlag(NexusItems.NEXUS_TERMINAL.get(), "bound", NexusDataComponents.BOUND_NEXUS.get());
+        });
+    }
+
+    private static void addFlag(final Item item, final String name, final DataComponentType<?> component) {
+        ItemProperties.register(item, ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, name),
+                (stack, level, entity, seed) -> stack.has(component) ? 1.0F : 0.0F);
     }
 
     @SubscribeEvent

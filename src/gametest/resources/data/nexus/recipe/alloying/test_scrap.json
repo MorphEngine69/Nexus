@@ -2,10 +2,14 @@
   "type": "nexus:alloying",
   "ingredients": [
     {
-      "ingredient": "minecraft:iron_ingot"
+      "ingredient": {
+        "item": "minecraft:iron_ingot"
+      }
     },
     {
-      "ingredient": "#minecraft:coals"
+      "ingredient": {
+        "tag": "minecraft:coals"
+      }
     }
   ],
   "result": {

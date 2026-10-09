@@ -6,7 +6,7 @@ import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.terminal.GridFill;
 import com.morphengine.nexus.terminal.TerminalContents;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,6 +86,6 @@ public final class CraftingGridTransfer {
     }
 
     public void send(final CraftingTerminalMenu menu, final GridFill amount) {
-        ClientPacketDistributor.sendToServer(new CraftingGridFillPayload(menu.containerId, slots, amount));
+        PacketDistributor.sendToServer(new CraftingGridFillPayload(menu.containerId, slots, amount));
     }
 }

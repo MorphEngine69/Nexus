@@ -8,7 +8,7 @@ import io.netty.handler.codec.DecoderException;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public final class NexusResources {
             .dispatch("type", NexusResource::type, NexusResourceType::codec);
 
     private static final StreamCodec<RegistryFriendlyByteBuf, NexusResourceType<?>> TYPE_STREAM_CODEC =
-            Identifier.STREAM_CODEC.<NexusResourceType<?>>map(NexusResources::typeOf, ResourceTypes::idOf).cast();
+            ResourceLocation.STREAM_CODEC.<NexusResourceType<?>>map(NexusResources::typeOf, ResourceTypes::idOf).cast();
 
     public static final StreamCodec<RegistryFriendlyByteBuf, NexusResource> STREAM_CODEC =
             TYPE_STREAM_CODEC.dispatch(NexusResource::type, NexusResourceType::streamCodec);
@@ -66,7 +66,7 @@ public final class NexusResources {
         return List.copyOf(list);
     }
 
-    private static NexusResourceType<?> typeOf(final Identifier id) {
+    private static NexusResourceType<?> typeOf(final ResourceLocation id) {
         return ResourceTypes.REGISTRY.getOptional(id)
                 .orElseThrow(() -> new DecoderException("unknown resource type " + id));
     }

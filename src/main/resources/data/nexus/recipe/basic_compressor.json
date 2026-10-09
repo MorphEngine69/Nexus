@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:steel_ingot",
-    "B": "minecraft:piston",
-    "C": "minecraft:blast_furnace",
-    "D": "minecraft:redstone"
+    "A": {
+      "item": "nexus:steel_ingot"
+    },
+    "B": {
+      "item": "minecraft:piston"
+    },
+    "C": {
+      "item": "minecraft:blast_furnace"
+    },
+    "D": {
+      "item": "minecraft:redstone"
+    }
   },
   "pattern": [
     "ABA",

@@ -1,7 +1,7 @@
 package com.morphengine.nexus.client.screen;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.network.chat.Component;
@@ -28,7 +28,7 @@ final class ChunkLoaderNote {
      * @param held     whether the device holds a Chunk Loader Upgrade
      * @param maxWidth width in pixels the line may take before it wraps
      */
-    static void draw(final GuiGraphicsExtractor graphics, final Font font, final int x, final int y,
+    static void draw(final GuiGraphics graphics, final Font font, final int x, final int y,
                      final int maxWidth, final BlockPos pos, final boolean held) {
         final int chunkX = SectionPos.blockToSectionCoord(pos.getX());
         final int chunkZ = SectionPos.blockToSectionCoord(pos.getZ());
@@ -46,6 +46,6 @@ final class ChunkLoaderNote {
         }
         final int height = font.split(text, maxWidth).size() * font.lineHeight;
         final int top = y - 1 + (PanelStyle.SLOT_SIZE - height) / 2;
-        graphics.textWithWordWrap(font, text, x, top, maxWidth, held ? HELD_RGB : PanelStyle.TEXT_DIM);
+        graphics.drawWordWrap(font, text, x, top, maxWidth, held ? HELD_RGB : PanelStyle.TEXT_DIM);
     }
 }

@@ -12,6 +12,7 @@ val modProperties = listOf(
     "mod_authors",
     "mod_description",
     "minecraft_version",
+    "minecraft_version_range",
     "neoforge_version",
     "neoforge_version_range",
     "loader_version_range",
@@ -54,7 +55,7 @@ allprojects {
     apply(plugin = "checkstyle")
 
     extensions.configure<JavaPluginExtension> {
-        toolchain.languageVersion = JavaLanguageVersion.of(25)
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
     }
 
     extensions.configure<CheckstyleExtension> {
@@ -187,7 +188,7 @@ repositories {
         content { includeGroup("mezz.jei") }
     }
     maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/") {
-        content { includeGroup("com.geckolib") }
+        content { includeGroup("software.bernie.geckolib") }
     }
     exclusiveContent {
         forRepository { maven("https://api.modrinth.com/maven") }
@@ -207,14 +208,14 @@ repositories {
 
 dependencies {
     implementation("org.jspecify:jspecify:$jspecifyVersion")
-    val geckolib = "com.geckolib:geckolib-neoforge-${property("minecraft_version")}:${property("geckolib_version")}"
+    val geckolib = "software.bernie.geckolib:geckolib-neoforge-${property("minecraft_version")}:${property("geckolib_version")}"
     implementation(geckolib)
-    "interfaceInjectionData"(geckolib)
     compileOnly("mezz.jei:jei-${property("minecraft_version")}-neoforge-api:${property("jei_version")}")
     compileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${property("rei_version")}")
     compileOnly("maven.modrinth:jade:${property("jade_version")}")
     compileOnly("mcjty.theoneprobe:theoneprobe:${property("top_version")}:api")
     compileOnly("maven.modrinth:curios:${property("curios_version")}")
+    compileOnly("maven.modrinth:emi:5sIPA1To")
     // Curios sends packets to every player it sees, and the mock players of the game tests have no connection.
     if (gradle.startParameter.taskNames.any { it.endsWith("runClient") }) {
         runtimeOnly("maven.modrinth:curios:${property("curios_version")}")

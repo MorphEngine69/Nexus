@@ -6,9 +6,9 @@ import com.morphengine.nexus.resource.ResourceTypes;
 import com.morphengine.nexus.terminal.EnumCycle;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ final class TerminalSidebar {
         return buttons.area();
     }
 
-    void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final TerminalSettings settings,
+    void draw(final GuiGraphics graphics, final PanelStyle style, final TerminalSettings settings,
               final int mouseX, final int mouseY) {
         final int hovered = buttons.buttonAt(mouseX, mouseY);
         for (Control control : Control.values()) {
@@ -85,8 +85,9 @@ final class TerminalSidebar {
     /**
      * Cycles through showing everything, then each registered resource type.
      */
-    private static @Nullable Identifier nextType(final @Nullable Identifier current, final boolean backwards) {
-        final List<@Nullable Identifier> choices = new ArrayList<>();
+    private static @Nullable ResourceLocation nextType(final @Nullable ResourceLocation current,
+            final boolean backwards) {
+        final List<@Nullable ResourceLocation> choices = new ArrayList<>();
         choices.add(null);
         for (NexusResourceType<?> type : ResourceTypes.REGISTRY) {
             choices.add(ResourceTypes.idOf(type));
@@ -105,11 +106,11 @@ final class TerminalSidebar {
         };
     }
 
-    private static Identifier icon(final Control control, final TerminalSettings settings) {
+    private static ResourceLocation icon(final Control control, final TerminalSettings settings) {
         final String choice = choiceOf(control, settings);
         final boolean ownType = control != Control.TYPE || settings.shownType() == null
                 || Nexus.MOD_ID.equals(settings.shownType().getNamespace());
-        return Identifier.fromNamespaceAndPath(Nexus.MOD_ID,
+        return ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID,
                 "terminal/" + control.key + "_" + (ownType ? choice : "other"));
     }
 

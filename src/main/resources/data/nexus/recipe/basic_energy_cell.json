@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:steel_ingot",
-    "B": "nexus:battery",
-    "C": "nexus:machine_casing",
-    "D": "minecraft:redstone"
+    "A": {
+      "item": "nexus:steel_ingot"
+    },
+    "B": {
+      "item": "nexus:battery"
+    },
+    "C": {
+      "item": "nexus:machine_casing"
+    },
+    "D": {
+      "item": "minecraft:redstone"
+    }
   },
   "pattern": [
     "ABA",

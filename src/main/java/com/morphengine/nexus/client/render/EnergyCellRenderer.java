@@ -1,15 +1,10 @@
 package com.morphengine.nexus.client.render;
 
-import com.geckolib.constant.dataticket.DataTicket;
-import com.geckolib.renderer.base.BoneSnapshots;
-import com.geckolib.renderer.base.GeoRenderState;
 import com.morphengine.nexus.block.EnergyCellBlock;
 import com.morphengine.nexus.block.EnergyCellMarks;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.Direction;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,28 +15,11 @@ import java.util.List;
  */
 public final class EnergyCellRenderer extends DeviceRenderer<EnergyCellBlockEntity> {
 
-    private static final DataTicket<Integer> CHARGE = DataTicket.create("cell_charge", Integer.class);
-    private static final DataTicket<Boolean> CHARGING = DataTicket.create("cell_charging", Boolean.class);
-    private static final DataTicket<Integer> RANK = DataTicket.create("cell_rank", Integer.class);
-    private static final DataTicket<Float> TICKS = DataTicket.create("cell_ticks", Float.class);
     private static final List<String> BONES_UNDER_PORTS = underPorts();
 
     public EnergyCellRenderer(final BlockEntityRendererProvider.Context context) {
         super(context, new DeviceGeoModel<>("energy_cell"),
                 state -> state.getValue(EnergyCellBlock.CHARGE) > 0);
-    }
-
-    @Override
-    public void addRenderData(
-            final EnergyCellBlockEntity animatable, final @Nullable Void relatedObject,
-            final BlockEntityRenderState renderState, final float partialTick) {
-        super.addRenderData(animatable, relatedObject, renderState, partialTick);
-        renderState.addGeckolibData(CHARGE, animatable.getBlockState().getValue(EnergyCellBlock.CHARGE));
-        renderState.addGeckolibData(CHARGING, animatable.getBlockState().getValue(EnergyCellBlock.CHARGING));
-        renderState.addGeckolibData(RANK, animatable.getBlockState().getBlock() instanceof EnergyCellBlock cell
-                ? cell.tier().rank() : 1);
-        renderState.addGeckolibData(TICKS, animatable.getLevel() == null
-                ? 0F : animatable.getLevel().getGameTime() + partialTick);
     }
 
     private static List<String> underPorts() {
@@ -58,23 +36,23 @@ public final class EnergyCellRenderer extends DeviceRenderer<EnergyCellBlockEnti
     }
 
     @Override
-    protected void adjustDeviceBones(final GeoRenderState renderState, final BoneSnapshots snapshots) {
-        final int level = renderState.getOrDefaultGeckolibData(CHARGE, 0);
-        final boolean charging = renderState.getOrDefaultGeckolibData(CHARGING, false);
-        final float ticks = renderState.getOrDefaultGeckolibData(TICKS, 0F);
-        final int ports = DeviceRenderData.portsOf(renderState);
-        for (String other : EnergyCellMarks.bonesOfOtherRanks(renderState.getOrDefaultGeckolibData(RANK, 1))) {
-            snapshots.ifPresent(other, bone -> bone.skipRender(true));
+    protected void adjustDeviceBones(
+            final EnergyCellBlockEntity cell, final Bones bones, final int ports, final float partialTick) {
+        final int level = cell.getBlockState().getValue(EnergyCellBlock.CHARGE);
+        final boolean charging = cell.getBlockState().getValue(EnergyCellBlock.CHARGING);
+        final int rank = cell.getBlockState().getBlock() instanceof EnergyCellBlock block ? block.tier().rank() : 1;
+        final float ticks = cell.getLevel() == null ? 0F : cell.getLevel().getGameTime() + partialTick;
+        for (String other : EnergyCellMarks.bonesOfOtherRanks(rank)) {
+            bones.hide(other, true);
         }
         for (Direction side : ChargeBar.sides()) {
             final boolean covered = (ports & 1 << side.ordinal()) != 0;
             for (int number = 1; number <= EnergyCellBlock.SEGMENTS; number++) {
                 final float fill = covered ? 0 : ChargeBar.fill(number - 1, level, charging, ticks);
                 final boolean alongZ = ChargeBar.runsAlongZ(side);
-                snapshots.ifPresent(ChargeBar.boneName(number, side), bone -> {
-                    bone.skipRender(fill <= 0);
-                    bone.setScale(alongZ ? 1 : fill, 1, alongZ ? fill : 1);
-                });
+                final String name = ChargeBar.boneName(number, side);
+                bones.hide(name, fill <= 0);
+                bones.scale(name, alongZ ? 1 : fill, 1, alongZ ? fill : 1);
             }
         }
     }

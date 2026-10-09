@@ -5,7 +5,7 @@ import com.morphengine.nexus.Nexus;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Energy, the one resource of its kind: every FE is alike, so all keys are
@@ -18,7 +18,7 @@ public record EnergyKey() implements NexusResource {
     public static final MapCodec<EnergyKey> CODEC = MapCodec.unit(INSTANCE);
     public static final StreamCodec<RegistryFriendlyByteBuf, EnergyKey> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
-    private static final Identifier ID = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "energy");
+    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "energy");
 
     @Override
     public NexusResourceType<?> type() {
@@ -31,7 +31,7 @@ public record EnergyKey() implements NexusResource {
     }
 
     @Override
-    public Identifier id() {
+    public ResourceLocation id() {
         return ID;
     }
 }

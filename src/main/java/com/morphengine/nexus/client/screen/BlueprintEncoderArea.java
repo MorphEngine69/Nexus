@@ -4,6 +4,7 @@ import com.morphengine.nexus.api.automation.BlueprintKind;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.blueprint.BlueprintDraft;
 import com.morphengine.nexus.blueprint.GridSlot;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.networking.BlueprintAmountPayload;
 import com.morphengine.nexus.networking.BlueprintSlotPayload;
@@ -12,20 +13,20 @@ import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.resource.NexusResource;
 import com.morphengine.nexus.resource.NexusResources;
 import com.morphengine.nexus.terminal.TerminalLayout;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -100,7 +101,7 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
     }
 
     @Override
-    public void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+    public void draw(final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         buttons.draw(graphics, style, mouseX, mouseY);
         for (int index = 0; index < editableSlots(); index++) {
             drawGhost(graphics, style, index, mouseX, mouseY);
@@ -113,7 +114,7 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
                 arrowCell.top() + TerminalLayout.SLOT / 2 - 2, style.border());
     }
 
-    private void drawGhost(final GuiGraphicsExtractor graphics, final PanelStyle style, final int index,
+    private void drawGhost(final GuiGraphics graphics, final PanelStyle style, final int index,
                            final int mouseX, final int mouseY) {
         final PanelBounds bounds = slot(index);
         style.drawSlot(graphics, bounds.left(), bounds.top());
@@ -137,7 +138,7 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
     /**
      * What the grid crafts, in the middle output slot, which the player does not set.
      */
-    private void drawCraftingResult(final GuiGraphicsExtractor graphics, final PanelStyle style) {
+    private void drawCraftingResult(final GuiGraphics graphics, final PanelStyle style) {
         final PanelBounds bounds = cell(OUTPUT_COLUMN, 1);
         style.drawSlot(graphics, bounds.left(), bounds.top());
         final List<ResourceAmount> outputs = menu.craftingOutputs();
@@ -196,7 +197,7 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
      * none; greyed out while the draft takes no substitutes at all.
      */
     private Component tagLine(final BlueprintDraft.Slot input) {
-        final Identifier tag = input.tag();
+        final ResourceLocation tag = input.tag();
         final MutableComponent line = tag == null ? Component.translatable("gui.nexus.blueprint.tag.none")
                 : Component.translatable("gui.nexus.blueprint.tag", "#" + tag,
                         input.resource().membersOf(tag).size());
@@ -259,7 +260,8 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
      * container holds; otherwise the item.
      */
     private @Nullable NexusResource contentsOf(final ItemStack stack) {
-        final NexusResource fluid = isCrafting() ? null : ghostEntryOf(FluidUtil.getFirstStackContained(stack));
+        final NexusResource fluid = isCrafting() ? null
+                : ghostEntryOf(FluidUtil.getFluidContained(stack).orElse(FluidStack.EMPTY));
         return fluid != null ? fluid : ghostEntryOf(stack);
     }
 
@@ -271,9 +273,9 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
             return false;
         }
         final Minecraft minecraft = Minecraft.getInstance();
-        final long steps = minecraft.hasShiftDown() ? SHIFT_STEP : 1;
+        final long steps = Screen.hasShiftDown() ? SHIFT_STEP : 1;
         final long step = steps * filled.resource().type().unit().step() * (long) Math.signum(amount);
-        ClientPacketDistributor.sendToServer(new BlueprintAmountPayload(menu.containerId, index,
+        PacketDistributor.sendToServer(new BlueprintAmountPayload(menu.containerId, index,
                 filled.amount() + step));
         return true;
     }
@@ -303,6 +305,6 @@ final class BlueprintEncoderArea implements TerminalWorkArea {
     }
 
     private void send(final int index, final @Nullable NexusResource resource) {
-        ClientPacketDistributor.sendToServer(new BlueprintSlotPayload(menu.containerId, index, resource));
+        PacketDistributor.sendToServer(new BlueprintSlotPayload(menu.containerId, index, resource));
     }
 }

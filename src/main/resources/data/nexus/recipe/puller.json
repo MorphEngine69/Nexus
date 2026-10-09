@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:steel_ingot",
-    "B": "minecraft:hopper",
-    "C": "minecraft:redstone",
-    "D": "nexus:core"
+    "A": {
+      "item": "nexus:steel_ingot"
+    },
+    "B": {
+      "item": "minecraft:hopper"
+    },
+    "C": {
+      "item": "minecraft:redstone"
+    },
+    "D": {
+      "item": "nexus:core"
+    }
   },
   "pattern": [
     "ABA",

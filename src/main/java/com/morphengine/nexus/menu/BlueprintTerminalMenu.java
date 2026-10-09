@@ -16,7 +16,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -71,7 +71,7 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
         final Container blueprints = encoder != null ? encoder.blueprints() : new SimpleContainer(ENCODER_SLOTS);
         addSlot(new EncoderSlot(blueprints, BlueprintEncoder.BLANK_SLOT, encoder));
         addSlot(new EncoderSlot(blueprints, BlueprintEncoder.OUTPUT_SLOT, encoder));
-        addStandardInventorySlots(inventory, 0, 0);
+        InventorySlots.add(this::addSlot, inventory, 0, 0);
         addDataSlot(terminal.access());
     }
 
@@ -171,7 +171,7 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
                     ? BlueprintKind.PROCESSING : BlueprintKind.CRAFTING));
             case BUTTON_CLEAR -> encoder.changeDraft(current.cleared());
             case BUTTON_SUBSTITUTION -> encoder.changeDraft(current.withSubstitution(current.substitution().toggled()));
-            case BUTTON_ENCODE -> encoder.encode(serverPlayer.level());
+            case BUTTON_ENCODE -> encoder.encode(serverPlayer.serverLevel());
             default -> {
                 return false;
             }
@@ -187,7 +187,7 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
         if (encoder != null && viewer != null && encoder.draft() != sentDraft) {
             sentDraft = encoder.draft();
             PacketDistributor.sendToPlayer(viewer, new BlueprintDraftPayload(containerId, sentDraft,
-                    encoder.craftingOutputs(viewer.level())));
+                    encoder.craftingOutputs(viewer.serverLevel())));
         }
     }
 
@@ -219,7 +219,7 @@ public final class BlueprintTerminalMenu extends AbstractContainerMenu implement
     }
 
     @Override
-    public void clicked(final int slotIndex, final int buttonNum, final ContainerInput input, final Player player) {
+    public void clicked(final int slotIndex, final int buttonNum, final ClickType input, final Player player) {
         if (SlotGuard.allows(this, slotIndex, input, player)) {
             super.clicked(slotIndex, buttonNum, input, player);
         }

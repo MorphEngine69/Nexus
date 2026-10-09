@@ -4,7 +4,7 @@ import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -35,14 +35,14 @@ record MissingIngredientsError(List<IRecipeSlotView> slots) implements IRecipeTr
     }
 
     @Override
-    public void showError(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
+    public void showError(final GuiGraphics graphics, final int mouseX, final int mouseY,
                           final IRecipeSlotsView recipeSlots, final int recipeX, final int recipeY) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(recipeX, recipeY);
+        graphics.pose().pushPose();
+        graphics.pose().translate(recipeX, recipeY, 0);
         for (IRecipeSlotView slot : slots) {
             slot.drawHighlight(graphics, SLOT_HIGHLIGHT);
         }
-        graphics.pose().popMatrix();
+        graphics.pose().popPose();
     }
 
     @Override

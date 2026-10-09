@@ -1,11 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:polymer",
-    "B": "minecraft:glass",
-    "C": "nexus:steel_plate",
-    "D": "nexus:core",
-    "E": "minecraft:gold_ingot"
+    "A": {
+      "item": "nexus:polymer"
+    },
+    "B": {
+      "item": "minecraft:glass"
+    },
+    "C": {
+      "item": "nexus:steel_plate"
+    },
+    "D": {
+      "item": "nexus:core"
+    },
+    "E": {
+      "item": "minecraft:gold_ingot"
+    }
   },
   "pattern": [
     "ABA",

@@ -1,8 +1,10 @@
 package com.morphengine.nexus.menu;
 
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Moves the player's inventory slots of a menu, added in the vanilla order:
@@ -18,6 +20,21 @@ final class InventorySlots {
     private static final int HOTBAR_OFFSET = 58;
 
     private InventorySlots() {
+    }
+
+    /**
+     * Adds the slots of the inventory of the player to a menu, in the vanilla order.
+     *
+     * @param addSlot adds a slot to the menu
+     */
+    static void add(final Consumer<Slot> addSlot, final Inventory inventory, final int left, final int top) {
+        for (int index = 0; index < COUNT; index++) {
+            final int row = index < MAIN_SLOTS ? index / COLUMNS : 0;
+            final int slotIndex = index < MAIN_SLOTS ? index + COLUMNS : index - MAIN_SLOTS;
+            final int x = left + (index < MAIN_SLOTS ? index % COLUMNS : index - MAIN_SLOTS) * SPACING;
+            final int y = top + (index < MAIN_SLOTS ? row * SPACING : HOTBAR_OFFSET);
+            addSlot.accept(new Slot(inventory, slotIndex, x, y));
+        }
     }
 
     /**

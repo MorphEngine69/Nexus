@@ -12,7 +12,7 @@ import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import java.util.Map;
 public record AnalyserViewPayload(int containerId, AnalyserView view) implements CustomPacketPayload {
 
     public static final Type<AnalyserViewPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "analyser_view"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "analyser_view"));
 
     private static final StreamCodec<RegistryFriendlyByteBuf, AnalyserView> VIEW_CODEC =
             StreamCodec.of(AnalyserViewPayload::writeView, AnalyserViewPayload::readView);

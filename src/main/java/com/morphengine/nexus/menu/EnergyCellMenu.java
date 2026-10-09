@@ -60,7 +60,7 @@ public final class EnergyCellMenu extends DeviceMenu<EnergyCellBlockEntity> {
                 DeviceUpgrades.LIMITS, UPGRADES_LEFT, UPGRADES_TOP));
         addSlot(new ChargeSlot(viewer() != null && cell != null ? cell.chargingSlot() : new SimpleContainer(1),
                 CHARGE_LEFT, CHARGE_TOP));
-        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
+        InventorySlots.add(this::addSlot, inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(priority);
         addDataSlot(sides);
     }

@@ -1,15 +1,10 @@
 package com.morphengine.nexus.client.render;
 
-import com.geckolib.constant.dataticket.DataTicket;
-import com.geckolib.renderer.base.BoneSnapshots;
-import com.geckolib.renderer.base.GeoRenderState;
 import com.morphengine.nexus.block.MachineBlock;
 import com.morphengine.nexus.block.entity.MachineBlockEntity;
 import com.morphengine.nexus.processing.MachineKind;
 import com.morphengine.nexus.processing.MachineMarks;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -19,27 +14,17 @@ import java.util.List;
  */
 public final class MachineRenderer extends FacedDeviceRenderer<MachineBlockEntity> {
 
-    private static final DataTicket<Integer> RANK = DataTicket.create("machine_rank", Integer.class);
-
     public MachineRenderer(final BlockEntityRendererProvider.Context context) {
         super(context, new KindGeoModel<>(machine -> machine.kind().id(), MachineKind.ENERGY_FURNACE.id()),
                 state -> state.getValue(MachineBlock.PHASE).isLit(), MachineBlock.FACING, List.of(), List.of());
-        withRenderLayer(new MachineItemsLayer(this, context.itemModelResolver()));
+        addRenderLayer(new MachineItemsLayer(this, context.getItemRenderer()));
     }
 
     @Override
-    public void addRenderData(
-            final MachineBlockEntity animatable, final @Nullable Void relatedObject,
-            final BlockEntityRenderState renderState, final float partialTick) {
-        super.addRenderData(animatable, relatedObject, renderState, partialTick);
-        renderState.addGeckolibData(KindGeoModel.ASSET, animatable.kind().id());
-        renderState.addGeckolibData(RANK, animatable.machine().tier().rank());
-    }
-
-    @Override
-    protected void adjustDeviceBones(final GeoRenderState renderState, final BoneSnapshots snapshots) {
-        for (String other : MachineMarks.bonesOfOtherRanks(renderState.getOrDefaultGeckolibData(RANK, 1))) {
-            snapshots.ifPresent(other, bone -> bone.skipRender(true));
+    protected void adjustDeviceBones(
+            final MachineBlockEntity machine, final Bones bones, final int ports, final float partialTick) {
+        for (String other : MachineMarks.bonesOfOtherRanks(machine.machine().tier().rank())) {
+            bones.hide(other, true);
         }
     }
 }

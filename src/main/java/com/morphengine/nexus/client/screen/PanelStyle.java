@@ -3,9 +3,9 @@ package com.morphengine.nexus.client.screen;
 import com.morphengine.nexus.api.network.NetworkColor;
 import com.morphengine.nexus.menu.NetworkBadge;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.ARGB;
+import net.minecraft.util.FastColor;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -79,7 +79,7 @@ final class PanelStyle {
      * at {@link #NETWORK_TOP}, where every panel shows it.
      */
     static void drawNetwork(
-            final GuiGraphicsExtractor graphics, final Font font, final @Nullable NetworkBadge network,
+            final GuiGraphics graphics, final Font font, final @Nullable NetworkBadge network,
             final int panelLeft, final int panelTop) {
         drawNetworkLine(graphics, font, network, "gui.nexus.no_network", panelLeft, panelTop);
     }
@@ -89,25 +89,25 @@ final class PanelStyle {
      * instead of that it is not connected.
      */
     static void drawNetworkOrStandalone(
-            final GuiGraphicsExtractor graphics, final Font font, final @Nullable NetworkBadge network,
+            final GuiGraphics graphics, final Font font, final @Nullable NetworkBadge network,
             final int panelLeft, final int panelTop) {
         drawNetworkLine(graphics, font, network, "gui.nexus.standalone", panelLeft, panelTop);
     }
 
     private static void drawNetworkLine(
-            final GuiGraphicsExtractor graphics, final Font font, final @Nullable NetworkBadge network,
+            final GuiGraphics graphics, final Font font, final @Nullable NetworkBadge network,
             final String withoutNetworkKey, final int panelLeft, final int panelTop) {
         final Component line = network != null ? Component.translatable("gui.nexus.network", network.name())
                 : Component.translatable(withoutNetworkKey);
-        graphics.text(font, line, panelLeft + PADDING, panelTop + NETWORK_TOP, TEXT_DIM, false);
+        graphics.drawString(font, line, panelLeft + PADDING, panelTop + NETWORK_TOP, TEXT_DIM, false);
     }
 
     int accent() {
-        return ARGB.opaque(accentRgb);
+        return FastColor.ARGB32.opaque(accentRgb);
     }
 
     int border() {
-        return ARGB.opaque(blend(PANEL_BORDER_RGB, BORDER_TINT));
+        return FastColor.ARGB32.opaque(blend(PANEL_BORDER_RGB, BORDER_TINT));
     }
 
     int buttonFill() {
@@ -115,7 +115,7 @@ final class PanelStyle {
     }
 
     int track() {
-        return ARGB.opaque(TRACK_BASE_RGB);
+        return FastColor.ARGB32.opaque(TRACK_BASE_RGB);
     }
 
     /**
@@ -129,18 +129,18 @@ final class PanelStyle {
      * Panel background, border and header bar with the title in it.
      */
     void drawFrame(
-            final GuiGraphicsExtractor graphics, final Font font, final PanelBounds bounds, final Component title) {
+            final GuiGraphics graphics, final Font font, final PanelBounds bounds, final Component title) {
         final int right = bounds.left() + bounds.width();
         graphics.fill(bounds.left(), bounds.top(), right, bounds.top() + bounds.height(),
                 INTERIOR_ALPHA | blend(PANEL_BASE_RGB, PANEL_TINT));
-        graphics.outline(bounds.left(), bounds.top(), bounds.width(), bounds.height(), border());
+        graphics.renderOutline(bounds.left(), bounds.top(), bounds.width(), bounds.height(), border());
         graphics.fill(bounds.left(), bounds.top(), right, bounds.top() + HEADER_HEIGHT,
                 INTERIOR_ALPHA | blend(HEADER_BASE_RGB, HEADER_TINT));
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(bounds.left() + TITLE_OFFSET_X, bounds.top() + TITLE_OFFSET_Y);
-        graphics.pose().scale(TITLE_SCALE, TITLE_SCALE);
-        graphics.text(font, title, 0, 0, TEXT_LIGHT, false);
-        graphics.pose().popMatrix();
+        graphics.pose().pushPose();
+        graphics.pose().translate(bounds.left() + TITLE_OFFSET_X, bounds.top() + TITLE_OFFSET_Y, 0);
+        graphics.pose().scale(TITLE_SCALE, TITLE_SCALE, 1.0F);
+        graphics.drawString(font, title, 0, 0, TEXT_LIGHT, false);
+        graphics.pose().popPose();
     }
 
     /**
@@ -148,7 +148,7 @@ final class PanelStyle {
      * with a shadow on the top left and a highlight on the bottom right, in the
      * network's border.
      */
-    void drawSlot(final GuiGraphicsExtractor graphics, final int x, final int y) {
+    void drawSlot(final GuiGraphics graphics, final int x, final int y) {
         drawSlotGrid(graphics, x, y, 1, 1);
     }
 
@@ -157,14 +157,14 @@ final class PanelStyle {
      * the whole grid, so a large grid costs a few fills per row and column
      * rather than ten per slot; the pixels come out the same.
      */
-    void drawSlotGrid(final GuiGraphicsExtractor graphics, final int left, final int top, final int columns,
+    void drawSlotGrid(final GuiGraphics graphics, final int left, final int top, final int columns,
                       final int rows) {
         final int right = left + columns * SLOT_SIZE;
         final int bottom = top + rows * SLOT_SIZE;
-        final int shadow = ARGB.opaque(SLOT_SHADOW_RGB);
-        final int light = ARGB.opaque(SLOT_LIGHT_RGB);
+        final int shadow = FastColor.ARGB32.opaque(SLOT_SHADOW_RGB);
+        final int light = FastColor.ARGB32.opaque(SLOT_LIGHT_RGB);
         final int border = border();
-        graphics.fill(left, top, right, bottom, ARGB.opaque(blend(SLOT_BASE_RGB, SLOT_TINT)));
+        graphics.fill(left, top, right, bottom, FastColor.ARGB32.opaque(blend(SLOT_BASE_RGB, SLOT_TINT)));
         for (int row = 0; row < rows; row++) {
             graphics.fill(left, top + row * SLOT_SIZE + 1, right, top + row * SLOT_SIZE + 2, shadow);
         }
@@ -193,7 +193,7 @@ final class PanelStyle {
      * Marks the slot at {@code x}, {@code y} as standing for a tag of what it
      * shows: a small square of the accent in its top left corner.
      */
-    void drawTagMark(final GuiGraphicsExtractor graphics, final int x, final int y) {
+    void drawTagMark(final GuiGraphics graphics, final int x, final int y) {
         graphics.fill(x + 1, y + 1, x + 1 + TAG_MARK, y + 1 + TAG_MARK, accent());
     }
 
@@ -201,9 +201,9 @@ final class PanelStyle {
      * A slot that takes nothing, such as one of a filter that is fixed: the
      * border of a slot around a flat dark interior with diagonal hatching.
      */
-    void drawLockedSlot(final GuiGraphicsExtractor graphics, final int x, final int y) {
-        graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, ARGB.opaque(LOCKED_BASE_RGB));
-        final int hatch = ARGB.opaque(LOCKED_HATCH_RGB);
+    void drawLockedSlot(final GuiGraphics graphics, final int x, final int y) {
+        graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, FastColor.ARGB32.opaque(LOCKED_BASE_RGB));
+        final int hatch = FastColor.ARGB32.opaque(LOCKED_HATCH_RGB);
         final int inner = SLOT_SIZE - 2;
         for (int row = 0; row < inner; row++) {
             for (int column = (LOCKED_HATCH_SPACING - row % LOCKED_HATCH_SPACING) % LOCKED_HATCH_SPACING;
@@ -211,24 +211,24 @@ final class PanelStyle {
                 graphics.fill(x + 1 + column, y + 1 + row, x + 2 + column, y + 2 + row, hatch);
             }
         }
-        graphics.outline(x, y, SLOT_SIZE, SLOT_SIZE, border());
+        graphics.renderOutline(x, y, SLOT_SIZE, SLOT_SIZE, border());
     }
 
     void drawButton(
-            final GuiGraphicsExtractor graphics, final Font font, final PanelBounds bounds, final Component label) {
+            final GuiGraphics graphics, final Font font, final PanelBounds bounds, final Component label) {
         graphics.fill(bounds.left(), bounds.top(), bounds.left() + bounds.width(), bounds.top() + bounds.height(),
                 buttonFill());
-        graphics.outline(bounds.left(), bounds.top(), bounds.width(), bounds.height(), border());
+        graphics.renderOutline(bounds.left(), bounds.top(), bounds.width(), bounds.height(), border());
         final int textX = bounds.left() + (bounds.width() - font.width(label)) / 2;
         final int textY = bounds.top() + (bounds.height() - font.lineHeight) / 2 + 1;
-        graphics.text(font, label, textX, textY, TEXT_LIGHT, false);
+        graphics.drawString(font, label, textX, textY, TEXT_LIGHT, false);
     }
 
     /**
      * A cross of one pixel wide diagonals, {@value #CROSS_SIZE} pixels square,
      * centred in {@code area}; the area's sides must leave an even margin.
      */
-    static void drawCross(final GuiGraphicsExtractor graphics, final PanelBounds area, final int color) {
+    static void drawCross(final GuiGraphics graphics, final PanelBounds area, final int color) {
         final int left = area.left() + (area.width() - CROSS_SIZE) / 2;
         final int top = area.top() + (area.height() - CROSS_SIZE) / 2;
         for (int step = 0; step < CROSS_SIZE; step++) {
@@ -240,19 +240,19 @@ final class PanelStyle {
     /**
      * A small square button showing a cross, lit while the cursor is on it.
      */
-    void drawCrossButton(final GuiGraphicsExtractor graphics, final PanelBounds bounds, final boolean hovered) {
+    void drawCrossButton(final GuiGraphics graphics, final PanelBounds bounds, final boolean hovered) {
         graphics.fill(bounds.left(), bounds.top(), bounds.left() + bounds.width(), bounds.top() + bounds.height(),
                 buttonFill());
-        graphics.outline(bounds.left(), bounds.top(), bounds.width(), bounds.height(),
+        graphics.renderOutline(bounds.left(), bounds.top(), bounds.width(), bounds.height(),
                 hovered ? TEXT_LIGHT : border());
         drawCross(graphics, bounds, hovered ? TEXT_LIGHT : TEXT_DIM);
     }
 
     private int blend(final int baseRgb, final float weight) {
-        final int red = mix(ARGB.red(baseRgb), ARGB.red(accentRgb), weight);
-        final int green = mix(ARGB.green(baseRgb), ARGB.green(accentRgb), weight);
-        final int blue = mix(ARGB.blue(baseRgb), ARGB.blue(accentRgb), weight);
-        return ARGB.color(0, red, green, blue);
+        final int red = mix(FastColor.ARGB32.red(baseRgb), FastColor.ARGB32.red(accentRgb), weight);
+        final int green = mix(FastColor.ARGB32.green(baseRgb), FastColor.ARGB32.green(accentRgb), weight);
+        final int blue = mix(FastColor.ARGB32.blue(baseRgb), FastColor.ARGB32.blue(accentRgb), weight);
+        return FastColor.ARGB32.color(0, red, green, blue);
     }
 
     private static int mix(final int base, final int accent, final float weight) {

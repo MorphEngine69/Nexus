@@ -4,10 +4,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.Nexus;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -27,8 +28,10 @@ public final class WirelessLinks extends SavedData {
     private static final Codec<WirelessLinks> CODEC = Link.CODEC.listOf().xmap(WirelessLinks::new,
             WirelessLinks::links);
 
-    private static final SavedDataType<WirelessLinks> TYPE = new SavedDataType<>(
-            Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "wireless_links"), WirelessLinks::new, CODEC);
+    private static final String DATA_NAME = Nexus.MOD_ID + "_wireless_links";
+    private static final String DATA_TAG = "data";
+    private static final SavedData.Factory<WirelessLinks> FACTORY = new SavedData.Factory<>(WirelessLinks::new,
+            WirelessLinks::load, null);
 
     private final Map<GlobalPos, GlobalPos> receiverOf = new HashMap<>();
 
@@ -41,11 +44,21 @@ public final class WirelessLinks extends SavedData {
         }
     }
 
+    private static WirelessLinks load(final CompoundTag tag, final HolderLookup.Provider registries) {
+        return CODEC.parse(NbtOps.INSTANCE, tag.get(DATA_TAG)).result().orElseGet(WirelessLinks::new);
+    }
+
+    @Override
+    public CompoundTag save(final CompoundTag tag, final HolderLookup.Provider registries) {
+        tag.put(DATA_TAG, CODEC.encodeStart(NbtOps.INSTANCE, this).getOrThrow());
+        return tag;
+    }
+
     /**
      * @return the links of the world {@code server} runs
      */
     public static WirelessLinks of(final MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(TYPE);
+        return server.overworld().getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
     }
 
     /**

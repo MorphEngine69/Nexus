@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:steel_plate",
-    "B": "minecraft:redstone",
-    "C": "nexus:nexus_crystal",
-    "D": "minecraft:copper_ingot"
+    "A": {
+      "item": "nexus:steel_plate"
+    },
+    "B": {
+      "item": "minecraft:redstone"
+    },
+    "C": {
+      "item": "nexus:nexus_crystal"
+    },
+    "D": {
+      "item": "minecraft:copper_ingot"
+    }
   },
   "pattern": [
     "ABA",

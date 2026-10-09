@@ -10,7 +10,7 @@ import mcjty.theoneprobe.api.IProbeInfoProvider;
 import mcjty.theoneprobe.api.IProgressStyle;
 import mcjty.theoneprobe.api.NumberFormat;
 import mcjty.theoneprobe.api.ProbeMode;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,7 +26,7 @@ import java.util.Locale;
  */
 final class ProbeInfoProvider implements IProbeInfoProvider {
 
-    private static final Identifier ID = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "probe");
+    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "probe");
     private static final int ENERGY_FILLED = 0xFFDD0000;
     private static final int ENERGY_ALTERNATE = 0xFF430000;
     private static final int PROGRESS_FILLED = 0xFF44AA44;
@@ -41,7 +41,7 @@ final class ProbeInfoProvider implements IProbeInfoProvider {
     private static final int MIN_BAR_WIDTH = 100;
 
     @Override
-    public Identifier getID() {
+    public ResourceLocation getID() {
         return ID;
     }
 

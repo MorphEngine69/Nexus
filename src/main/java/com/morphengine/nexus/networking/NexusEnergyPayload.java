@@ -11,7 +11,7 @@ import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 /**
@@ -24,7 +24,7 @@ public record NexusEnergyPayload(int containerId, NetworkEnergyReport report) im
     public static final int MAX_DEVICES = 500;
 
     public static final Type<NexusEnergyPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus_energy"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "nexus_energy"));
 
     private static final StreamCodec<RegistryFriendlyByteBuf, DeviceEnergyUse> USE_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_LONG, DeviceEnergyUse::drawn,

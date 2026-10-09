@@ -7,7 +7,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.transfer.energy.ItemAccessEnergyHandler;
 
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class NexusCapabilities {
@@ -18,41 +17,40 @@ public final class NexusCapabilities {
     @SubscribeEvent
     static void register(final RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                Capabilities.Energy.BLOCK,
+                Capabilities.EnergyStorage.BLOCK,
                 NexusBlockEntityTypes.ENERGY_CELL.get(),
                 (cell, side) -> cell.energyHandlerBeyond(side));
         event.registerBlockEntity(
-                Capabilities.Energy.BLOCK,
+                Capabilities.EnergyStorage.BLOCK,
                 NexusBlockEntityTypes.GENERATOR.get(),
                 (generator, side) -> generator.energyHandler(side));
         event.registerBlockEntity(
-                Capabilities.Fluid.BLOCK,
+                Capabilities.FluidHandler.BLOCK,
                 NexusBlockEntityTypes.GENERATOR.get(),
                 (generator, side) -> generator.fluidHandler(side));
         event.registerBlockEntity(
-                Capabilities.Item.BLOCK,
+                Capabilities.ItemHandler.BLOCK,
                 NexusBlockEntityTypes.GENERATOR.get(),
                 (generator, side) -> generator.itemHandler(side));
         event.registerBlockEntity(
-                Capabilities.Energy.BLOCK,
+                Capabilities.EnergyStorage.BLOCK,
                 NexusBlockEntityTypes.MACHINE.get(),
                 (machine, side) -> machine.energyHandler());
         event.registerBlockEntity(
-                Capabilities.Item.BLOCK,
+                Capabilities.ItemHandler.BLOCK,
                 NexusBlockEntityTypes.MACHINE.get(),
                 (machine, side) -> machine.itemHandler(side));
         event.registerBlockEntity(
-                Capabilities.Fluid.BLOCK,
+                Capabilities.FluidHandler.BLOCK,
                 NexusBlockEntityTypes.MACHINE.get(),
                 (machine, side) -> machine.fluidHandler(side));
         event.registerBlockEntity(
-                Capabilities.Energy.BLOCK,
+                Capabilities.EnergyStorage.BLOCK,
                 NexusBlockEntityTypes.NEXUS.get(),
                 (nexus, side) -> NetworkNeighbours.offeredBeyond(nexus, side, nexus.energyHandler()));
         event.registerItem(
-                Capabilities.Energy.ITEM,
-                (stack, access) -> new ItemAccessEnergyHandler(access, NexusDataComponents.TERMINAL_CHARGE.get(),
-                        NexusTerminalItem.capacity(), NexusTerminalItem.capacity(), 0),
+                Capabilities.EnergyStorage.ITEM,
+                (stack, context) -> NexusTerminalItem.chargeStorage(stack),
                 NexusItems.NEXUS_TERMINAL.get());
     }
 }

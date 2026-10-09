@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 /**
@@ -19,7 +19,7 @@ public record CraftRequestPayload(int containerId, NexusResource resource, long 
         implements CustomPacketPayload {
 
     public static final Type<CraftRequestPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "craft_request"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "craft_request"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, CraftRequestPayload> STREAM_CODEC =
             StreamCodec.composite(

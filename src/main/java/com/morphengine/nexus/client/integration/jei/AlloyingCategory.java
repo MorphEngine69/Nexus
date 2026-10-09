@@ -8,12 +8,13 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.category.AbstractRecipeCategory;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.ItemLike;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -49,17 +50,17 @@ final class AlloyingCategory extends AbstractRecipeCategory<RecipeHolder<Alloyin
                     .addItemStacks(stacksOf(needed));
             slot++;
         }
-        builder.addOutputSlot(OUTPUT_X, SLOT_Y).setOutputSlotBackground().add(recipe.resultStack());
+        builder.addOutputSlot(OUTPUT_X, SLOT_Y).setOutputSlotBackground().addItemStack(recipe.resultStack());
     }
 
     private static List<ItemStack> stacksOf(final AlloyIngredient needed) {
-        return needed.ingredient().items().map(item -> new ItemStack(item, needed.count())).toList();
+        return Arrays.stream(needed.ingredient().getItems()).map(item -> item.copyWithCount(needed.count())).toList();
     }
 
     @Override
     public void draw(
             final RecipeHolder<AlloyingRecipe> holder, final IRecipeSlotsView slots,
-            final GuiGraphicsExtractor graphics, final double mouseX, final double mouseY) {
+            final GuiGraphics graphics, final double mouseX, final double mouseY) {
         arrow.draw(graphics, ARROW_X, SLOT_Y);
     }
 }

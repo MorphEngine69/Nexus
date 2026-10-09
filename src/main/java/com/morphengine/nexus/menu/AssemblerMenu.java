@@ -62,7 +62,7 @@ public final class AssemblerMenu extends DeviceMenu<AssemblerBlockEntity> implem
         for (int slot = 0; slot < AssemblerBlockEntity.UPGRADE_SLOTS; slot++) {
             addSlot(new UpgradeSlot(upgrades, slot, UPGRADES_LEFT, UPGRADES_TOP + slot * SLOT_SPACING));
         }
-        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
+        InventorySlots.add(this::addSlot, inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(priority);
         addDataSlot(lock);
         addDataSlot(taskCount);

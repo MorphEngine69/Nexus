@@ -1,6 +1,8 @@
 {
   "type": "nexus:pulverizing",
-  "ingredient": "nexus:cobalt_ingot",
+  "ingredient": {
+    "item": "nexus:cobalt_ingot"
+  },
   "result": {
     "id": "nexus:cobalt_dust"
   }

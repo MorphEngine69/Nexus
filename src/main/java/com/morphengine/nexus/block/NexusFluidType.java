@@ -2,6 +2,7 @@ package com.morphengine.nexus.block;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidType;
 
@@ -25,7 +26,8 @@ public final class NexusFluidType extends FluidType {
     }
 
     @Override
-    public boolean move(final LivingEntity entity, final Vec3 input, final double gravity) {
+    public boolean move(
+            final FluidState state, final LivingEntity entity, final Vec3 input, final double gravity) {
         final boolean isFalling = entity.getDeltaMovement().y <= 0.0;
         final double oldY = entity.getY();
         entity.moveRelative(CONTROL, input);

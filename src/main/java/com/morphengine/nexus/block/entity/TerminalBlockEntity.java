@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block.entity;
 
-import com.geckolib.animation.RawAnimation;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.block.TerminalBlock;
 import com.morphengine.nexus.energy.DeviceEnergyMeter;
@@ -13,6 +12,8 @@ import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.menu.TerminalHost;
 import com.morphengine.nexus.menu.TerminalMenu;
 import com.morphengine.nexus.menu.TerminalOpening;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.storage.NetworkStorage;
@@ -20,8 +21,9 @@ import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import com.morphengine.nexus.terminal.TerminalStatus;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -29,9 +31,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animation.RawAnimation;
 
 /**
  * A terminal: a window onto its network's storage. It keeps how the player
@@ -181,7 +182,6 @@ public final class TerminalBlockEntity extends AnimatedDeviceBlockEntity impleme
         };
     }
 
-    @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
         if (level != null && craftingGrid != null) {
@@ -193,11 +193,12 @@ public final class TerminalBlockEntity extends AnimatedDeviceBlockEntity impleme
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
         output.store(TAG_SETTINGS, TerminalSettings.CODEC, settings);
         if (craftingGrid != null) {
-            ContainerHelper.saveAllItems(output, craftingGrid.stacks());
+            output.saveItems(craftingGrid.stacks());
         }
         if (encoder != null) {
             encoder.write(output);
@@ -205,11 +206,12 @@ public final class TerminalBlockEntity extends AnimatedDeviceBlockEntity impleme
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         settings = input.read(TAG_SETTINGS, TerminalSettings.CODEC).orElse(TerminalSettings.DEFAULT);
         if (craftingGrid != null) {
-            ContainerHelper.loadAllItems(input, craftingGrid.stacks());
+            input.loadItems(craftingGrid.stacks());
         }
         if (encoder != null) {
             encoder.read(input);

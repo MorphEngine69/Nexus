@@ -12,15 +12,15 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -47,15 +47,15 @@ public final class BlueprintItem extends Item {
     }
 
     @Override
-    public InteractionResult use(final Level level, final Player player, final InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
         if (!player.isSecondaryUseActive() || encodedOn(stack) == null) {
-            return InteractionResult.PASS;
+            return InteractionResultHolder.pass(player.getItemInHand(hand));
         }
         if (!level.isClientSide()) {
             stack.remove(NexusDataComponents.ENCODED_BLUEPRINT.get());
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide());
     }
 
     @Override
@@ -71,8 +71,9 @@ public final class BlueprintItem extends Item {
     @Override
     @SuppressWarnings("deprecation")
     public void appendHoverText(
-            final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display,
-            final Consumer<Component> builder, final TooltipFlag flag) {
+            final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip,
+            final TooltipFlag flag) {
+        final Consumer<Component> builder = tooltip::add;
         final EncodedBlueprint encoded = encodedOn(stack);
         if (encoded == null) {
             builder.accept(Component.translatable("tooltip.nexus.blueprint.blank").withStyle(ChatFormatting.GRAY));

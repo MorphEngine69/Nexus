@@ -3,18 +3,16 @@ package com.morphengine.nexus.processing;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.registry.NexusRecipes;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStackTemplate;
-import net.minecraft.world.item.crafting.PlacementInfo;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -29,28 +27,31 @@ public final class AlloyingRecipe implements Recipe<AlloyInput> {
     private static final int MOST_INPUTS = 3;
 
     public static final MapCodec<AlloyingRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Recipe.CommonInfo.MAP_CODEC.forGetter(recipe -> recipe.commonInfo),
             AlloyIngredient.CODEC.listOf(1, MOST_INPUTS).fieldOf("ingredients").forGetter(AlloyingRecipe::ingredients),
-            ItemStackTemplate.CODEC.fieldOf("result").forGetter(recipe -> recipe.result)
+            ItemStack.STRICT_CODEC.fieldOf("result").forGetter(recipe -> recipe.result)
     ).apply(instance, AlloyingRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AlloyingRecipe> STREAM_CODEC = StreamCodec.composite(
-            Recipe.CommonInfo.STREAM_CODEC, recipe -> recipe.commonInfo,
             AlloyIngredient.STREAM_CODEC.apply(ByteBufCodecs.list()), AlloyingRecipe::ingredients,
-            ItemStackTemplate.STREAM_CODEC, recipe -> recipe.result,
+            ItemStack.STREAM_CODEC, recipe -> recipe.result,
             AlloyingRecipe::new);
 
-    public static final RecipeSerializer<AlloyingRecipe> SERIALIZER =
-            new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+    public static final RecipeSerializer<AlloyingRecipe> SERIALIZER = new RecipeSerializer<>() {
+        @Override
+        public MapCodec<AlloyingRecipe> codec() {
+            return MAP_CODEC;
+        }
 
-    private final Recipe.CommonInfo commonInfo;
+        @Override
+        public StreamCodec<RegistryFriendlyByteBuf, AlloyingRecipe> streamCodec() {
+            return STREAM_CODEC;
+        }
+    };
+
     private final List<AlloyIngredient> ingredients;
-    private final ItemStackTemplate result;
+    private final ItemStack result;
 
-    public AlloyingRecipe(
-            final Recipe.CommonInfo commonInfo, final List<AlloyIngredient> ingredients,
-            final ItemStackTemplate result) {
-        this.commonInfo = commonInfo;
+    public AlloyingRecipe(final List<AlloyIngredient> ingredients, final ItemStack result) {
         this.ingredients = List.copyOf(ingredients);
         this.result = result;
     }
@@ -63,7 +64,7 @@ public final class AlloyingRecipe implements Recipe<AlloyInput> {
      * @return a stack of what one run of the recipe makes
      */
     public ItemStack resultStack() {
-        return result.create();
+        return result.copy();
     }
 
     /**
@@ -107,8 +108,30 @@ public final class AlloyingRecipe implements Recipe<AlloyInput> {
     }
 
     @Override
-    public ItemStack assemble(final AlloyInput input) {
-        return result.create();
+    public ItemStack assemble(final AlloyInput input, final HolderLookup.Provider registries) {
+        return result.copy();
+    }
+
+    @Override
+    public boolean canCraftInDimensions(final int width, final int height) {
+        return true;
+    }
+
+    @Override
+    public ItemStack getResultItem(final HolderLookup.Provider registries) {
+        return result;
+    }
+
+    @Override
+    public NonNullList<Ingredient> getIngredients() {
+        final NonNullList<Ingredient> all = NonNullList.create();
+        ingredients.forEach(needed -> all.add(needed.ingredient()));
+        return all;
+    }
+
+    @Override
+    public boolean isSpecial() {
+        return true;
     }
 
     @Override
@@ -119,30 +142,5 @@ public final class AlloyingRecipe implements Recipe<AlloyInput> {
     @Override
     public RecipeType<AlloyingRecipe> getType() {
         return NexusRecipes.ALLOYING.get();
-    }
-
-    @Override
-    public boolean showNotification() {
-        return commonInfo.showNotification();
-    }
-
-    @Override
-    public String group() {
-        return "";
-    }
-
-    @Override
-    public PlacementInfo placementInfo() {
-        return PlacementInfo.create(ingredients.stream().map(AlloyIngredient::ingredient).toList());
-    }
-
-    @Override
-    public List<RecipeDisplay> display() {
-        return List.of();
-    }
-
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategories.STONECUTTER;
     }
 }

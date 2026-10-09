@@ -59,7 +59,7 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
         final NexusBlockEntity nexus = blockEntity();
         addSlot(UpgradeColumn.single(viewer() != null && nexus != null ? nexus.upgrades() : null,
                 DeviceUpgrades.LIMITS, UPGRADES_LEFT, UPGRADES_TOP));
-        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
+        InventorySlots.add(this::addSlot, inventory, INVENTORY_LEFT, INVENTORY_TOP);
     }
 
     public NetworkStatistics statistics() {
@@ -161,8 +161,8 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
             return;
         }
         if (edit == null) {
-            player.sendOverlayMessage(Component.translatable("gui.nexus.access.result.offline")
-                    .withStyle(ChatFormatting.RED));
+            player.displayClientMessage(Component.translatable("gui.nexus.access.result.offline")
+                    .withStyle(ChatFormatting.RED), true);
             return;
         }
         final EditResult result = nexus.security().apply(Operators.editorOf(player), edit);
@@ -170,8 +170,9 @@ public final class NexusMenu extends DeviceMenu<NexusBlockEntity> {
             nexus.invalidateNetwork();
         }
         if (result != EditResult.APPLIED && result != EditResult.UNCHANGED) {
-            player.sendOverlayMessage(Component.translatable(
-                    "gui.nexus.access.result." + result.name().toLowerCase(Locale.ROOT)).withStyle(ChatFormatting.RED));
+            player.displayClientMessage(Component.translatable(
+                    "gui.nexus.access.result." + result.name().toLowerCase(Locale.ROOT)).withStyle(ChatFormatting.RED),
+                            true);
         }
     }
 

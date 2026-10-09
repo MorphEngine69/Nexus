@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Client to server: the player switched the filter in the panel they look at
@@ -14,7 +14,7 @@ import net.minecraft.resources.Identifier;
 public record FilterModePayload(int containerId) implements CustomPacketPayload {
 
     public static final Type<FilterModePayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "filter_mode"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "filter_mode"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, FilterModePayload> STREAM_CODEC =
             ByteBufCodecs.VAR_INT.<FilterModePayload>map(FilterModePayload::new, FilterModePayload::containerId).cast();

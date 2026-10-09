@@ -2,15 +2,15 @@ package com.morphengine.nexus.resource;
 
 import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.api.resource.ResourceGroup;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 import java.util.List;
 import java.util.Objects;
@@ -48,22 +48,23 @@ public record FluidKey(FluidResource fluid) implements NexusResource {
     }
 
     @Override
-    public Identifier id() {
+    public ResourceLocation id() {
         return BuiltInRegistries.FLUID.getKey(fluid.getFluid());
     }
 
     @Override
-    public List<Identifier> tags() {
+    public List<ResourceLocation> tags() {
         return ResourceTags.tagsOf(BuiltInRegistries.FLUID.wrapAsHolder(fluid.getFluid()));
     }
 
     @Override
-    public List<NexusResource> membersOf(final Identifier tag) {
-        return ResourceTags.membersOf(BuiltInRegistries.FLUID, tag, entry -> new FluidKey(FluidResource.of(entry)));
+    public List<NexusResource> membersOf(final ResourceLocation tag) {
+        return ResourceTags.membersOf(BuiltInRegistries.FLUID, tag, entry ->
+                new FluidKey(FluidResource.of(entry.value())));
     }
 
     @Override
-    public Optional<ResourceGroup> tagGroup(final Identifier tag) {
+    public Optional<ResourceGroup> tagGroup(final ResourceLocation tag) {
         return Optional.of(new FluidTagGroup(TagKey.create(Registries.FLUID, tag)));
     }
 }

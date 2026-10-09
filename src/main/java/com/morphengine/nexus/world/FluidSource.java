@@ -7,10 +7,10 @@ import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.resource.FluidKey;
 import com.morphengine.nexus.storage.StorageArguments;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.world.level.block.BucketPickup;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;

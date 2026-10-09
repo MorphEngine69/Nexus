@@ -3,7 +3,7 @@ package com.morphengine.nexus.client.screen;
 import com.morphengine.nexus.menu.PriorityButtons;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -40,8 +40,8 @@ final class PriorityRow {
         }
     }
 
-    void draw(final GuiGraphicsExtractor graphics, final Font font, final PanelStyle style, final int priority) {
-        graphics.text(font, Component.translatable("gui.nexus.vault.priority", priority), textLeft,
+    void draw(final GuiGraphics graphics, final Font font, final PanelStyle style, final int priority) {
+        graphics.drawString(font, Component.translatable("gui.nexus.vault.priority", priority), textLeft,
                 top + (BUTTON_HEIGHT - font.lineHeight) / 2 + 1, PanelStyle.TEXT_LIGHT, false);
         for (int i = 0; i < buttons.size(); i++) {
             style.drawButton(graphics, font, buttons.get(i), Component.literal(PriorityButtons.labelOf(i)));

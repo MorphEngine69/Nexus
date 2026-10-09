@@ -7,7 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -20,7 +20,7 @@ public record FilterSlotPayload(int containerId, int slot, @Nullable NexusResour
         implements CustomPacketPayload {
 
     public static final Type<FilterSlotPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "filter_slot"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "filter_slot"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, FilterSlotPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, FilterSlotPayload::containerId,

@@ -4,11 +4,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.resource.ItemKey;
+import com.morphengine.nexus.transfer.ItemResource;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public record GridSlot(int slot, ItemKey item, @Nullable Ingredient accepted) {
     public static final StreamCodec<RegistryFriendlyByteBuf, GridSlot> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, GridSlot::slot,
             ItemKey.STREAM_CODEC, GridSlot::item,
-            Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC, GridSlot::acceptedIfAny,
+            ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), GridSlot::acceptedIfAny,
             GridSlot::of);
 
     public GridSlot {
@@ -72,12 +73,12 @@ public record GridSlot(int slot, ItemKey item, @Nullable Ingredient accepted) {
         final List<ResourceKey> options = new ArrayList<>();
         options.add(item);
         if (substitution.isAllowed() && accepted != null) {
-            accepted.items().forEach(entry -> {
-                final ItemKey other = new ItemKey(ItemResource.of(entry));
+            for (ItemStack entry : accepted.getItems()) {
+                final ItemKey other = new ItemKey(ItemResource.of(entry.getItem()));
                 if (!options.contains(other)) {
                     options.add(other);
                 }
-            });
+            }
         }
         return List.copyOf(options);
     }

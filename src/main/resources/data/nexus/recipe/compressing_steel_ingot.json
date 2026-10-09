@@ -1,6 +1,8 @@
 {
   "type": "nexus:compressing",
-  "ingredient": "nexus:steel_ingot",
+  "ingredient": {
+    "item": "nexus:steel_ingot"
+  },
   "result": {
     "id": "nexus:steel_plate"
   }

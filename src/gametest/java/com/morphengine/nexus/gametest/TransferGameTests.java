@@ -37,6 +37,7 @@ import com.morphengine.nexus.resource.FluidKey;
 import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.storage.NetworkStorage;
 import com.morphengine.nexus.transfer.DeliveryMode;
+import com.morphengine.nexus.transfer.FluidResource;
 import com.morphengine.nexus.transfer.TransferKind;
 import com.morphengine.nexus.transfer.TransferResource;
 import com.morphengine.nexus.transfer.TransferSettings;
@@ -46,18 +47,14 @@ import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestAssertException;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.DyeColor;
@@ -73,9 +70,9 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -93,7 +90,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class TransferGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final int NETWORK_FILL = 10_000;
     private static final int STONES_TO_MOVE = 3;
@@ -158,21 +155,16 @@ public final class TransferGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(TransferGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "transfer"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void pullerEmptiesChest(final GameTestHelper helper) {
@@ -186,7 +178,7 @@ public final class TransferGameTests {
                 .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STONE)), 5,
                         "stone in the network"))
                 .thenExecute(() -> helper.assertTrue(container(helper, chest).isEmpty(),
-                        Component.literal("the chest still holds stone")))
+                        String.valueOf("the chest still holds stone")))
                 .thenSucceed();
     }
 
@@ -206,7 +198,7 @@ public final class TransferGameTests {
                 .thenExecute(() -> assertInserted(helper, key(Items.COAL), 4))
                 .thenWaitUntil(() -> assertCount(helper, container(helper, TARGET).getItem(1), Items.COAL, 4))
                 .thenExecute(() -> helper.assertTrue(container(helper, TARGET).getItem(0).isEmpty(),
-                        Component.literal("the furnace took ore through its side")))
+                        String.valueOf("the furnace took ore through its side")))
                 .thenSucceed();
     }
 
@@ -286,14 +278,14 @@ public final class TransferGameTests {
         final ItemKey pristine = key(Items.DIAMOND_PICKAXE);
         final ItemKey worn = wornPickaxe();
 
-        helper.assertFalse(pristine.equals(worn), Component.literal("a pristine and a worn pickaxe were equal"));
+        helper.assertFalse(pristine.equals(worn), String.valueOf("a pristine and a worn pickaxe were equal"));
         helper.assertTrue(
                 pristine.normalized(FilterMatchMode.IGNORE_DURABILITY)
                         .equals(worn.normalized(FilterMatchMode.IGNORE_DURABILITY)),
-                Component.literal("ignoring durability did not equate a pristine and a worn pickaxe"));
+                String.valueOf("ignoring durability did not equate a pristine and a worn pickaxe"));
         helper.assertFalse(
                 pristine.normalized(FilterMatchMode.EXACT).equals(worn.normalized(FilterMatchMode.EXACT)),
-                Component.literal("exact match mode equated a pristine and a worn pickaxe"));
+                String.valueOf("exact match mode equated a pristine and a worn pickaxe"));
         helper.succeed();
     }
 
@@ -326,11 +318,11 @@ public final class TransferGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> {
                     final NetworkStatistics statistics =
-                            helper.getBlockEntity(NEXUS, NexusBlockEntity.class).statistics();
+                            helper.<NexusBlockEntity>getBlockEntity(NEXUS).statistics();
                     helper.assertTrue(statistics.count(DeviceRole.PULLER) == 1
                                     && statistics.count(DeviceRole.PUSHER) == 1
                                     && statistics.count(DeviceRole.STORAGE) == 1,
-                            Component.literal("the Nexus counts " + statistics.devicesByRole()));
+                            String.valueOf("the Nexus counts " + statistics.devicesByRole()));
                 })
                 .thenSucceed();
     }
@@ -359,7 +351,7 @@ public final class TransferGameTests {
         helper.startSequence()
                 .thenIdle(60)
                 .thenExecute(() -> helper.assertTrue(network(helper).amountOf(key(Items.STONE)) >= 18,
-                        Component.literal("in 60 ticks only " + network(helper).amountOf(key(Items.STONE))
+                        String.valueOf("in 60 ticks only " + network(helper).amountOf(key(Items.STONE))
                                 + " stone, fewer than a Puller working every 3 ticks moves")))
                 .thenSucceed();
     }
@@ -370,10 +362,10 @@ public final class TransferGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(network(helper).amountOf(key(Items.STONE)) == STONES_TO_MOVE,
-                        Component.literal("the stone has not moved yet")))
+                        String.valueOf("the stone has not moved yet")))
                 .thenIdle(PAST_THE_LAST_OPERATION_TICKS)
                 .thenExecute(() -> helper.assertValueEqual(NETWORK_FILL - poolEnergy(helper),
-                        STONES_TO_MOVE * OperationKind.TRANSFER.baseCost(), Component.literal("FE paid")))
+                        STONES_TO_MOVE * OperationKind.TRANSFER.baseCost(), String.valueOf("FE paid")))
                 .thenSucceed();
     }
 
@@ -384,13 +376,13 @@ public final class TransferGameTests {
         helper.startSequence()
                 .thenIdle(PAST_THE_LAST_OPERATION_TICKS)
                 .thenExecute(() -> helper.assertValueEqual(poolEnergy(helper), (long) NETWORK_FILL,
-                        Component.literal("FE left")))
+                        String.valueOf("FE left")))
                 .thenSucceed();
     }
 
     private static void pullerNeedsEnergyToWork(final GameTestHelper helper) {
         buildNetwork(helper);
-        final EnergyBuffer cell = helper.getBlockEntity(CELL, EnergyCellBlockEntity.class).energyBuffer();
+        final EnergyBuffer cell = helper.<EnergyCellBlockEntity>getBlockEntity(CELL).energyBuffer();
         while (cell.extract(Long.MAX_VALUE, Action.EXECUTE) > 0) {
             continue;
         }
@@ -400,13 +392,13 @@ public final class TransferGameTests {
         helper.startSequence()
                 .thenIdle(PAST_THE_LAST_OPERATION_TICKS)
                 .thenExecute(() -> helper.assertValueEqual(0L, network(helper).amountOf(key(Items.STONE)),
-                        Component.literal("stone moved without the FE to pay for it")))
+                        String.valueOf("stone moved without the FE to pay for it")))
                 .thenSucceed();
     }
 
     private static void dearPriceIsPaid(final GameTestHelper helper) {
         buildNetwork(helper);
-        final NexusBlockEntity nexus = helper.getBlockEntity(NEXUS, NexusBlockEntity.class);
+        final NexusBlockEntity nexus = helper.<NexusBlockEntity>getBlockEntity(NEXUS);
         final OperationUpgrades fastest = OperationUpgrades.speedOnly(OperationPrice.MAX_SPEED_UPGRADES);
 
         helper.startSequence()
@@ -415,19 +407,19 @@ public final class TransferGameTests {
                     final long price = OperationPrice.of(OperationKind.ASSEMBLER_RUN, nexus.statistics().devices(),
                             fastest);
                     helper.assertTrue(price > EnergyCellTier.BASIC.maxTransfer(),
-                            Component.literal("the price " + price + " is not above what a Basic cell gives"));
+                            String.valueOf("the price " + price + " is not above what a Basic cell gives"));
                     helper.assertTrue(OperationToll.affords(nexus, OperationKind.ASSEMBLER_RUN, fastest),
-                            Component.literal("a charged network cannot afford " + price));
+                            String.valueOf("a charged network cannot afford " + price));
                     final long before = poolEnergy(helper);
                     OperationToll.charge(nexus, OperationKind.ASSEMBLER_RUN, fastest,
                             nexus.component(NetworkComponentTypes.ENERGY_ACCOUNT).portableTerminals());
-                    helper.assertValueEqual(before - poolEnergy(helper), price, Component.literal("FE paid"));
+                    helper.assertValueEqual(before - poolEnergy(helper), price, String.valueOf("FE paid"));
                 })
                 .thenSucceed();
     }
 
     private static long poolEnergy(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class).energy().stored();
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS).energy().stored();
     }
 
     /**
@@ -469,7 +461,7 @@ public final class TransferGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> assertInserted(helper, key(Items.STONE), 50))
                 .thenWaitUntil(() -> helper.assertTrue(container(helper, chest).getItem(0).getCount() >= 6,
-                        Component.literal("the chest holds " + container(helper, chest).getItem(0)
+                        String.valueOf("the chest holds " + container(helper, chest).getItem(0)
                                 + ", a Pusher without a Regulator Upgrade should not stop at 3")))
                 .thenSucceed();
     }
@@ -499,9 +491,9 @@ public final class TransferGameTests {
                 .withResource(TransferResource.ENERGY).withResource(TransferResource.ITEM);
 
         helper.assertTrue(key(Items.STONE).equals(back.filter().resourceAt(0)),
-                Component.literal("the item filter lists " + back.filter().entries() + " after switching back"));
+                String.valueOf("the item filter lists " + back.filter().entries() + " after switching back"));
         helper.assertTrue(items.withResource(TransferResource.FLUID).filter().entries().isEmpty(),
-                Component.literal("the fluid filter took the item filter's entries"));
+                String.valueOf("the fluid filter took the item filter's entries"));
         helper.succeed();
     }
 
@@ -510,12 +502,12 @@ public final class TransferGameTests {
         final SimpleContainer upgrades = new SimpleContainer(TransferDeviceBlockEntity.UPGRADE_SLOTS);
 
         helper.assertFalse(limits.accepts(new ItemStack(NexusItems.FORTUNE_UPGRADE.get()), upgrades),
-                Component.literal("a Puller took a Fortune Upgrade, which only a Remover takes"));
+                String.valueOf("a Puller took a Fortune Upgrade, which only a Remover takes"));
         upgrades.setItem(0, new ItemStack(NexusItems.REGULATOR_UPGRADE.get()));
         helper.assertFalse(limits.accepts(new ItemStack(NexusItems.REGULATOR_UPGRADE.get()), upgrades),
-                Component.literal("a device took a second Regulator Upgrade"));
+                String.valueOf("a device took a second Regulator Upgrade"));
         helper.assertTrue(limits.accepts(new ItemStack(NexusItems.SPEED_UPGRADE.get()), upgrades),
-                Component.literal("a device refused a Speed Upgrade"));
+                String.valueOf("a device refused a Speed Upgrade"));
         helper.succeed();
     }
 
@@ -525,9 +517,9 @@ public final class TransferGameTests {
         final ItemStack fourSpeeds = new ItemStack(NexusItems.SPEED_UPGRADE.get(), 4);
 
         helper.assertTrue(upgrades.canPlaceItem(0, fourSpeeds),
-                Component.literal("a device refused four Speed Upgrades in one slot"));
+                String.valueOf("a device refused four Speed Upgrades in one slot"));
         helper.assertTrue(upgrades.capacityOf(0, fourSpeeds) == 4,
-                Component.literal("slot 0 fits only " + upgrades.capacityOf(0, fourSpeeds) + " Speed Upgrades"));
+                String.valueOf("slot 0 fits only " + upgrades.capacityOf(0, fourSpeeds) + " Speed Upgrades"));
 
         upgrades.setItem(0, fourSpeeds);
         upgrades.setItem(1, new ItemStack(NexusItems.STACK_UPGRADE.get()));
@@ -536,7 +528,7 @@ public final class TransferGameTests {
 
         helper.assertTrue(upgrades.count(UpgradeTypes.SPEED) == 4 && upgrades.count(UpgradeTypes.STACK) == 1
                         && upgrades.count(UpgradeTypes.REGULATOR) == 1 && upgrades.count(UpgradeTypes.CAPACITY) == 3,
-                Component.literal("four upgrade slots could not hold max Speed, Stack, Regulator and Capacity"
+                String.valueOf("four upgrade slots could not hold max Speed, Stack, Regulator and Capacity"
                         + " together"));
         helper.succeed();
     }
@@ -546,13 +538,13 @@ public final class TransferGameTests {
                 TransferDeviceBlockEntity.UPGRADE_SLOTS, TransferKind.PULLER.upgradeLimits(), () -> { });
 
         helper.assertTrue(TransferDeviceBlockEntity.filterSlotCount(upgrades) == TransferDeviceBlockEntity.FILTER_SLOTS,
-                Component.literal("a device without Capacity Upgrades offered "
+                String.valueOf("a device without Capacity Upgrades offered "
                         + TransferDeviceBlockEntity.filterSlotCount(upgrades) + " filter slots"));
 
         upgrades.setItem(0, new ItemStack(NexusItems.CAPACITY_UPGRADE.get(), 3));
 
         helper.assertTrue(TransferDeviceBlockEntity.filterSlotCount(upgrades) == 36,
-                Component.literal("three Capacity Upgrades gave " + TransferDeviceBlockEntity.filterSlotCount(upgrades)
+                String.valueOf("three Capacity Upgrades gave " + TransferDeviceBlockEntity.filterSlotCount(upgrades)
                         + " filter slots, not 36"));
         helper.succeed();
     }
@@ -707,7 +699,7 @@ public final class TransferGameTests {
 
         final FilterSlots loaded = FilterSlots.CODEC.parse(ops, saved).getOrThrow();
 
-        helper.assertTrue(loaded.equals(filter), Component.literal("filter read back as " + loaded));
+        helper.assertTrue(loaded.equals(filter), String.valueOf("filter read back as " + loaded));
         helper.succeed();
     }
 
@@ -716,7 +708,7 @@ public final class TransferGameTests {
      */
     private static FilterSlots oakLogsByTag() {
         return new FilterSlots(FilterMode.ALLOW,
-                List.of(new FilterSlots.Entry(0, key(Items.OAK_LOG), Identifier.withDefaultNamespace("logs"))));
+                List.of(new FilterSlots.Entry(0, key(Items.OAK_LOG), ResourceLocation.withDefaultNamespace("logs"))));
     }
 
     private static void placeDevice(final GameTestHelper helper, final TransferDeviceBlock block,
@@ -726,7 +718,7 @@ public final class TransferGameTests {
     }
 
     private static void addFluidCell(final GameTestHelper helper) {
-        helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class).cells()
+        helper.<StorageVaultBlockEntity>getBlockEntity(VAULT).cells()
                 .setItem(1, new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.FLUID).get(CellTier.ONE_K).get()));
     }
 
@@ -748,7 +740,7 @@ public final class TransferGameTests {
                 return;
             }
         }
-        throw helper.assertionException(pos, Component.literal("no free upgrade slot"));
+        throw new GameTestAssertException("no free upgrade slot");
     }
 
     private static List<TransferDeviceBlock> allDevices() {
@@ -774,7 +766,7 @@ public final class TransferGameTests {
         place(helper, pos, device(block, facing));
         for (Direction side : Direction.values()) {
             final boolean attached = SideConnections.isAttached(helper.getBlockState(pos), side);
-            helper.assertTrue(attached == (side != facing), Component.literal(block.kind() + " facing " + facing
+            helper.assertTrue(attached == (side != facing), String.valueOf(block.kind() + " facing " + facing
                     + (attached ? " has an arm on " : " lacks an arm on ") + side));
         }
     }
@@ -789,7 +781,7 @@ public final class TransferGameTests {
         devices.forEach((pos, state) -> place(helper, pos, state));
 
         helper.startSequence()
-                .thenExecute(() -> helper.getBlockEntity(NEXUS, NexusBlockEntity.class)
+                .thenExecute(() -> helper.<NexusBlockEntity>getBlockEntity(NEXUS)
                         .recolor(NetworkColoring.colorOf(DyeColor.RED)))
                 .thenWaitUntil(() -> devices.keySet().forEach(pos -> helper.assertBlockProperty(
                         pos, NetworkDeviceBlock.NETWORK_COLOR, DyeColor.RED)))
@@ -806,7 +798,7 @@ public final class TransferGameTests {
                     NexusBlocks.ASSEMBLER.get().defaultBlockState().setValue(AssemblerBlock.FACING, facing));
             for (Direction side : Direction.values()) {
                 final boolean attached = SideConnections.isAttached(helper.getBlockState(centre), side);
-                helper.assertTrue(attached == (side != facing), Component.literal("Assembler facing " + facing
+                helper.assertTrue(attached == (side != facing), String.valueOf("Assembler facing " + facing
                         + (attached ? " has a port on " : " lacks a port on ") + side));
             }
         }
@@ -820,7 +812,7 @@ public final class TransferGameTests {
                 .setValue(AssemblerBlock.FACING, Direction.EAST));
 
         helper.startSequence()
-                .thenExecute(() -> helper.getBlockEntity(NEXUS, NexusBlockEntity.class)
+                .thenExecute(() -> helper.<NexusBlockEntity>getBlockEntity(NEXUS)
                         .recolor(NetworkColoring.colorOf(DyeColor.GREEN)))
                 .thenWaitUntil(() -> helper.assertBlockProperty(
                         assembler, NetworkDeviceBlock.NETWORK_COLOR, DyeColor.GREEN))
@@ -838,7 +830,7 @@ public final class TransferGameTests {
                             .setValue(GeneratorBlock.FACING, facing));
             for (Direction side : Direction.values()) {
                 final boolean attached = SideConnections.isAttached(helper.getBlockState(centre), side);
-                helper.assertTrue(attached == (side != facing), Component.literal("Coal Generator facing " + facing
+                helper.assertTrue(attached == (side != facing), String.valueOf("Coal Generator facing " + facing
                         + (attached ? " has a port on " : " lacks a port on ") + side));
             }
         }
@@ -864,7 +856,7 @@ public final class TransferGameTests {
         TestEnergy.fill(helper, CELL, NETWORK_FILL);
         place(helper, VAULT, NexusBlocks.STORAGE_VAULT.get().defaultBlockState()
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
-        helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class).cells()
+        helper.<StorageVaultBlockEntity>getBlockEntity(VAULT).cells()
                 .setItem(0, new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get()));
         place(helper, CABLE, cable());
     }
@@ -877,25 +869,25 @@ public final class TransferGameTests {
     private static void assertCount(final GameTestHelper helper, final ItemStack stack, final Item item,
                                     final int expected) {
         helper.assertTrue(stack.is(item) && stack.getCount() == expected,
-                Component.literal("found " + stack + ", expected " + expected + " " + item));
+                String.valueOf("found " + stack + ", expected " + expected + " " + item));
     }
 
     private static void assertAmount(final GameTestHelper helper, final long actual, final long expected,
                                      final String what) {
-        helper.assertTrue(actual == expected, Component.literal(what + ": " + actual + ", expected " + expected));
+        helper.assertTrue(actual == expected, String.valueOf(what + ": " + actual + ", expected " + expected));
     }
 
     private static NetworkStorage network(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class)
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS)
                 .component(NetworkComponentTypes.STORAGE).storage();
     }
 
     private static TransferDeviceBlockEntity deviceEntity(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, TransferDeviceBlockEntity.class);
+        return helper.<TransferDeviceBlockEntity>getBlockEntity(pos);
     }
 
     private static Container container(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, BaseContainerBlockEntity.class);
+        return helper.<BaseContainerBlockEntity>getBlockEntity(pos);
     }
 
     private static ItemKey key(final Item item) {

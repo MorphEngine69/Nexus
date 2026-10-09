@@ -52,7 +52,7 @@ public final class ProcessingRecipes<T extends SingleItemRecipe> implements Leve
         if (holder.isEmpty()) {
             return Optional.empty();
         }
-        final ItemStack result = holder.get().value().assemble(input);
+        final ItemStack result = holder.get().value().assemble(input, level.registryAccess());
         if (result.isEmpty()) {
             return Optional.empty();
         }

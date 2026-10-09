@@ -4,12 +4,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.Nexus;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.resources.Identifier;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -31,8 +32,10 @@ public final class NetworkDirectory extends SavedData {
     private static final Codec<NetworkDirectory> CODEC = Entry.CODEC.listOf().xmap(NetworkDirectory::new,
             NetworkDirectory::entries);
 
-    private static final SavedDataType<NetworkDirectory> TYPE = new SavedDataType<>(
-            Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "network_directory"), NetworkDirectory::new, CODEC);
+    private static final String DATA_NAME = Nexus.MOD_ID + "_network_directory";
+    private static final String DATA_TAG = "data";
+    private static final SavedData.Factory<NetworkDirectory> FACTORY = new SavedData.Factory<>(NetworkDirectory::new,
+            NetworkDirectory::load, null);
 
     private final Map<UUID, GlobalPos> nexusOf = new HashMap<>();
 
@@ -45,11 +48,21 @@ public final class NetworkDirectory extends SavedData {
         }
     }
 
+    private static NetworkDirectory load(final CompoundTag tag, final HolderLookup.Provider registries) {
+        return CODEC.parse(NbtOps.INSTANCE, tag.get(DATA_TAG)).result().orElseGet(NetworkDirectory::new);
+    }
+
+    @Override
+    public CompoundTag save(final CompoundTag tag, final HolderLookup.Provider registries) {
+        tag.put(DATA_TAG, CODEC.encodeStart(NbtOps.INSTANCE, this).getOrThrow());
+        return tag;
+    }
+
     /**
      * @return the directory of the world {@code server} runs
      */
     public static NetworkDirectory of(final MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(TYPE);
+        return server.overworld().getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
     }
 
     /**

@@ -6,7 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Client to server: a change to the access of the network of the Nexus at
@@ -16,7 +16,7 @@ import net.minecraft.resources.Identifier;
 public record NetworkAccessEditPayload(BlockPos pos, SecurityEdit edit) implements CustomPacketPayload {
 
     public static final Type<NetworkAccessEditPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "network_access_edit"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "network_access_edit"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, NetworkAccessEditPayload> STREAM_CODEC =
             StreamCodec.composite(

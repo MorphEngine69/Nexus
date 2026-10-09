@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Client to server: the player changed how the terminal of the menu with the
@@ -15,7 +15,7 @@ import net.minecraft.resources.Identifier;
 public record TerminalSettingsPayload(int containerId, TerminalSettings settings) implements CustomPacketPayload {
 
     public static final Type<TerminalSettingsPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "terminal_settings"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "terminal_settings"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalSettingsPayload> STREAM_CODEC =
             StreamCodec.composite(

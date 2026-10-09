@@ -1,8 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:biomass",
-    "B": "minecraft:sugar"
+    "A": {
+      "item": "nexus:biomass"
+    },
+    "B": {
+      "item": "minecraft:sugar"
+    }
   },
   "pattern": [
     "AA",

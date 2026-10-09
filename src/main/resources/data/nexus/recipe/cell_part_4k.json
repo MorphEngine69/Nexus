@@ -1,9 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:cell_part_1k",
-    "B": "nexus:cobalt_ingot",
-    "C": "nexus:core"
+    "A": {
+      "item": "nexus:cell_part_1k"
+    },
+    "B": {
+      "item": "nexus:cobalt_ingot"
+    },
+    "C": {
+      "item": "nexus:core"
+    }
   },
   "pattern": [
     "ABA",

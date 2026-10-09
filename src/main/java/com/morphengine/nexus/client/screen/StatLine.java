@@ -1,7 +1,7 @@
 package com.morphengine.nexus.client.screen;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -31,9 +31,9 @@ final class StatLine {
      * @param area where the line starts and how wide it may be before it wraps; its height is ignored
      * @return the height the line took, to start the next one below it
      */
-    int draw(final GuiGraphicsExtractor graphics, final Font font, final Stat stat, final PanelBounds area,
+    int draw(final GuiGraphics graphics, final Font font, final Stat stat, final PanelBounds area,
              final int color) {
-        graphics.textWithWordWrap(font, stat.text(), area.left(), area.top(), area.width(), color);
+        graphics.drawWordWrap(font, stat.text(), area.left(), area.top(), area.width(), color);
         final int height = font.split(stat.text(), area.width()).size() * font.lineHeight;
         if (stat.exact() != null) {
             shown.add(new Shown(new PanelBounds(area.left(), area.top(), area.width(), height), stat.exact()));
@@ -44,10 +44,10 @@ final class StatLine {
     /**
      * Shows the exact figures of the line under the mouse, if it was written short.
      */
-    void showTooltip(final GuiGraphicsExtractor graphics, final Font font, final int mouseX, final int mouseY) {
+    void showTooltip(final GuiGraphics graphics, final Font font, final int mouseX, final int mouseY) {
         for (Shown line : shown) {
             if (line.bounds().contains(mouseX, mouseY)) {
-                graphics.setComponentTooltipForNextFrame(font, List.of(line.exact()), mouseX, mouseY);
+                graphics.renderComponentTooltip(font, List.of(line.exact()), mouseX, mouseY);
                 return;
             }
         }

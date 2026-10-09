@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Server to client: a new view for the Energy Cell menu with the given container id.
@@ -14,7 +14,7 @@ import net.minecraft.resources.Identifier;
 public record EnergyCellViewPayload(int containerId, EnergyCellView view) implements CustomPacketPayload {
 
     public static final Type<EnergyCellViewPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "energy_cell_view"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "energy_cell_view"));
 
     private static final StreamCodec<RegistryFriendlyByteBuf, EnergyCellView> VIEW_CODEC =
             StreamCodec.of(EnergyCellViewPayload::writeView, EnergyCellViewPayload::readView);

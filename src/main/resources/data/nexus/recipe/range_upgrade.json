@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:mithril_ingot",
-    "B": "minecraft:ender_pearl",
-    "C": "nexus:aether_ingot",
-    "D": "nexus:upgrade_blank"
+    "A": {
+      "item": "nexus:mithril_ingot"
+    },
+    "B": {
+      "item": "minecraft:ender_pearl"
+    },
+    "C": {
+      "item": "nexus:aether_ingot"
+    },
+    "D": {
+      "item": "nexus:upgrade_blank"
+    }
   },
   "pattern": [
     "ABA",

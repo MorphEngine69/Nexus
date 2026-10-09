@@ -1,5 +1,7 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.client.input.KeyEvent;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.TerminalPanel;
 import com.morphengine.nexus.networking.TerminalClickPayload;
@@ -10,17 +12,16 @@ import com.morphengine.nexus.terminal.TerminalContents;
 import com.morphengine.nexus.terminal.TerminalLayout;
 import com.morphengine.nexus.terminal.TerminalSettings;
 import com.morphengine.nexus.terminal.TerminalStatus;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -115,14 +116,14 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         if (search != null) {
             search.draw(graphics, style, mouseX, mouseY);
         }
         if (grid != null) {
             final String query = search != null ? search.text() : "";
             final TerminalContents contents = getMenu().terminal().contents();
-            grid.show(minecraft != null && minecraft.hasShiftDown()
+            grid.show(minecraft != null && Screen.hasShiftDown()
                     ? view.updateKeepingOrder(contents, settings, query)
                     : view.update(contents, settings, query));
             grid.draw(graphics, font, style, mouseX, mouseY);
@@ -139,7 +140,7 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         }
     }
 
-    private void drawStatus(final GuiGraphicsExtractor graphics) {
+    private void drawStatus(final GuiGraphics graphics) {
         final TerminalStatus status = getMenu().terminal().contents().status();
         if (status == TerminalStatus.ONLINE) {
             return;
@@ -148,7 +149,7 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
                 "gui.nexus.terminal." + status.name().toLowerCase(Locale.ROOT));
         final int centerX = leftPos + TerminalLayout.GRID_LEFT + layout.columns() * TerminalLayout.SLOT / 2;
         final int centerY = topPos + (TerminalLayout.GRID_TOP + layout.gridBottom() - font.lineHeight) / 2;
-        graphics.centeredText(font, message, centerX, centerY, PanelStyle.TEXT_LIGHT);
+        graphics.drawCenteredString(font, message, centerX, centerY, PanelStyle.TEXT_LIGHT);
     }
 
     @Override
@@ -167,11 +168,11 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
     }
 
     @Override
-    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
-        super.extractTooltip(graphics, mouseX, mouseY);
+    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
         final List<Component> lines = tooltipAt(mouseX, mouseY);
         if (!lines.isEmpty()) {
-            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+            graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
         }
     }
 
@@ -192,7 +193,8 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         if (search != null && search.click(event.x(), event.y(), MouseButtons.isSecondary(event))) {
             return true;
         }
@@ -202,7 +204,7 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         if (clickSidebar(event) || clickGrid(event)) {
             return true;
         }
-        return workArea != null && workArea.click(event) || super.mouseClicked(event, doubleClick);
+        return workArea != null && workArea.click(event) || super.mouseClicked(mouseX, mouseY, button);
     }
 
     private boolean clickSidebar(final MouseButtonEvent event) {
@@ -232,14 +234,14 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         final GridClick click = event.hasShiftDown() ? GridClick.QUICK_MOVE
                 : MouseButtons.isSecondary(event) ? GridClick.SECONDARY : GridClick.PRIMARY;
         if (click != GridClick.QUICK_MOVE || resource != null) {
-            ClientPacketDistributor.sendToServer(new TerminalClickPayload(getMenu().containerId, resource, click));
+            PacketDistributor.sendToServer(new TerminalClickPayload(getMenu().containerId, resource, click));
         }
         return true;
     }
 
     private void openCraftRequest(final NexusResource resource) {
         if (minecraft != null) {
-            minecraft.gui.setScreen(new CraftRequestScreen<>(this, getMenu(), resource));
+            minecraft.setScreen(new CraftRequestScreen<>(this, getMenu(), resource));
         }
     }
 
@@ -249,23 +251,26 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
     private void applySettings(final TerminalSettings changed) {
         final boolean resized = changed.size() != settings.size();
         settings = changed;
-        ClientPacketDistributor.sendToServer(new TerminalSettingsPayload(getMenu().containerId, changed));
+        PacketDistributor.sendToServer(new TerminalSettingsPayload(getMenu().containerId, changed));
         if (resized) {
             rebuildWidgets();
         }
     }
 
     @Override
-    public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
-        return grid != null && grid.drag(event.y()) || super.mouseDragged(event, dragX, dragY);
+    public boolean mouseDragged(
+            final double mouseX, final double mouseY, final int button, final double dragX, final double dragY) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
+        return grid != null && grid.drag(event.y()) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(final MouseButtonEvent event) {
+    public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         if (grid != null) {
             grid.stopDrag();
         }
-        return super.mouseReleased(event);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
@@ -277,13 +282,15 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
     }
 
     @Override
-    public boolean keyPressed(final KeyEvent event) {
-        return search != null && search.keyPressed(event) || super.keyPressed(event);
+    public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
+        final KeyEvent event = new KeyEvent(keyCode, scanCode, modifiers);
+        return search != null && search.keyPressed(event) || super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
-    protected boolean hasClickedOutside(final double mouseX, final double mouseY, final int left, final int top) {
-        return super.hasClickedOutside(mouseX, mouseY, left, top)
+    protected boolean hasClickedOutside(
+            final double mouseX, final double mouseY, final int left, final int top, final int button) {
+        return super.hasClickedOutside(mouseX, mouseY, left, top, button)
                 && (sidebar == null || !sidebar.contains(mouseX, mouseY));
     }
 

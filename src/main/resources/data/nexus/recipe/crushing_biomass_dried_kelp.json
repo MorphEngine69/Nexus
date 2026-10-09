@@ -1,6 +1,8 @@
 {
   "type": "nexus:crushing",
-  "ingredient": "minecraft:dried_kelp",
+  "ingredient": {
+    "item": "minecraft:dried_kelp"
+  },
   "result": {
     "id": "nexus:biomass"
   }

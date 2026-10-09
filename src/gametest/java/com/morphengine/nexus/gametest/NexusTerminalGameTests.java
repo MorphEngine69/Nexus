@@ -11,17 +11,12 @@ import com.morphengine.nexus.registry.NexusBlocks;
 import com.morphengine.nexus.registry.NexusItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -33,9 +28,11 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -48,7 +45,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class NexusTerminalGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 100;
     private static final int INVENTORY_SLOT = 20;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
@@ -73,22 +70,16 @@ public final class NexusTerminalGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(NexusTerminalGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus_terminal"),
-                new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void reachesRenamedNetwork(final GameTestHelper helper) {
@@ -111,13 +102,13 @@ public final class NexusTerminalGameTests {
         helper.startSequence()
                 .thenIdle(1)
                 .thenExecute(() -> helper.getLevel().destroyBlock(helper.absolutePos(NEXUS), true))
-                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityTypes.ITEM)))
+                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityType.ITEM)))
                 .thenIdle(1)
                 .thenExecute(() -> assertReaches(helper, terminal, ELSEWHERE))
                 .thenExecute(() -> helper.assertValueEqual(nexus(helper, ELSEWHERE).network().name(), "Farm",
-                        Component.literal("name of the moved network")))
+                        String.valueOf("name of the moved network")))
                 .thenExecute(() -> helper.assertValueEqual(nexus(helper, ELSEWHERE).network().color(), RED,
-                        Component.literal("color of the moved network")))
+                        String.valueOf("color of the moved network")))
                 .thenSucceed();
     }
 
@@ -146,7 +137,7 @@ public final class NexusTerminalGameTests {
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertFalse(
                         nexus(helper, ELSEWHERE).network().id().equals(nexus(helper, NEXUS).network().id()),
-                        Component.literal("the copy took over the network of the Nexus it was copied from")))
+                        String.valueOf("the copy took over the network of the Nexus it was copied from")))
                 .thenExecute(() -> assertReaches(helper, terminal, NEXUS))
                 .thenSucceed();
     }
@@ -161,14 +152,14 @@ public final class NexusTerminalGameTests {
 
         helper.startSequence()
                 .thenIdle(1)
-                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityTypes.ITEM)))
+                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityType.ITEM)))
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertValueEqual(nexus(helper, ELSEWHERE).network().id(), id,
-                        Component.literal("id of the network of the Nexus broken in creative mode")))
+                        String.valueOf("id of the network of the Nexus broken in creative mode")))
                 .thenExecute(() -> helper.assertValueEqual(nexus(helper, ELSEWHERE).network().name(), "Farm",
-                        Component.literal("name of the network of the Nexus broken in creative mode")))
+                        String.valueOf("name of the network of the Nexus broken in creative mode")))
                 .thenExecute(() -> helper.assertValueEqual(nexus(helper, ELSEWHERE).network().color(), RED,
-                        Component.literal("color of the network of the Nexus broken in creative mode")))
+                        String.valueOf("color of the network of the Nexus broken in creative mode")))
                 .thenSucceed();
     }
 
@@ -177,8 +168,8 @@ public final class NexusTerminalGameTests {
 
         breakInCreative(helper, NEXUS);
 
-        helper.assertTrue(helper.getEntities(EntityTypes.ITEM).isEmpty(),
-                Component.literal("a Nexus with the default network dropped in creative mode"));
+        helper.assertTrue(helper.getEntities(EntityType.ITEM).isEmpty(),
+                String.valueOf("a Nexus with the default network dropped in creative mode"));
         helper.succeed();
     }
 
@@ -214,13 +205,13 @@ public final class NexusTerminalGameTests {
         player.getInventory().setItem(INVENTORY_SLOT, new ItemStack(NexusItems.WRENCH.get()));
 
         helper.assertTrue(TerminalSlots.find(player) == null,
-                Component.literal("a terminal found in an inventory without one"));
+                String.valueOf("a terminal found in an inventory without one"));
         helper.succeed();
     }
 
     private static void assertFound(final GameTestHelper helper, final Player player, final TerminalSlot expected) {
         final TerminalSlot found = TerminalSlots.find(player);
-        helper.assertTrue(expected.equals(found), Component.literal("the key found " + found + ", not " + expected));
+        helper.assertTrue(expected.equals(found), String.valueOf("the key found " + found + ", not " + expected));
     }
 
     /**
@@ -251,7 +242,7 @@ public final class NexusTerminalGameTests {
     private static void assertReaches(final GameTestHelper helper, final ItemStack terminal, final BlockPos pos) {
         final NetworkController reached = NexusTerminalItem.nexusOf(terminal, helper.getLevel().getServer());
         helper.assertTrue(reached == nexus(helper, pos),
-                Component.literal("the terminal reaches " + describe(reached) + ", not the Nexus at " + pos));
+                String.valueOf("the terminal reaches " + describe(reached) + ", not the Nexus at " + pos));
     }
 
     private static String describe(final @Nullable NetworkController reached) {
@@ -272,6 +263,6 @@ public final class NexusTerminalGameTests {
     }
 
     private static NexusBlockEntity nexus(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, NexusBlockEntity.class);
+        return helper.<NexusBlockEntity>getBlockEntity(pos);
     }
 }

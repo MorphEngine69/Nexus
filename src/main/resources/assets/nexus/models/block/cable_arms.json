@@ -1,0 +1,7 @@
+{
+  "loader": "nexus:cable_arms",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "nexus:block/steel_block"
+  }
+}

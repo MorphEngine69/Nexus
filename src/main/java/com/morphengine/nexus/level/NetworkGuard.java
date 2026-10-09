@@ -1,5 +1,6 @@
 package com.morphengine.nexus.level;
 
+import com.morphengine.nexus.access.NameAndId;
 import com.morphengine.nexus.access.NetworkSecurityData;
 import com.morphengine.nexus.access.Operators;
 import com.morphengine.nexus.api.network.security.AccessPolicy;
@@ -12,7 +13,6 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
@@ -54,7 +54,7 @@ public final class NetworkGuard {
      * Notes who placed the Nexus, for when it starts a network of its own.
      */
     public void foundBy(final Player player) {
-        founder = player.nameAndId();
+        founder = NameAndId.of(player);
     }
 
     /**

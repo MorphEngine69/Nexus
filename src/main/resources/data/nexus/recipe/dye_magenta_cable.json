@@ -3,8 +3,12 @@
   "category": "misc",
   "group": "nexus_cable",
   "ingredients": [
-    "#c:dyes/magenta",
-    "#nexus:cables"
+    {
+      "tag": "c:dyes/magenta"
+    },
+    {
+      "tag": "nexus:cables"
+    }
   ],
   "result": {
     "id": "nexus:magenta_cable"

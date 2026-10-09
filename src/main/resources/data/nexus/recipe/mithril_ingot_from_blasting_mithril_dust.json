@@ -2,7 +2,9 @@
   "type": "minecraft:blasting",
   "experience": 1.0,
   "group": "mithril_ingot",
-  "ingredient": "nexus:mithril_dust",
+  "ingredient": {
+    "item": "nexus:mithril_dust"
+  },
   "result": {
     "id": "nexus:mithril_ingot"
   }

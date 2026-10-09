@@ -6,6 +6,7 @@ import com.morphengine.nexus.block.CraftingMonitorBlock;
 import com.morphengine.nexus.level.NetworkComponentTypes;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.menu.CraftingMonitorMenu;
+import com.morphengine.nexus.nbt.ValueInput;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -19,7 +20,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
 
 import java.util.List;
 import java.util.UUID;
@@ -97,8 +97,9 @@ public final class CraftingMonitorBlockEntity extends AnimatedDeviceBlockEntity 
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         rows = input.getIntOr(TAG_ROWS, rows);
     }
 

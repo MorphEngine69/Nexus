@@ -48,19 +48,38 @@ public record TransferSettings(
 
     public static final Codec<TransferSettings> CODEC = Saved.CODEC.xmap(Saved::toSettings, Saved::of);
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, TransferSettings> STREAM_CODEC =
-            StreamCodec.composite(
-                    ByteBufCodecs.map(HashMap<TransferResource, TransferList>::new,
-                                    NeoForgeStreamCodecs.enumCodec(TransferResource.class), TransferList.STREAM_CODEC)
-                            .<Map<TransferResource, TransferList>>map(lists -> lists, HashMap::new),
-                    TransferSettings::lists,
-                    NeoForgeStreamCodecs.enumCodec(RedstoneMode.class), TransferSettings::redstone,
-                    NeoForgeStreamCodecs.enumCodec(SchedulingMode.class), TransferSettings::scheduling,
-                    NeoForgeStreamCodecs.enumCodec(DeliveryMode.class), TransferSettings::delivery,
-                    NeoForgeStreamCodecs.enumCodec(TransferResource.class), TransferSettings::resource,
-                    NeoForgeStreamCodecs.enumCodec(FilterMatchMode.class), TransferSettings::matchMode,
-                    NeoForgeStreamCodecs.enumCodec(WorldMode.class), TransferSettings::worldMode,
-                    TransferSettings::new);
+    private static final StreamCodec<RegistryFriendlyByteBuf, Map<TransferResource, TransferList>> LISTS_CODEC =
+            ByteBufCodecs.map(HashMap<TransferResource, TransferList>::new,
+                            NeoForgeStreamCodecs.<RegistryFriendlyByteBuf, TransferResource>enumCodec(
+                                    TransferResource.class),
+                            TransferList.STREAM_CODEC)
+                    .<Map<TransferResource, TransferList>>map(lists -> lists, HashMap::new);
+    private static final StreamCodec<RegistryFriendlyByteBuf, RedstoneMode> REDSTONE_CODEC =
+            NeoForgeStreamCodecs.enumCodec(RedstoneMode.class);
+    private static final StreamCodec<RegistryFriendlyByteBuf, SchedulingMode> SCHEDULING_CODEC =
+            NeoForgeStreamCodecs.enumCodec(SchedulingMode.class);
+    private static final StreamCodec<RegistryFriendlyByteBuf, DeliveryMode> DELIVERY_CODEC =
+            NeoForgeStreamCodecs.enumCodec(DeliveryMode.class);
+    private static final StreamCodec<RegistryFriendlyByteBuf, TransferResource> RESOURCE_CODEC =
+            NeoForgeStreamCodecs.enumCodec(TransferResource.class);
+    private static final StreamCodec<RegistryFriendlyByteBuf, FilterMatchMode> MATCH_CODEC =
+            NeoForgeStreamCodecs.enumCodec(FilterMatchMode.class);
+    private static final StreamCodec<RegistryFriendlyByteBuf, WorldMode> WORLD_CODEC =
+            NeoForgeStreamCodecs.enumCodec(WorldMode.class);
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, TransferSettings> STREAM_CODEC = StreamCodec.of(
+            (buffer, settings) -> {
+                LISTS_CODEC.encode(buffer, settings.lists);
+                REDSTONE_CODEC.encode(buffer, settings.redstone);
+                SCHEDULING_CODEC.encode(buffer, settings.scheduling);
+                DELIVERY_CODEC.encode(buffer, settings.delivery);
+                RESOURCE_CODEC.encode(buffer, settings.resource);
+                MATCH_CODEC.encode(buffer, settings.matchMode);
+                WORLD_CODEC.encode(buffer, settings.worldMode);
+            },
+            buffer -> new TransferSettings(LISTS_CODEC.decode(buffer), REDSTONE_CODEC.decode(buffer),
+                    SCHEDULING_CODEC.decode(buffer), DELIVERY_CODEC.decode(buffer), RESOURCE_CODEC.decode(buffer),
+                    MATCH_CODEC.decode(buffer), WORLD_CODEC.decode(buffer)));
 
     public TransferSettings {
         Objects.requireNonNull(lists, "lists must not be null");

@@ -1,6 +1,6 @@
 package com.morphengine.nexus.block.entity;
 
-import com.geckolib.util.ClientUtil;
+import software.bernie.geckolib.util.RenderUtil;
 
 /**
  * The time on the client in ticks, with the part of the tick that has passed. Client side only: nothing here is
@@ -12,6 +12,6 @@ final class CycleClock {
     }
 
     static double now() {
-        return ClientUtil.getCurrentTick();
+        return RenderUtil.getCurrentTick();
     }
 }

@@ -1,10 +1,12 @@
 {
   "asset_name": "steel",
+  "ingredient": "nexus:steel_ingot",
+  "item_model_index": 0.1,
   "description": {
     "color": "#9AA5B1",
     "translate": "trim_material.nexus.steel"
   },
-  "override_armor_assets": {
+  "override_armor_materials": {
     "nexus:steel": "steel_darker"
   }
 }

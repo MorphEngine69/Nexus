@@ -7,26 +7,20 @@ import com.morphengine.nexus.registry.NexusBlocks;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -37,7 +31,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class ItemChargingGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 100;
     private static final int CELL_CHARGE = 5_000;
     private static final int ROOM_LEFT = 100;
@@ -53,22 +47,16 @@ public final class ItemChargingGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(ItemChargingGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "item_charging"),
-                new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void chargesItem(final GameTestHelper helper) {
@@ -78,10 +66,10 @@ public final class ItemChargingGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(heldCharge(cell) > 0,
-                        Component.literal("the terminal in the charging slot took no charge")))
+                        String.valueOf("the terminal in the charging slot took no charge")))
                 .thenExecute(() -> helper.assertValueEqual(
                         heldCharge(cell) + cell.energyBuffer().stored(), (long) CELL_CHARGE,
-                        Component.literal("FE of the terminal and the cell together")))
+                        String.valueOf("FE of the terminal and the cell together")))
                 .thenSucceed();
     }
 
@@ -93,10 +81,10 @@ public final class ItemChargingGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertValueEqual(heldCharge(cell), (long) NexusTerminalItem.capacity(),
-                        Component.literal("charge of the terminal")))
+                        String.valueOf("charge of the terminal")))
                 .thenIdle(5)
                 .thenExecute(() -> helper.assertValueEqual(cell.energyBuffer().stored(),
-                        (long) CELL_CHARGE - ROOM_LEFT, Component.literal("FE left in the cell")))
+                        (long) CELL_CHARGE - ROOM_LEFT, String.valueOf("FE left in the cell")))
                 .thenSucceed();
     }
 
@@ -107,19 +95,19 @@ public final class ItemChargingGameTests {
         helper.startSequence()
                 .thenIdle(5)
                 .thenExecute(() -> helper.assertValueEqual(cell.energyBuffer().stored(), (long) CELL_CHARGE,
-                        Component.literal("FE left in the cell")))
+                        String.valueOf("FE left in the cell")))
                 .thenSucceed();
     }
 
     private static void terminalGivesNothingBack(final GameTestHelper helper) {
         final ItemStack terminal = new ItemStack(NexusItems.NEXUS_TERMINAL.get());
         terminal.set(NexusDataComponents.TERMINAL_CHARGE.get(), NexusTerminalItem.openCost());
-        final EnergyHandler handler = ItemAccess.forStack(terminal).getCapability(Capabilities.Energy.ITEM);
+        final EnergyHandler handler = EnergyHandler.of(terminal.getCapability(Capabilities.EnergyStorage.ITEM));
 
-        helper.assertTrue(handler != null, Component.literal("a terminal has no energy capability"));
+        helper.assertTrue(handler != null, String.valueOf("a terminal has no energy capability"));
         try (Transaction transaction = Transaction.openRoot()) {
             helper.assertValueEqual(handler.extract(NexusTerminalItem.openCost(), transaction), 0,
-                    Component.literal("FE a charger took out of the terminal"));
+                    String.valueOf("FE a charger took out of the terminal"));
         }
         helper.succeed();
     }
@@ -131,6 +119,6 @@ public final class ItemChargingGameTests {
     private static EnergyCellBlockEntity chargedCell(final GameTestHelper helper) {
         helper.setBlock(CELL, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
         TestEnergy.fill(helper, CELL, CELL_CHARGE);
-        return helper.getBlockEntity(CELL, EnergyCellBlockEntity.class);
+        return helper.<EnergyCellBlockEntity>getBlockEntity(CELL);
     }
 }

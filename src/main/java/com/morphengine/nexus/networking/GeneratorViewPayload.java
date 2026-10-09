@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.List;
 public record GeneratorViewPayload(int containerId, GeneratorView view) implements CustomPacketPayload {
 
     public static final Type<GeneratorViewPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "generator_view"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "generator_view"));
 
     private static final StreamCodec<RegistryFriendlyByteBuf, GeneratorView> VIEW_CODEC =
             StreamCodec.of(GeneratorViewPayload::writeView, GeneratorViewPayload::readView);

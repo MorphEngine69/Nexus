@@ -1,6 +1,8 @@
 {
   "type": "nexus:compressing",
-  "ingredient": "minecraft:copper_ingot",
+  "ingredient": {
+    "item": "minecraft:copper_ingot"
+  },
   "result": {
     "id": "nexus:copper_plate"
   }

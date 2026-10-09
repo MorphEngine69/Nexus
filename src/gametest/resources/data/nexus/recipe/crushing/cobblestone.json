@@ -1,6 +1,8 @@
 {
   "type": "nexus:crushing",
-  "ingredient": "minecraft:cobblestone",
+  "ingredient": {
+    "item": "minecraft:cobblestone"
+  },
   "result": {
     "id": "minecraft:gravel",
     "count": 2

@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block.entity;
 
-import com.geckolib.animation.RawAnimation;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.api.network.Network;
 import com.morphengine.nexus.api.network.NetworkColor;
@@ -14,12 +13,13 @@ import com.morphengine.nexus.level.NetworkGuard;
 import com.morphengine.nexus.level.NetworkState;
 import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.NexusMenu;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -34,10 +34,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import software.bernie.geckolib.animation.RawAnimation;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -50,7 +50,7 @@ import java.util.UUID;
  * and color of its network.
  */
 public final class NexusBlockEntity extends AnimatedBlockEntity
-        implements UpgradeHolder, NetworkController, MenuHost, Renamable {
+        implements UpgradeHolder, NetworkController, MenuHost, Renamable, RemovalEffects {
 
     private static final String TAG_NETWORK_ID = "network_id";
     private static final String TAG_NETWORK_NAME = "network_name";
@@ -142,7 +142,7 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
     /**
      * @return the handler through which FE goes into the network and comes out of it; empty on the client
      */
-    public EnergyHandler energyHandler() {
+    public IEnergyStorage energyHandler() {
         return networkState.energyHandler();
     }
 
@@ -170,7 +170,6 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
      */
     @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
-        super.preRemoveSideEffects(pos, state);
         if (level != null) {
             upgrades.dropAndRelease(level, pos);
         }
@@ -211,8 +210,9 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
     }
 
     @Override
-    public void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
+    public void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
         output.store(TAG_NETWORK_ID, UUIDUtil.CODEC, network.id());
         output.putString(TAG_NETWORK_NAME, network.name());
         output.putInt(TAG_NETWORK_COLOR, network.color().rgb());
@@ -221,8 +221,9 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
     }
 
     @Override
-    public void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    public void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         final String name = input.getStringOr(TAG_NETWORK_NAME, network.name());
         final int color = input.getIntOr(TAG_NETWORK_COLOR, network.color().rgb());
         final UUID id = input.read(TAG_NETWORK_ID, UUIDUtil.CODEC).orElse(network.id());
@@ -237,7 +238,7 @@ public final class NexusBlockEntity extends AnimatedBlockEntity
      * the id and color of its network too.
      */
     @Override
-    protected void applyImplicitComponents(final DataComponentGetter components) {
+    protected void applyImplicitComponents(final BlockEntity.DataComponentInput components) {
         super.applyImplicitComponents(components);
         final Component custom = components.get(DataComponents.CUSTOM_NAME);
         String name = network.name();

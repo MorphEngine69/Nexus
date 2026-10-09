@@ -2,7 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": "nexus:mithril_nugget"
+    "#": {
+      "item": "nexus:mithril_nugget"
+    }
   },
   "pattern": [
     "###",

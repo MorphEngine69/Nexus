@@ -1,7 +1,7 @@
 package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.menu.NetworkReceiverMenu;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -30,14 +30,14 @@ public final class NetworkReceiverScreen extends PanelScreen<NetworkReceiverMenu
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         PanelStyle.drawNetwork(graphics, font, getMenu().badge(), leftPos, topPos);
         for (Slot slot : getMenu().slots) {
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
         }
         ChunkLoaderNote.draw(graphics, font, leftPos + TEXT_LEFT, topPos + NetworkReceiverMenu.UPGRADE_SLOT_Y,
                 imageWidth - TEXT_LEFT - TEXT_RIGHT_GAP, getMenu().pos(), getMenu().holdsChunkLoader());
-        graphics.text(font, playerInventoryTitle, leftPos + NetworkReceiverMenu.INVENTORY_LEFT,
+        graphics.drawString(font, playerInventoryTitle, leftPos + NetworkReceiverMenu.INVENTORY_LEFT,
                 topPos + NetworkReceiverMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 }

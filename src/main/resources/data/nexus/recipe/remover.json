@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:steel_ingot",
-    "B": "minecraft:diamond_pickaxe",
-    "C": "nexus:cobalt_ingot",
-    "D": "nexus:core"
+    "A": {
+      "item": "nexus:steel_ingot"
+    },
+    "B": {
+      "item": "minecraft:diamond_pickaxe"
+    },
+    "C": {
+      "item": "nexus:cobalt_ingot"
+    },
+    "D": {
+      "item": "nexus:core"
+    }
   },
   "pattern": [
     "ABA",

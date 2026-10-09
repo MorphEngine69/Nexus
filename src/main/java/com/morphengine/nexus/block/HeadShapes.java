@@ -30,9 +30,9 @@ final class HeadShapes {
     }
 
     private static VoxelShape[] buildShapes() {
-        final Map<Direction, VoxelShape> heads = Shapes.rotateAll(Shapes.or(
+        final Map<Direction, VoxelShape> heads = ShapeRotations.rotateAll(Shapes.or(
                 Block.box(3, 3, 0, 13, 13, 5), Block.box(5, 5, 5, 11, 11, 11)));
-        final Map<Direction, VoxelShape> arms = Shapes.rotateAll(Block.box(5, 5, 0, 11, 11, 5));
+        final Map<Direction, VoxelShape> arms = ShapeRotations.rotateAll(Block.box(5, 5, 0, 11, 11, 5));
         final VoxelShape[] shapes = new VoxelShape[SIDES * MASKS];
         for (Direction facing : Direction.values()) {
             for (int mask = 0; mask < MASKS; mask++) {

@@ -1,17 +1,16 @@
 package com.morphengine.nexus.block.entity;
 
 import com.morphengine.nexus.level.ChunkAnchors;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.Map;
 import java.util.Objects;
@@ -72,11 +71,11 @@ public final class DeviceUpgrades {
     }
 
     public void save(final ValueOutput output) {
-        ContainerHelper.saveAllItems(output.child(TAG_UPGRADES), upgrades.getItems());
+        output.saveItems(TAG_UPGRADES, upgrades.getItems());
     }
 
     public void load(final ValueInput input) {
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
+        input.loadItems(TAG_UPGRADES, upgrades.getItems());
     }
 
     private void changed() {

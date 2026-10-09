@@ -3,8 +3,12 @@
   "category": "misc",
   "group": "nexus_cable",
   "ingredients": [
-    "#c:dyes/brown",
-    "#nexus:cables"
+    {
+      "tag": "c:dyes/brown"
+    },
+    {
+      "tag": "nexus:cables"
+    }
   ],
   "result": {
     "id": "nexus:brown_cable"

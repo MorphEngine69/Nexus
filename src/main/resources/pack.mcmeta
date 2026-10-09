@@ -1,7 +1,7 @@
 {
   "pack": {
     "description": "Nexus resources",
-    "min_format": [107, 1],
-    "max_format": [107, 1]
+    "pack_format": 34,
+    "neoforge:server_data_pack_format": 48
   }
 }

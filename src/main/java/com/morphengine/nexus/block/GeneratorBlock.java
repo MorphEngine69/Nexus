@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.access.NetworkAccess;
@@ -14,7 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -32,10 +31,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animation.RawAnimation;
 
 import java.util.Objects;
 
@@ -119,26 +118,27 @@ public final class GeneratorBlock extends NetworkDeviceBlock implements Turnable
      * opening the panel; the empty container stays in the hand.
      */
     @Override
-    protected InteractionResult useItemOn(
+    protected ItemInteractionResult useItemOn(
             final ItemStack stack, final BlockState state, final Level level, final BlockPos pos, final Player player,
             final InteractionHand hand, final BlockHitResult hit) {
         if (!kind.burnsFluid() || !(level.getBlockEntity(pos) instanceof GeneratorBlockEntity generator)) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
         if (!NetworkAccess.permits(player, generator, Permission.OPEN)) {
             NetworkAccess.refuse(player, Permission.OPEN);
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
-        return pour(player, hand, pos, generator) ? InteractionResult.SUCCESS : InteractionResult.TRY_WITH_EMPTY_HAND;
+        return pour(player, hand, pos, generator) ? ItemInteractionResult.SUCCESS
+                : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     private static boolean pour(
             final Player player, final InteractionHand hand, final BlockPos pos, final GeneratorBlockEntity generator) {
-        final ResourceHandler<FluidResource> tanks = generator.fluidHandler(null);
-        return tanks != null && FluidUtil.interactWithFluidHandler(player, hand, pos, tanks, null);
+        final IFluidHandler tanks = generator.fluidHandler(null);
+        return tanks != null && FluidUtil.interactWithFluidHandler(player, hand, tanks);
     }
 
     @Override

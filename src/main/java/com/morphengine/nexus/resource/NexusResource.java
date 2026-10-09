@@ -3,7 +3,7 @@ package com.morphengine.nexus.resource;
 import com.morphengine.nexus.api.resource.ResourceGroup;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -28,13 +28,13 @@ public interface NexusResource extends ResourceKey {
      * @return the registry id of the underlying item or fluid; its namespace is
      *         the mod that adds it
      */
-    Identifier id();
+    ResourceLocation id();
 
     /**
      * @return the tags of the underlying item or fluid, the shared {@code c:}
      *         tags first; empty for a resource without tags
      */
-    default List<Identifier> tags() {
+    default List<ResourceLocation> tags() {
         return List.of();
     }
 
@@ -42,7 +42,7 @@ public interface NexusResource extends ResourceKey {
      * @return a resource of the same kind for every entry in {@code tag}, without
      *         components; empty for an unknown tag or a resource without tags
      */
-    default List<NexusResource> membersOf(final Identifier tag) {
+    default List<NexusResource> membersOf(final ResourceLocation tag) {
         return List.of();
     }
 
@@ -50,7 +50,7 @@ public interface NexusResource extends ResourceKey {
      * @return every resource of the same kind in {@code tag}, as one entry a
      *         filter can list; empty for a resource without tags
      */
-    default Optional<ResourceGroup> tagGroup(final Identifier tag) {
+    default Optional<ResourceGroup> tagGroup(final ResourceLocation tag) {
         return Optional.empty();
     }
 
@@ -62,8 +62,8 @@ public interface NexusResource extends ResourceKey {
      * @param step    one to go forwards, minus one to go backwards
      * @return the tag after {@code current}; {@code null} for none
      */
-    default @Nullable Identifier nextTag(final @Nullable Identifier current, final int step) {
-        final List<@Nullable Identifier> choices = new ArrayList<>(tags());
+    default @Nullable ResourceLocation nextTag(final @Nullable ResourceLocation current, final int step) {
+        final List<@Nullable ResourceLocation> choices = new ArrayList<>(tags());
         choices.add(null);
         final int index = choices.indexOf(current);
         return choices.get(Math.floorMod(index + step, choices.size()));

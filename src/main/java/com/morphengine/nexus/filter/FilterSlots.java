@@ -12,7 +12,7 @@ import com.morphengine.nexus.resource.NexusResources;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -126,7 +126,7 @@ public record FilterSlots(FilterMode mode, List<Entry> entries) {
         boolean changed = false;
         for (Entry entry : entries) {
             if (entry.slot() == slot) {
-                final Identifier next = entry.resource().nextTag(entry.tag(), step);
+                final ResourceLocation next = entry.resource().nextTag(entry.tag(), step);
                 changed = !Objects.equals(next, entry.tag());
                 updated.add(new Entry(slot, entry.resource(), next));
             } else {
@@ -190,19 +190,19 @@ public record FilterSlots(FilterMode mode, List<Entry> entries) {
      * @param tag  the tag of {@code resource} the slot stands for, such as
      *             {@code c:ores/iron}; {@code null} when it lists the resource itself
      */
-    public record Entry(int slot, NexusResource resource, @Nullable Identifier tag) {
+    public record Entry(int slot, NexusResource resource, @Nullable ResourceLocation tag) {
 
         /** A tag is saved only when there is one, so filters saved before tags existed read as they were. */
         static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                         Codec.intRange(0, MAX_SLOTS - 1).fieldOf("slot").forGetter(Entry::slot),
                         NexusResources.CODEC.fieldOf("resource").forGetter(Entry::resource),
-                        Identifier.CODEC.optionalFieldOf("tag").forGetter(Entry::tagIfAny))
+                        ResourceLocation.CODEC.optionalFieldOf("tag").forGetter(Entry::tagIfAny))
                 .apply(instance, (slot, resource, tag) -> new Entry(slot, resource, tag.orElse(null))));
 
         static final StreamCodec<RegistryFriendlyByteBuf, Entry> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, Entry::slot,
                 NexusResources.STREAM_CODEC, Entry::resource,
-                ByteBufCodecs.optional(Identifier.STREAM_CODEC), Entry::tagIfAny,
+                ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), Entry::tagIfAny,
                 (slot, resource, tag) -> new Entry(slot, resource, tag.orElse(null)));
 
         public Entry {
@@ -225,7 +225,7 @@ public record FilterSlots(FilterMode mode, List<Entry> entries) {
             return tag == null ? Optional.empty() : resource.tagGroup(tag);
         }
 
-        private Optional<Identifier> tagIfAny() {
+        private Optional<ResourceLocation> tagIfAny() {
             return Optional.ofNullable(tag);
         }
 

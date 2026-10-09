@@ -8,7 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
@@ -132,7 +132,7 @@ public abstract class DeviceMenu<B extends BlockEntity & MenuHost> extends Abstr
 
     @Override
     public final void clicked(
-            final int slotIndex, final int buttonNum, final ContainerInput input, final Player player) {
+            final int slotIndex, final int buttonNum, final ClickType input, final Player player) {
         if (SlotGuard.allows(this, slotIndex, input, player)) {
             super.clicked(slotIndex, buttonNum, input, player);
         }

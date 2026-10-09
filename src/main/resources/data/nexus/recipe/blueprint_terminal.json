@@ -1,11 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:lumen_ingot",
-    "B": "nexus:blueprint",
-    "C": "nexus:core",
-    "D": "nexus:terminal",
-    "E": "nexus:steel_ingot"
+    "A": {
+      "item": "nexus:lumen_ingot"
+    },
+    "B": {
+      "item": "nexus:blueprint"
+    },
+    "C": {
+      "item": "nexus:core"
+    },
+    "D": {
+      "item": "nexus:terminal"
+    },
+    "E": {
+      "item": "nexus:steel_ingot"
+    }
   },
   "pattern": [
     "ABA",

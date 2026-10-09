@@ -1,5 +1,6 @@
 package com.morphengine.nexus.block.entity;
 
+import com.morphengine.nexus.access.NameAndId;
 import com.morphengine.nexus.access.NetworkSecurityData;
 import com.morphengine.nexus.access.PlayerPlaced;
 import com.morphengine.nexus.access.Secured;
@@ -15,22 +16,23 @@ import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.NetworkLink;
 import com.morphengine.nexus.level.NetworkMember;
 import com.morphengine.nexus.menu.NetworkBadge;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.security.Member;
 import com.morphengine.nexus.security.NetworkSecurity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -54,7 +56,7 @@ import java.util.UUID;
  * the network it was last in, and failing that up to its owner alone.
  */
 public abstract class NetworkDeviceBlockEntity extends BlockEntity
-        implements MenuHost, NetworkMember, MeteredDevice, Secured, PlayerPlaced {
+        implements MenuHost, NetworkMember, MeteredDevice, Secured, PlayerPlaced, RemovalEffects {
 
     private final ClickGuard clickGuard = new ClickGuard();
     private final NetworkLink network = new NetworkLink();
@@ -88,18 +90,16 @@ public abstract class NetworkDeviceBlockEntity extends BlockEntity
     @Override
     public void joinNetwork(final NetworkController joined) {
         network.join(joined);
-        if (owner.remember(joined.network().id())) {
-            setChanged();
-        }
+        boolean changed = owner.remember(joined.network().id());
         if (!owner.hasOwner()) {
-            adoptOwnerOf(joined.security());
+            final NetworkSecurity security = joined.security();
+            final Optional<Member> networkOwner = security.owner().flatMap(security::member);
+            if (networkOwner.isPresent() && owner.claimFor(networkOwner.get().id(), networkOwner.get().name())) {
+                actor = null;
+                changed = true;
+            }
         }
-    }
-
-    private void adoptOwnerOf(final NetworkSecurity security) {
-        final Optional<Member> networkOwner = security.owner().flatMap(security::member);
-        if (networkOwner.isPresent() && owner.claimFor(networkOwner.get().id(), networkOwner.get().name())) {
-            actor = null;
+        if (changed) {
             setChanged();
         }
     }
@@ -224,26 +224,29 @@ public abstract class NetworkDeviceBlockEntity extends BlockEntity
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
         name.save(output);
         owner.save(output);
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         name.load(input);
         owner.load(input);
         actor = null;
     }
 
     @Override
-    protected final void applyImplicitComponents(final DataComponentGetter components) {
+    protected final void applyImplicitComponents(final BlockEntity.DataComponentInput components) {
         super.applyImplicitComponents(components);
-        name.applyFrom(components);
+        final ComponentSource source = new InputSource(components);
+        name.applyFrom(source);
         for (ItemComponentPart part : itemParts) {
-            part.applyFrom(components);
+            part.applyFrom(source);
         }
     }
 
@@ -264,9 +267,30 @@ public abstract class NetworkDeviceBlockEntity extends BlockEntity
         itemParts.add(Objects.requireNonNull(part, "part must not be null"));
     }
 
+    /**
+     * Called before the block of the device is broken or replaced, to drop what it holds and let go of what it uses.
+     */
+    @Override
+    public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
+        // Nothing to do: the devices that hold something add their own.
+    }
+
     @Override
     @SuppressWarnings("deprecation")
-    public final void removeComponentsFromTag(final ValueOutput output) {
-        DeviceName.removeFrom(output);
+    public final void removeComponentsFromTag(final CompoundTag tag) {
+        DeviceName.removeFrom(tag);
+    }
+
+    private record InputSource(BlockEntity.DataComponentInput components) implements ComponentSource {
+
+        @Override
+        public <T> @Nullable T get(final DataComponentType<? extends T> type) {
+            return components.get(type);
+        }
+
+        @Override
+        public <T> T getOrDefault(final DataComponentType<? extends T> type, final T fallback) {
+            return components.getOrDefault(type, fallback);
+        }
     }
 }

@@ -10,12 +10,15 @@ import com.morphengine.nexus.level.EnergyContributor;
 import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.EnergyCellMenu;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,9 +27,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -48,7 +49,7 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
     private static final int CHARGE_CHECK_INTERVAL_TICKS = 20;
 
     private final SimpleEnergyBuffer buffer;
-    private final EnergyHandler handler;
+    private final IEnergyStorage handler;
     private final CellSides sides;
     private final DeviceUpgrades upgrades = new DeviceUpgrades(this);
     private final SimpleContainer chargingSlot = new SimpleContainer(1);
@@ -161,7 +162,7 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
      *         device of the network gets this handler through {@link #energyHandlerBeyond}
      */
     @Override
-    public EnergyHandler energyHandler() {
+    public IEnergyStorage energyHandler() {
         return handler;
     }
 
@@ -172,7 +173,7 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
      *
      * @param side the side of the cell that is asked about; {@code null} when the asker names no side
      */
-    public @Nullable EnergyHandler energyHandlerBeyond(final @Nullable Direction side) {
+    public @Nullable IEnergyStorage energyHandlerBeyond(final @Nullable Direction side) {
         return level == null ? null : sides.handlerFor(level, worldPosition, side);
     }
 
@@ -213,7 +214,6 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
     /**
      * Broken, the cell drops its upgrade and lets go of its chunk.
      */
-    @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
         if (level != null) {
@@ -233,23 +233,25 @@ public final class EnergyCellBlockEntity extends AnimatedDeviceBlockEntity
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
         output.putLong(TAG_ENERGY, buffer.stored());
         output.putInt(TAG_PRIORITY, priority);
         output.putInt(TAG_SIDES, sides.bits());
         upgrades.save(output);
-        ContainerHelper.saveAllItems(output.child(TAG_CHARGING), chargingSlot.getItems());
+        output.saveItems(TAG_CHARGING, chargingSlot.getItems());
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         final long stored = Math.max(0, input.getLongOr(TAG_ENERGY, 0));
         buffer.restore(SimpleEnergyBuffer.Snapshot.storing(stored));
         priority = DevicePriority.clamp(input.getIntOr(TAG_PRIORITY, DEFAULT_PRIORITY));
         sides.restore(input.getIntOr(TAG_SIDES, 0));
         upgrades.load(input);
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_CHARGING), chargingSlot.getItems());
+        input.loadItems(TAG_CHARGING, chargingSlot.getItems());
     }
 }

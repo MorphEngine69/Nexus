@@ -7,9 +7,9 @@
 **Network storage and automation for Minecraft.**
 Build one network or many, fill it with items, fluids and energy, and let it craft, move and place things for you.
 
-![Minecraft](https://img.shields.io/badge/Minecraft-26.2-62b47a?style=flat-square)
-![NeoForge](https://img.shields.io/badge/NeoForge-26.2.0.88-e68c3a?style=flat-square)
-![Java](https://img.shields.io/badge/Java-25-5382a1?style=flat-square)
+![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-62b47a?style=flat-square)
+![NeoForge](https://img.shields.io/badge/NeoForge-21.1.257-e68c3a?style=flat-square)
+![Java](https://img.shields.io/badge/Java-21-5382a1?style=flat-square)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-blue?style=flat-square)](LICENSE)
 [![API: MIT](https://img.shields.io/badge/API-MIT-green?style=flat-square)](LICENSE-API)
 
@@ -67,7 +67,7 @@ Nexus comes with its own way up from the first steps: a Coal Generator and a Com
 - **Terminal**, **Crafting Terminal** and **Blueprint Terminal**, mounted on a cable, with search, sorting and a resizable window.
 - **Search** in every terminal: a word finds by name, `@mod` by mod, `#tag` by tag, `$text` by tooltip; `!` turns a word round, `|` means or, and parentheses and quotes group.
 - **Nexus Terminal** to carry, working anywhere a Nexus Link of its network reaches. It holds a charge that opening it uses; an Energy Cell charges it, and any other item that stores FE, in its charging slot. Open it with a key (**O** by default) and switch its mode with another (**K**); it works in a hand, in the inventory or in a Curios slot.
-- Recipe transfer and drag-and-drop filters through **JEI** and **REI**; block information in **Jade** and **The One Probe**.
+- Recipe transfer and drag-and-drop filters through **JEI**, **REI** and **EMI**; block information in **Jade** and **The One Probe**.
 
 ### Transfer and world
 
@@ -98,12 +98,12 @@ English, Russian, Spanish, German and French.
 
 | | |
 |---|---|
-| Minecraft | 26.2 |
-| NeoForge | 26.2.0.57 or newer (any 26.2 build) |
-| Java | 25 |
-| [GeckoLib](https://github.com/bernie-g/geckolib) | 5.5.1 or newer (5.5.x) |
+| Minecraft | 1.21.1 |
+| NeoForge | 21.1.200 or newer (any 21.1 build) |
+| Java | 21 |
+| [GeckoLib](https://github.com/bernie-g/geckolib) | 4.8 or newer (4.x) |
 
-Optional: JEI or REI add recipe transfer to the terminals; Jade and The One Probe show what a block is doing; Curios lets you carry the Nexus Terminal in any of its slots.
+Optional: JEI, REI or EMI add recipe transfer to the terminals; Jade and The One Probe show what a block is doing; Curios lets you carry the Nexus Terminal in any of its slots.
 
 ## Installation
 

@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:cobalt_ingot",
-    "B": "minecraft:sugar",
-    "C": "nexus:lumen_ingot",
-    "D": "nexus:upgrade_blank"
+    "A": {
+      "item": "nexus:cobalt_ingot"
+    },
+    "B": {
+      "item": "minecraft:sugar"
+    },
+    "C": {
+      "item": "nexus:lumen_ingot"
+    },
+    "D": {
+      "item": "nexus:upgrade_blank"
+    }
   },
   "pattern": [
     "ABA",

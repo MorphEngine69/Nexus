@@ -1,9 +1,7 @@
 {
-  "multipart": [
-    {
-      "apply": {
-        "type": "nexus:cable_arms"
-      }
+  "variants": {
+    "": {
+      "model": "nexus:block/cable_arms"
     }
-  ]
+  }
 }

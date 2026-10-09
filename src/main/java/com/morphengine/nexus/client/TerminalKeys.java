@@ -5,13 +5,12 @@ import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.networking.PortableTerminalPayload;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -21,8 +20,7 @@ import org.lwjgl.glfw.GLFW;
 @EventBusSubscriber(modid = Nexus.MOD_ID, value = Dist.CLIENT)
 public final class TerminalKeys {
 
-    private static final KeyMapping.Category CATEGORY =
-            KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus"));
+    private static final String CATEGORY = "key.categories.nexus";
     private static final KeyMapping OPEN =
             new KeyMapping("key.nexus.open_terminal", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY);
     private static final KeyMapping SWITCH_MODE =
@@ -33,7 +31,6 @@ public final class TerminalKeys {
 
     @SubscribeEvent
     static void register(final RegisterKeyMappingsEvent event) {
-        event.registerCategory(CATEGORY);
         event.register(OPEN);
         event.register(SWITCH_MODE);
     }
@@ -44,10 +41,10 @@ public final class TerminalKeys {
             return;
         }
         while (OPEN.consumeClick()) {
-            ClientPacketDistributor.sendToServer(new PortableTerminalPayload(PortableTerminalPayload.Action.OPEN));
+            PacketDistributor.sendToServer(new PortableTerminalPayload(PortableTerminalPayload.Action.OPEN));
         }
         while (SWITCH_MODE.consumeClick()) {
-            ClientPacketDistributor.sendToServer(
+            PacketDistributor.sendToServer(
                     new PortableTerminalPayload(PortableTerminalPayload.Action.SWITCH_MODE));
         }
     }

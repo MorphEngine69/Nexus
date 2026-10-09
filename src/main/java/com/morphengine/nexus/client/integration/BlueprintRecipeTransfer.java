@@ -11,10 +11,10 @@ import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.resource.NexusResource;
 import com.morphengine.nexus.resource.NexusResources;
 import com.morphengine.nexus.terminal.TerminalContents;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -88,7 +88,7 @@ public final class BlueprintRecipeTransfer {
     }
 
     public void send(final BlueprintTerminalMenu menu) {
-        ClientPacketDistributor.sendToServer(new BlueprintRecipePayload(menu.containerId, draft));
+        PacketDistributor.sendToServer(new BlueprintRecipePayload(menu.containerId, draft));
     }
 
     private static @Nullable ItemKey pick(final List<ItemStack> options, final TerminalContents network) {

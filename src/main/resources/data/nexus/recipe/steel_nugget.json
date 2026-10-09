@@ -1,7 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:steel_ingot"
+    {
+      "item": "nexus:steel_ingot"
+    }
   ],
   "result": {
     "id": "nexus:steel_nugget",

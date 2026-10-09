@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:mithril_ingot",
-    "B": "minecraft:crafting_table",
-    "C": "nexus:lumen_ingot",
-    "D": "nexus:upgrade_blank"
+    "A": {
+      "item": "nexus:mithril_ingot"
+    },
+    "B": {
+      "item": "minecraft:crafting_table"
+    },
+    "C": {
+      "item": "nexus:lumen_ingot"
+    },
+    "D": {
+      "item": "nexus:upgrade_blank"
+    }
   },
   "pattern": [
     "ABA",

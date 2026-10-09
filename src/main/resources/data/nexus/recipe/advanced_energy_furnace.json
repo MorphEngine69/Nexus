@@ -1,8 +1,12 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:basic_energy_furnace",
-    "nexus:advanced_tier_upgrade"
+    {
+      "item": "nexus:basic_energy_furnace"
+    },
+    {
+      "item": "nexus:advanced_tier_upgrade"
+    }
   ],
   "result": {
     "id": "nexus:advanced_energy_furnace"

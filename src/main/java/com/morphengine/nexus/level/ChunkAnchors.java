@@ -7,7 +7,7 @@ import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -36,7 +36,7 @@ import net.neoforged.neoforge.common.world.chunk.TicketController;
 public final class ChunkAnchors {
 
     private static final TicketController CONTROLLER =
-            new TicketController(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "chunk_loader"));
+            new TicketController(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "chunk_loader"));
 
     private ChunkAnchors() {
     }

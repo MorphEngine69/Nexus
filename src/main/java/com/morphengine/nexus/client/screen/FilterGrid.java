@@ -1,17 +1,17 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.menu.FilterMenu;
 import com.morphengine.nexus.networking.FilterSlotPayload;
 import com.morphengine.nexus.networking.FilterTagPayload;
 import com.morphengine.nexus.resource.NexusResource;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -55,7 +55,7 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
                 top + index / columns * PanelStyle.SLOT_SIZE, PanelStyle.SLOT_SIZE, PanelStyle.SLOT_SIZE);
     }
 
-    void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+    void draw(final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final boolean locked = isLocked();
         for (int index = 0; index < menu.filterSlotCount(); index++) {
             final PanelBounds bounds = slot(index);
@@ -126,7 +126,7 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
         if (!asksForNextTag(event) || !menu.listsTags()) {
             send(index, null);
         } else if (menu.filter().resourceAt(index) != null) {
-            ClientPacketDistributor.sendToServer(
+            PacketDistributor.sendToServer(
                     new FilterTagPayload(menu.containerId, index, event.hasShiftDown() ? -1 : 1));
         }
     }
@@ -166,6 +166,6 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
     }
 
     void send(final int index, final @Nullable NexusResource resource) {
-        ClientPacketDistributor.sendToServer(new FilterSlotPayload(menu.containerId, index, resource));
+        PacketDistributor.sendToServer(new FilterSlotPayload(menu.containerId, index, resource));
     }
 }

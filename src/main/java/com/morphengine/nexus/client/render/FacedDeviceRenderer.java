@@ -1,14 +1,11 @@
 package com.morphengine.nexus.client.render;
 
-import com.geckolib.animatable.GeoAnimatable;
-import com.geckolib.model.GeoModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoAnimatable;
 
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +28,7 @@ public class FacedDeviceRenderer<T extends BlockEntity & GeoAnimatable> extends 
      * @param bonesShownWhenLit the bones that show only while the device is lit, see {@link #bonesShownWhenLit()}
      */
     public FacedDeviceRenderer(
-            final BlockEntityRendererProvider.Context context, final GeoModel<T> model,
+            final BlockEntityRendererProvider.Context context, final AdjustableGeoModel<T> model,
             final Predicate<BlockState> isLit, final EnumProperty<Direction> facing,
             final List<String> bonesUnderPorts, final List<String> bonesShownWhenLit) {
         super(context, model, isLit);
@@ -41,12 +38,8 @@ public class FacedDeviceRenderer<T extends BlockEntity & GeoAnimatable> extends 
     }
 
     @Override
-    public void addRenderData(
-            final T animatable, final @Nullable Void relatedObject, final BlockEntityRenderState renderState,
-            final float partialTick) {
-        super.addRenderData(animatable, relatedObject, renderState, partialTick);
-        renderState.addGeckolibData(DeviceRenderData.PORTS, DeviceRenderData.portsInModel(
-                DeviceRenderData.portsOf(renderState), animatable.getBlockState().getValue(facing)));
+    protected int portsOf(final T device) {
+        return DeviceRenderData.portsInModel(super.portsOf(device), device.getBlockState().getValue(facing));
     }
 
     @Override

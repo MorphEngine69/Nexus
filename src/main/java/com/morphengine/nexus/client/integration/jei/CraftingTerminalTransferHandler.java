@@ -7,9 +7,9 @@ import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
-import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -50,15 +50,11 @@ final class CraftingTerminalTransferHandler
     }
 
     @Override
-    public IRecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
+    public RecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
         return RecipeTypes.CRAFTING;
     }
 
-    /**
-     * Still abstract in JEI, which calls it from the default of the method replacing it.
-     */
     @Override
-    @SuppressWarnings("removal")
     public @Nullable IRecipeTransferError transferRecipe(
             final CraftingTerminalMenu menu, final RecipeHolder<CraftingRecipe> recipe,
             final IRecipeSlotsView recipeSlots, final Player player, final boolean maxTransfer,

@@ -1,10 +1,10 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.CraftingTerminalMenu;
 import com.morphengine.nexus.terminal.TerminalLayout;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -43,7 +43,7 @@ final class CraftingGridArea implements TerminalWorkArea {
     }
 
     @Override
-    public void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+    public void draw(final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         drawArrow(graphics, arrowLeft, arrowTop, style.border());
         style.drawCrossButton(graphics, clearButton, clearButton.contains(mouseX, mouseY));
     }
@@ -51,7 +51,7 @@ final class CraftingGridArea implements TerminalWorkArea {
     /**
      * A two pixel shaft and a head that narrows to the tip, pointing right.
      */
-    static void drawArrow(final GuiGraphicsExtractor graphics, final int left, final int top, final int color) {
+    static void drawArrow(final GuiGraphics graphics, final int left, final int top, final int color) {
         final int headLeft = left + ARROW_LENGTH - ARROW_HEAD;
         graphics.fill(left, top, headLeft, top + 2, color);
         for (int step = 0; step < ARROW_HEAD; step++) {

@@ -1,11 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:cobalt_ingot",
-    "B": "minecraft:crafting_table",
-    "C": "nexus:lumen_ingot",
-    "D": "nexus:machine_casing",
-    "E": "nexus:core"
+    "A": {
+      "item": "nexus:cobalt_ingot"
+    },
+    "B": {
+      "item": "minecraft:crafting_table"
+    },
+    "C": {
+      "item": "nexus:lumen_ingot"
+    },
+    "D": {
+      "item": "nexus:machine_casing"
+    },
+    "E": {
+      "item": "nexus:core"
+    }
   },
   "pattern": [
     "ABA",

@@ -1,11 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:cobalt_ingot",
-    "B": "minecraft:water_bucket",
-    "C": "nexus:machine_casing",
-    "D": "minecraft:lava_bucket",
-    "E": "nexus:voltsteel_ingot"
+    "A": {
+      "item": "nexus:cobalt_ingot"
+    },
+    "B": {
+      "item": "minecraft:water_bucket"
+    },
+    "C": {
+      "item": "nexus:machine_casing"
+    },
+    "D": {
+      "item": "minecraft:lava_bucket"
+    },
+    "E": {
+      "item": "nexus:voltsteel_ingot"
+    }
   },
   "pattern": [
     "AAA",

@@ -38,6 +38,7 @@ public final class Nexus {
         NexusItems.ITEMS.register(modBus);
         NexusFluids.bootstrap();
         NexusMetals.bootstrap();
+        NexusMetals.ARMOR_MATERIALS.register(modBus);
         NexusMaterials.bootstrap();
         NexusRecipes.TYPES.register(modBus);
         NexusRecipes.SERIALIZERS.register(modBus);

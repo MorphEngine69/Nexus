@@ -1,9 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "minecraft:glass",
-    "B": "nexus:steel_plate",
-    "C": "minecraft:redstone"
+    "A": {
+      "item": "minecraft:glass"
+    },
+    "B": {
+      "item": "nexus:steel_plate"
+    },
+    "C": {
+      "item": "minecraft:redstone"
+    }
   },
   "pattern": [
     "AAA",

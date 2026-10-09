@@ -2,7 +2,9 @@
   "type": "minecraft:smelting",
   "experience": 1.0,
   "group": "cobalt_ingot",
-  "ingredient": "nexus:deepslate_cobalt_ore",
+  "ingredient": {
+    "item": "nexus:deepslate_cobalt_ore"
+  },
   "result": {
     "id": "nexus:cobalt_ingot"
   }

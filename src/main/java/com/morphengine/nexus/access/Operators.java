@@ -3,7 +3,6 @@ package com.morphengine.nexus.access;
 import com.morphengine.nexus.security.Editor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.NameAndId;
 import net.neoforged.neoforge.common.util.FakePlayer;
 
 /**
@@ -25,8 +24,8 @@ public final class Operators {
             return false;
         }
         final MinecraftServer server = player.level().getServer();
-        final NameAndId profile = player.nameAndId();
-        return server.getPlayerList().isOp(profile) || server.isSingleplayerOwner(profile);
+        return server.getPlayerList().isOp(player.getGameProfile())
+                || server.isSingleplayerOwner(player.getGameProfile());
     }
 
     /**

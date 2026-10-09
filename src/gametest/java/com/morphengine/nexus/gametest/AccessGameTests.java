@@ -27,19 +27,14 @@ import com.morphengine.nexus.storage.NetworkStorage;
 import com.morphengine.nexus.transfer.TransferSettings;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -56,8 +51,10 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -69,7 +66,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class AccessGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos CELL = NEXUS.south();
@@ -99,21 +96,16 @@ public final class AccessGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(AccessGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "access"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void legacyNetworkIsOpen(final GameTestHelper helper) {
@@ -122,9 +114,9 @@ public final class AccessGameTests {
         helper.startSequence()
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertTrue(security(helper).owner().isEmpty(),
-                        Component.literal("a Nexus nobody placed has an owner")))
+                        String.valueOf("a Nexus nobody placed has an owner")))
                 .thenExecute(() -> helper.assertTrue(security(helper).isAllowed(STRANGER, Permission.EXTRACT),
-                        Component.literal("a network from before access rules shuts strangers out")))
+                        String.valueOf("a network from before access rules shuts strangers out")))
                 .thenSucceed();
     }
 
@@ -135,9 +127,9 @@ public final class AccessGameTests {
         helper.startSequence()
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertValueEqual(security(helper).owner().orElse(null), player.getUUID(),
-                        Component.literal("owner of the placed Nexus")))
+                        String.valueOf("owner of the placed Nexus")))
                 .thenExecute(() -> helper.assertValueEqual(security(helper).defaultRole(), Role.BLOCKED,
-                        Component.literal("role of strangers in a new network")))
+                        String.valueOf("role of strangers in a new network")))
                 .thenExecute(() -> leave(helper, player))
                 .thenSucceed();
     }
@@ -150,11 +142,11 @@ public final class AccessGameTests {
                 .thenExecute(() -> claim(helper))
                 .thenExecute(() -> storage(helper).insert(stone(), 5, Action.EXECUTE, Actor.NOBODY))
                 .thenExecute(() -> helper.assertValueEqual(storage(helper).extract(stone(), 5, Action.EXECUTE,
-                        new PlayerActor(STRANGER, "Stranger")), 0L, Component.literal("stone a stranger took")))
+                        new PlayerActor(STRANGER, "Stranger")), 0L, String.valueOf("stone a stranger took")))
                 .thenExecute(() -> helper.assertValueEqual(storage(helper).insert(stone(), 1, Action.EXECUTE,
-                        new PlayerActor(STRANGER, "Stranger")), 0L, Component.literal("stone a stranger put in")))
+                        new PlayerActor(STRANGER, "Stranger")), 0L, String.valueOf("stone a stranger put in")))
                 .thenExecute(() -> helper.assertValueEqual(storage(helper).extract(stone(), 5, Action.EXECUTE,
-                        new PlayerActor(OWNER, "Owner")), 5L, Component.literal("stone the owner took")))
+                        new PlayerActor(OWNER, "Owner")), 5L, String.valueOf("stone the owner took")))
                 .thenSucceed();
     }
 
@@ -168,9 +160,9 @@ public final class AccessGameTests {
                 .thenExecute(() -> storage(helper).insert(stone(), 5, Action.EXECUTE, Actor.NOBODY))
                 .thenIdle(40)
                 .thenExecute(() -> helper.assertTrue(chest(helper).isEmpty(),
-                        Component.literal("the Pusher of a stranger delivered")))
+                        String.valueOf("the Pusher of a stranger delivered")))
                 .thenExecute(() -> helper.assertValueEqual(pusher(helper).missingPermission(), Permission.EXTRACT,
-                        Component.literal("what the Pusher's owner lacks")))
+                        String.valueOf("what the Pusher's owner lacks")))
                 .thenSucceed();
     }
 
@@ -185,9 +177,9 @@ public final class AccessGameTests {
                 .thenExecute(() -> pusher(helper).placedBy(member))
                 .thenExecute(() -> storage(helper).insert(stone(), 5, Action.EXECUTE, Actor.NOBODY))
                 .thenWaitUntil(() -> helper.assertFalse(chest(helper).isEmpty(),
-                        Component.literal("the Pusher of a member delivers nothing")))
+                        String.valueOf("the Pusher of a member delivers nothing")))
                 .thenExecute(() -> helper.assertTrue(pusher(helper).missingPermission() == null,
-                        Component.literal("the Pusher of a member stands still")))
+                        String.valueOf("the Pusher of a member stands still")))
                 .thenSucceed();
     }
 
@@ -199,7 +191,7 @@ public final class AccessGameTests {
                 .thenIdle(1)
                 .thenExecute(() -> claim(helper))
                 .thenExecute(() -> helper.assertTrue(breakingIsRefused(helper, stranger, CABLE),
-                        Component.literal("a stranger broke a cable of the network")))
+                        String.valueOf("a stranger broke a cable of the network")))
                 .thenExecute(() -> leave(helper, stranger))
                 .thenSucceed();
     }
@@ -213,7 +205,7 @@ public final class AccessGameTests {
                 .thenExecute(() -> claim(helper))
                 .thenExecute(() -> edit(helper, new SecurityEdit.AddMember(member.getUUID(), "Member")))
                 .thenExecute(() -> helper.assertFalse(breakingIsRefused(helper, member, CABLE),
-                        Component.literal("a member may not break a cable of the network")))
+                        String.valueOf("a member may not break a cable of the network")))
                 .thenExecute(() -> leave(helper, member))
                 .thenSucceed();
     }
@@ -240,10 +232,10 @@ public final class AccessGameTests {
                 .thenIdle(1)
                 .thenExecute(() -> claim(helper))
                 .thenExecute(() -> helper.getLevel().destroyBlock(helper.absolutePos(NEXUS), true))
-                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityTypes.ITEM)))
+                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityType.ITEM)))
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertValueEqual(nexusAt(helper, ELSEWHERE).security().owner().orElse(null),
-                        OWNER, Component.literal("owner of the moved network")))
+                        OWNER, String.valueOf("owner of the moved network")))
                 .thenSucceed();
     }
 
@@ -255,7 +247,7 @@ public final class AccessGameTests {
                 .thenIdle(1)
                 .thenExecute(() -> claim(helper))
                 .thenExecute(() -> helper.getLevel().destroyBlock(helper.absolutePos(NEXUS), true))
-                .thenExecute(() -> use(helper, stranger, helper.findOneEntity(EntityTypes.ITEM).getItem(),
+                .thenExecute(() -> use(helper, stranger, helper.findOneEntity(EntityType.ITEM).getItem(),
                         ELSEWHERE))
                 .thenExecute(() -> helper.assertBlockPresent(Blocks.AIR, ELSEWHERE))
                 .thenExecute(() -> leave(helper, stranger))
@@ -269,9 +261,9 @@ public final class AccessGameTests {
         pusher(helper).placedBy(owner);
 
         helper.assertTrue(pusher(helper).accessPolicy().isAllowed(owner.getUUID(), Permission.CONFIGURE),
-                Component.literal("the owner may not configure their own device"));
+                String.valueOf("the owner may not configure their own device"));
         helper.assertFalse(pusher(helper).accessPolicy().isAllowed(STRANGER, Permission.OPEN),
-                Component.literal("a stranger may open a device outside every network"));
+                String.valueOf("a stranger may open a device outside every network"));
         helper.succeed();
     }
 
@@ -285,11 +277,11 @@ public final class AccessGameTests {
                 new SecurityEdit.AddMember(STRANGER, "Offline"));
 
         helper.assertValueEqual(addOnline, new SecurityEdit.AddMember(online.getUUID(),
-                online.getName().getString()), Component.literal("adding a player on the server, by their real name"));
-        helper.assertTrue(addOffline == null, Component.literal("a player not on the server could be added"));
+                online.getName().getString()), String.valueOf("adding a player on the server, by their real name"));
+        helper.assertTrue(addOffline == null, String.valueOf("a player not on the server could be added"));
         leave(helper, online);
         helper.assertTrue(AccessRequests.trusted(editor, new SecurityEdit.AddMember(online.getUUID(), "Gone")) == null,
-                Component.literal("a player who left could be added"));
+                String.valueOf("a player who left could be added"));
         leave(helper, editor);
         helper.succeed();
     }
@@ -300,7 +292,7 @@ public final class AccessGameTests {
         TestEnergy.charge(helper, CELL, 10_000);
         place(helper, VAULT, NexusBlocks.STORAGE_VAULT.get().defaultBlockState()
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
-        helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class).cells()
+        helper.<StorageVaultBlockEntity>getBlockEntity(VAULT).cells()
                 .setItem(0, new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get()));
         place(helper, CABLE, NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
     }
@@ -320,13 +312,13 @@ public final class AccessGameTests {
     private static void claim(final GameTestHelper helper) {
         final NetworkSecurity security = security(helper);
         helper.assertValueEqual(security.apply(Editor.operator(OWNER), new SecurityEdit.Claim("Owner")),
-                EditResult.APPLIED, Component.literal("claiming the network"));
+                EditResult.APPLIED, String.valueOf("claiming the network"));
         edit(helper, new SecurityEdit.ChangeDefaultRole(Role.BLOCKED));
     }
 
     private static void edit(final GameTestHelper helper, final SecurityEdit edit) {
         helper.assertValueEqual(security(helper).apply(Editor.player(OWNER), edit), EditResult.APPLIED,
-                Component.literal(edit.toString()));
+                String.valueOf(edit.toString()));
     }
 
     private static boolean breakingIsRefused(final GameTestHelper helper, final ServerPlayer player,
@@ -342,6 +334,8 @@ public final class AccessGameTests {
     private static void use(final GameTestHelper helper, final ServerPlayer player, final ItemStack stack,
                             final BlockPos pos) {
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        helper.setBlock(pos, Blocks.AIR);
+        helper.setBlock(pos.below(), Blocks.STONE);
         final BlockPos below = helper.absolutePos(pos).below();
         stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(below), Direction.UP, below, false)));
@@ -361,7 +355,7 @@ public final class AccessGameTests {
     }
 
     private static NexusBlockEntity nexusAt(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, NexusBlockEntity.class);
+        return helper.<NexusBlockEntity>getBlockEntity(pos);
     }
 
     private static NetworkStorage storage(final GameTestHelper helper) {
@@ -369,11 +363,11 @@ public final class AccessGameTests {
     }
 
     private static TransferDeviceBlockEntity pusher(final GameTestHelper helper) {
-        return helper.getBlockEntity(DEVICE, TransferDeviceBlockEntity.class);
+        return helper.<TransferDeviceBlockEntity>getBlockEntity(DEVICE);
     }
 
     private static Container chest(final GameTestHelper helper) {
-        return helper.getBlockEntity(CHEST, BaseContainerBlockEntity.class);
+        return helper.<BaseContainerBlockEntity>getBlockEntity(CHEST);
     }
 
     private static ItemKey stone() {
