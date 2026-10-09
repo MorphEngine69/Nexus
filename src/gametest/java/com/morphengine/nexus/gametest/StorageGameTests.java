@@ -51,7 +51,7 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.ItemStackWithSlot;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -170,7 +170,7 @@ public final class StorageGameTests {
                 .thenWaitUntil(() -> helper.assertItemEntityPresent(
                         NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get()))
                 .thenExecute(() -> {
-                    final ItemStack dropped = helper.getEntities(EntityTypes.ITEM).stream()
+                    final ItemStack dropped = helper.getEntities(EntityType.ITEM).stream()
                             .map(ItemEntity::getItem)
                             .filter(stack -> stack.getItem() instanceof VaultCellItem)
                             .findFirst().orElse(ItemStack.EMPTY);

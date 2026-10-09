@@ -118,7 +118,7 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
         if (contents().planRevision() != seenPlanRevision) {
             seenPlanRevision = contents().planRevision();
             if (contents().planOutcome() == CraftRequest.START && minecraft != null) {
-                minecraft.gui.setScreen(parent);
+                minecraft.setScreen(parent);
             } else if (contents().planOutcome() == CraftRequest.CRAFT_LESS) {
                 takeAmountOf(contents().plan());
             }
@@ -281,7 +281,7 @@ final class CraftRequestScreen<M extends AbstractContainerMenu & TerminalPanel> 
     @Override
     public void onClose() {
         if (minecraft != null) {
-            minecraft.gui.setScreen(parent);
+            minecraft.setScreen(parent);
         }
     }
 
