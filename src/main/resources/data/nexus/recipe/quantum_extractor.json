@@ -1,8 +1,12 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:superior_extractor",
-    "nexus:quantum_tier_upgrade"
+    {
+      "item": "nexus:superior_extractor"
+    },
+    {
+      "item": "nexus:quantum_tier_upgrade"
+    }
   ],
   "result": {
     "id": "nexus:quantum_extractor"

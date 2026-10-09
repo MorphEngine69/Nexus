@@ -53,7 +53,7 @@ public final class StorageVaultMenu extends DeviceMenu<StorageVaultBlockEntity> 
         UpgradeColumn.slots(viewer() != null && vault != null ? vault.upgrades() : null,
                 StorageVaultBlockEntity.UPGRADE_LIMITS, UPGRADES_LEFT, UPGRADES_TOP)
                 .forEach(this::addSlot);
-        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
+        InventorySlots.add(this::addSlot, inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(priority);
     }
 

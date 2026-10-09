@@ -1,8 +1,12 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:superior_energy_furnace",
-    "nexus:quantum_tier_upgrade"
+    {
+      "item": "nexus:superior_energy_furnace"
+    },
+    {
+      "item": "nexus:quantum_tier_upgrade"
+    }
   ],
   "result": {
     "id": "nexus:quantum_energy_furnace"

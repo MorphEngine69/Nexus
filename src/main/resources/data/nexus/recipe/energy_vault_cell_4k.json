@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:voltsteel_ingot",
-    "B": "nexus:cell_housing",
-    "C": "nexus:cell_part_4k",
-    "D": "nexus:battery"
+    "A": {
+      "item": "nexus:voltsteel_ingot"
+    },
+    "B": {
+      "item": "nexus:cell_housing"
+    },
+    "C": {
+      "item": "nexus:cell_part_4k"
+    },
+    "D": {
+      "item": "nexus:battery"
+    }
   },
   "pattern": [
     " A ",

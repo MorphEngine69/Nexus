@@ -1,6 +1,6 @@
 package com.morphengine.nexus.world;
 
-import net.minecraft.server.players.NameAndId;
+import com.morphengine.nexus.access.NameAndId;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;

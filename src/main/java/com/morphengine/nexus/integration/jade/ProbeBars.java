@@ -3,7 +3,8 @@ package com.morphengine.nexus.integration.jade;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.probe.BlockProbes;
 import com.morphengine.nexus.probe.ProbeLine;
-import net.minecraft.resources.Identifier;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
@@ -33,30 +34,30 @@ import java.util.function.Function;
 final class ProbeBars<L extends ProbeLine, D, V>
         implements IServerExtensionProvider<D>, IClientExtensionProvider<D, V> {
 
-    static final ProbeBars<ProbeLine.Energy, EnergyView.Data, EnergyView> ENERGY = new ProbeBars<>(
+    static final ProbeBars<ProbeLine.Energy, CompoundTag, EnergyView> ENERGY = new ProbeBars<>(
             "probe_energy", ProbeLine.Energy.class,
-            energy -> new EnergyView.Data(energy.stored(), energy.capacity()),
+            energy -> EnergyView.of(energy.stored(), energy.capacity()),
             data -> EnergyView.read(data, "FE"));
 
-    static final ProbeBars<ProbeLine.Tank, FluidView.Data, FluidView> TANKS = new ProbeBars<>(
+    static final ProbeBars<ProbeLine.Tank, CompoundTag, FluidView> TANKS = new ProbeBars<>(
             "probe_tanks", ProbeLine.Tank.class,
-            ProbeBars::tankData, FluidView::readDefault);
+            ProbeBars::tankData, data -> FluidView.readDefault(data));
 
-    static final ProbeBars<ProbeLine.Progress, ProgressView.Data, ProgressView> PROGRESS = new ProbeBars<>(
+    static final ProbeBars<ProbeLine.Progress, CompoundTag, ProgressView> PROGRESS = new ProbeBars<>(
             "probe_progress", ProbeLine.Progress.class,
-            progress -> new ProgressView.Data(progress.percent() / ProbeBars.PERCENT), ProgressView::read);
+            progress -> ProgressView.create(progress.percent() / ProbeBars.PERCENT), ProgressView::read);
 
     private static final float PERCENT = 100F;
     private static final long MILLIBUCKETS_PER_BUCKET = 1000;
 
-    private final Identifier uid;
+    private final ResourceLocation uid;
     private final Class<L> lineType;
     private final Function<L, D> toData;
     private final Function<D, V> toView;
 
     private ProbeBars(
             final String name, final Class<L> lineType, final Function<L, D> toData, final Function<D, V> toView) {
-        this.uid = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
+        this.uid = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, name);
         this.lineType = lineType;
         this.toData = toData;
         this.toView = toView;
@@ -79,7 +80,7 @@ final class ProbeBars<L extends ProbeLine, D, V>
     }
 
     @Override
-    public Identifier getUid() {
+    public ResourceLocation getUid() {
         return uid;
     }
 
@@ -102,11 +103,11 @@ final class ProbeBars<L extends ProbeLine, D, V>
         return ClientViewGroup.map(groups, toView, null);
     }
 
-    private static FluidView.Data tankData(final ProbeLine.Tank tank) {
+    private static CompoundTag tankData(final ProbeLine.Tank tank) {
         final FluidStack contents = tank.contents();
         final JadeFluidObject fluid = contents.isEmpty()
                 ? JadeFluidObject.empty() : JadeFluidObject.of(contents.getFluid(), inJadeUnits(contents.getAmount()));
-        return new FluidView.Data(fluid, inJadeUnits(tank.capacity()));
+        return FluidView.writeDefault(fluid, inJadeUnits(tank.capacity()));
     }
 
     private static long inJadeUnits(final long millibuckets) {

@@ -105,7 +105,7 @@ final class CraftingGridFiller {
     private long atHand(final ItemKey item) {
         final Inventory inventory = player.getInventory();
         long count = 0;
-        for (int slot = 0; slot < inventory.getNonEquipmentItems().size(); slot++) {
+        for (int slot = 0; slot < inventory.items.size(); slot++) {
             final ItemStack stack = inventory.getItem(slot);
             if (item.item().matches(stack)) {
                 count += stack.getCount();
@@ -140,7 +140,7 @@ final class CraftingGridFiller {
     private ItemStack take(final ItemKey item, final int count) {
         final Inventory inventory = player.getInventory();
         int missing = count;
-        for (int slot = 0; slot < inventory.getNonEquipmentItems().size() && missing > 0; slot++) {
+        for (int slot = 0; slot < inventory.items.size() && missing > 0; slot++) {
             final ItemStack stack = inventory.getItem(slot);
             if (item.item().matches(stack)) {
                 missing -= inventory.removeItem(slot, Math.min(missing, stack.getCount())).getCount();

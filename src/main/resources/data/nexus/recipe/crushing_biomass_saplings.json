@@ -1,6 +1,8 @@
 {
   "type": "nexus:crushing",
-  "ingredient": "#minecraft:saplings",
+  "ingredient": {
+    "tag": "minecraft:saplings"
+  },
   "result": {
     "id": "nexus:biomass"
   }

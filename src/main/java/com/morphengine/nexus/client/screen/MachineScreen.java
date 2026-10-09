@@ -1,6 +1,7 @@
 package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.Nexus;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.machine.MachineActivity;
 import com.morphengine.nexus.machine.MachineSide;
 import com.morphengine.nexus.menu.MachineMenu;
@@ -10,11 +11,10 @@ import com.morphengine.nexus.menu.TankView;
 import com.morphengine.nexus.processing.ItemStackSlots;
 import com.morphengine.nexus.resource.FluidKey;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
@@ -64,8 +64,8 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
         return new SideButtons(leftPos, topPos, 1);
     }
 
-    private Identifier redstoneIcon() {
-        return Identifier.fromNamespaceAndPath(Nexus.MOD_ID,
+    private ResourceLocation redstoneIcon() {
+        return ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID,
                 "transfer/redstone_" + getMenu().redstoneMode().name().toLowerCase(Locale.ROOT));
     }
 
@@ -102,7 +102,7 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final MachineView view = getMenu().view();
         PanelStyle.drawNetworkOrStandalone(graphics, font, view.network(), leftPos, topPos);
         redstoneButton().draw(graphics, style, 0, redstoneIcon(), redstoneButton().buttonAt(mouseX, mouseY) == 0);
@@ -121,11 +121,11 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
         if (view.tank() != null) {
             drawTank(graphics, style, view.tank());
         }
-        graphics.text(font, playerInventoryTitle, leftPos + MachineMenu.INVENTORY_LEFT,
+        graphics.drawString(font, playerInventoryTitle, leftPos + MachineMenu.INVENTORY_LEFT,
                 topPos + MachineMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 
-    private void drawChargeBar(final GuiGraphicsExtractor graphics, final PanelStyle style, final MachineView view) {
+    private void drawChargeBar(final GuiGraphics graphics, final PanelStyle style, final MachineView view) {
         final int x = leftPos + PanelStyle.PADDING;
         final int y = topPos + BAR_TOP;
         final int width = MachineMenu.IMAGE_WIDTH - 2 * PanelStyle.PADDING;
@@ -140,7 +140,7 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
      * value follows the one the server sent, which comes once a tick, so that the arrow fills smoothly.
      */
     private void drawProgress(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int line, final int percent) {
+            final GuiGraphics graphics, final PanelStyle style, final int line, final int percent) {
         shown[line] = percent < shown[line] ? percent : shown[line] + (percent - shown[line]) * SMOOTHING;
         final int middle = leftPos + MachineMenu.outputX(line, getMenu().inputsPerLine(), getMenu().inputCount())
                 + PanelStyle.SLOT_SIZE / 2;
@@ -159,7 +159,7 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
      * The tank of a machine that gives a fluid: a bar under the arrow, with the fluid and how much of it there is
      * written below.
      */
-    private void drawTank(final GuiGraphicsExtractor graphics, final PanelStyle style, final TankView tank) {
+    private void drawTank(final GuiGraphics graphics, final PanelStyle style, final TankView tank) {
         final int x = leftPos + MachineMenu.outputX(0, 1, 1) - (TANK_WIDTH - PanelStyle.SLOT_SIZE) / 2;
         final int y = topPos + MachineMenu.LINES_TOP + MachineMenu.OUTPUT_OFFSET;
         graphics.fill(x, y, x + TANK_WIDTH, y + TANK_HEIGHT, style.track());
@@ -168,12 +168,12 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
         if (filled > 0 && tank.fluid() != null) {
             drawFluid(graphics, tank.fluid(), x + 1, y + 1, filled, TANK_HEIGHT - 2);
         }
-        graphics.outline(x, y, TANK_WIDTH, TANK_HEIGHT, style.border());
+        graphics.renderOutline(x, y, TANK_WIDTH, TANK_HEIGHT, style.border());
         final Component fluid = tank.fluid() != null ? tank.fluid().name()
                 : Component.translatable("gui.nexus.machine.tank_empty");
         final Component text = Component.translatable("gui.nexus.machine.tank", fluid,
                 EnergyFormat.amount(tank.amount()), EnergyFormat.amount(tank.capacity()));
-        graphics.text(font, text, x + (TANK_WIDTH - font.width(text)) / 2, y + TANK_HEIGHT + STATUS_GAP,
+        graphics.drawString(font, text, x + (TANK_WIDTH - font.width(text)) / 2, y + TANK_HEIGHT + STATUS_GAP,
                 PanelStyle.TEXT_LIGHT, false);
     }
 
@@ -181,7 +181,7 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
      * The still texture of the fluid, tiled over the filled part of the bar, as the tanks of the generators show it.
      */
     private static void drawFluid(
-            final GuiGraphicsExtractor graphics, final FluidKey fluid, final int left, final int top, final int width,
+            final GuiGraphics graphics, final FluidKey fluid, final int left, final int top, final int width,
             final int height) {
         final ResourceIcon icon = ResourceRenderers.icon(fluid);
         graphics.enableScissor(left, top, left + width, top + height);
@@ -191,26 +191,26 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
         graphics.disableScissor();
     }
 
-    private void drawStatus(final GuiGraphicsExtractor graphics, final MachineView view) {
+    private void drawStatus(final GuiGraphics graphics, final MachineView view) {
         final int y = topPos + BAR_TOP + ChargeBar.HEIGHT + STATUS_GAP;
         final Component status = Component.translatable("gui.nexus.machine.status."
                 + view.activity().name().toLowerCase(Locale.ROOT));
-        graphics.text(font, status, leftPos + PanelStyle.PADDING, y + font.lineHeight + STATUS_GAP,
+        graphics.drawString(font, status, leftPos + PanelStyle.PADDING, y + font.lineHeight + STATUS_GAP,
                 view.activity() == MachineActivity.WORKING ? PanelStyle.TEXT_LIGHT : PanelStyle.TEXT_DIM, false);
         final Component speed = Component.translatable("gui.nexus.machine.speed", view.speedPercent());
-        graphics.text(font, speed, leftPos + MachineMenu.IMAGE_WIDTH - PanelStyle.PADDING - font.width(speed), y,
+        graphics.drawString(font, speed, leftPos + MachineMenu.IMAGE_WIDTH - PanelStyle.PADDING - font.width(speed), y,
                 PanelStyle.TEXT_DIM, false);
     }
 
     @Override
-    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
-        super.extractTooltip(graphics, mouseX, mouseY);
+    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
         if (hasModeButton()) {
             modeButton.showTooltip(graphics, font, getMenu().inputMode(), mouseX, mouseY);
         }
         sides.showTooltip(graphics, font, getMenu().sideModes(), mouseX, mouseY);
         if (redstoneButton().buttonAt(mouseX, mouseY) == 0) {
-            graphics.setComponentTooltipForNextFrame(font, List.of(
+            graphics.renderComponentTooltip(font, List.of(
                     Component.translatable("gui.nexus.transfer.redstone"),
                     Component.translatable("gui.nexus.transfer.redstone."
                             + getMenu().redstoneMode().name().toLowerCase(Locale.ROOT))
@@ -219,8 +219,9 @@ public final class MachineScreen extends PanelScreen<MachineMenu> implements Sid
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
-        return clickedOwnControl(event) || super.mouseClicked(event, doubleClick);
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
+        return clickedOwnControl(event) || super.mouseClicked(mouseX, mouseY, button);
     }
 
     private boolean clickedOwnControl(final MouseButtonEvent event) {

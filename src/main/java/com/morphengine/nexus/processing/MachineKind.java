@@ -1,11 +1,11 @@
 package com.morphengine.nexus.processing;
 
-import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.Codec;
 import com.morphengine.nexus.machine.MachineShape;
 import com.morphengine.nexus.registry.NexusRecipes;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.DyeColor;
+import software.bernie.geckolib.animation.RawAnimation;
 
 import java.util.EnumMap;
 import java.util.Map;

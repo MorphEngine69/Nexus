@@ -1,6 +1,8 @@
 {
   "type": "nexus:crushing",
-  "ingredient": "nexus:raw_mithril",
+  "ingredient": {
+    "item": "nexus:raw_mithril"
+  },
   "result": {
     "id": "nexus:mithril_dust",
     "count": 2

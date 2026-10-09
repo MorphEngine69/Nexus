@@ -25,18 +25,13 @@ import com.morphengine.nexus.storage.NetworkStorage;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.DyeColor;
@@ -50,8 +45,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -63,7 +60,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class ExternalVaultGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos CELL = NEXUS.south();
@@ -97,22 +94,16 @@ public final class ExternalVaultGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(ExternalVaultGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "external_vault"),
-                new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void listsChest(final GameTestHelper helper) {
@@ -238,7 +229,7 @@ public final class ExternalVaultGameTests {
     private static void refusesNetworkBlock(final GameTestHelper helper) {
         buildNetwork(helper);
         place(helper, CHEST, NexusBlocks.GENERATORS.get(GeneratorKind.COAL).get().defaultBlockState());
-        helper.getBlockEntity(CHEST, GeneratorBlockEntity.class).input().setItem(0, new ItemStack(Items.COAL, 5));
+        helper.<GeneratorBlockEntity>getBlockEntity(CHEST).input().setItem(0, new ItemStack(Items.COAL, 5));
         place(helper, EXTERNAL, externalVault(Direction.EAST));
 
         helper.startSequence()
@@ -253,9 +244,9 @@ public final class ExternalVaultGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
-                        helper.getBlockEntity(NEXUS, NexusBlockEntity.class).statistics()
+                        helper.<NexusBlockEntity>getBlockEntity(NEXUS).statistics()
                                 .count(DeviceRole.STORAGE) == 2,
-                        Component.literal("the Nexus does not count the External Vault as a storage")))
+                        String.valueOf("the Nexus does not count the External Vault as a storage")))
                 .thenSucceed();
     }
 
@@ -267,7 +258,7 @@ public final class ExternalVaultGameTests {
 
         final ExternalVaultSettings loaded = ExternalVaultSettings.CODEC.parse(ops, saved).getOrThrow();
 
-        helper.assertTrue(loaded.equals(settings), Component.literal("settings read back as " + loaded));
+        helper.assertTrue(loaded.equals(settings), String.valueOf("settings read back as " + loaded));
         helper.succeed();
     }
 
@@ -284,7 +275,7 @@ public final class ExternalVaultGameTests {
         TestEnergy.charge(helper, CELL, 10_000);
         place(helper, VAULT, NexusBlocks.STORAGE_VAULT.get().defaultBlockState()
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
-        helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class).cells()
+        helper.<StorageVaultBlockEntity>getBlockEntity(VAULT).cells()
                 .setItem(0, new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get()));
         place(helper, CABLE, NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
     }
@@ -294,16 +285,16 @@ public final class ExternalVaultGameTests {
     }
 
     private static ExternalVaultBlockEntity external(final GameTestHelper helper) {
-        return helper.getBlockEntity(EXTERNAL, ExternalVaultBlockEntity.class);
+        return helper.<ExternalVaultBlockEntity>getBlockEntity(EXTERNAL);
     }
 
     private static NetworkStorage network(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class)
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS)
                 .component(NetworkComponentTypes.STORAGE).storage();
     }
 
     private static Container container(final GameTestHelper helper) {
-        return helper.getBlockEntity(CHEST, BaseContainerBlockEntity.class);
+        return helper.<BaseContainerBlockEntity>getBlockEntity(CHEST);
     }
 
     private static int countIn(final Container container, final Item item) {
@@ -326,7 +317,7 @@ public final class ExternalVaultGameTests {
 
     private static void assertAmount(
             final GameTestHelper helper, final long actual, final long expected, final String what) {
-        helper.assertTrue(actual == expected, Component.literal(what + ": " + actual + ", expected " + expected));
+        helper.assertTrue(actual == expected, String.valueOf(what + ": " + actual + ", expected " + expected));
     }
 
     private static void place(final GameTestHelper helper, final BlockPos pos, final BlockState state) {
@@ -338,11 +329,11 @@ public final class ExternalVaultGameTests {
         final UpgradeLimits limits = ExternalVaultBlockEntity.UPGRADE_LIMITS;
 
         helper.assertTrue(limits.accepts(new ItemStack(NexusItems.CHUNK_LOADER_UPGRADE.get()), upgrades),
-                Component.literal("a vault refused a Chunk Loader Upgrade"));
+                String.valueOf("a vault refused a Chunk Loader Upgrade"));
         helper.assertTrue(limits.accepts(new ItemStack(NexusItems.CAPACITY_UPGRADE.get()), upgrades),
-                Component.literal("a vault refused a Capacity Upgrade"));
+                String.valueOf("a vault refused a Capacity Upgrade"));
         helper.assertFalse(limits.accepts(new ItemStack(NexusItems.FORTUNE_UPGRADE.get()), upgrades),
-                Component.literal("a vault took a Fortune Upgrade"));
+                String.valueOf("a vault took a Fortune Upgrade"));
         helper.succeed();
     }
 

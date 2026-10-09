@@ -19,6 +19,8 @@ import com.morphengine.nexus.machine.MachineSide;
 import com.morphengine.nexus.machine.MachineSpeed;
 import com.morphengine.nexus.menu.MachineMenu;
 import com.morphengine.nexus.menu.MachineView;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.processing.ItemStackSlots;
 import com.morphengine.nexus.processing.MachineFacing;
 import com.morphengine.nexus.processing.MachineItems;
@@ -29,15 +31,17 @@ import com.morphengine.nexus.processing.MachineRedstone;
 import com.morphengine.nexus.processing.MachineTank;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.resource.ItemKey;
+import com.morphengine.nexus.transfer.ItemResource;
 import com.morphengine.nexus.transport.SideMode;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -46,12 +50,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -96,7 +97,7 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity
                 applyUpgrades();
                 setChanged();
             });
-    private final EnergyHandler energyHandler;
+    private final IEnergyStorage energyHandler;
     private MachinePhase phase = MachinePhase.OFF;
     private int lingerTicks;
     private int cooldownLeft;
@@ -142,7 +143,7 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity
         return redstone;
     }
 
-    public EnergyHandler energyHandler() {
+    public IEnergyStorage energyHandler() {
         return energyHandler;
     }
 
@@ -151,7 +152,7 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity
      *
      * @return the handler for the side, {@code null} when the side is closed or no side is named
      */
-    public @Nullable ResourceHandler<ItemResource> itemHandler(final @Nullable Direction worldSide) {
+    public @Nullable IItemHandler itemHandler(final @Nullable Direction worldSide) {
         if (worldSide == null) {
             return null;
         }
@@ -186,7 +187,7 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity
      *
      * @return the handler, {@code null} when the machine has no tank or the side lets nothing out
      */
-    public @Nullable ResourceHandler<FluidResource> fluidHandler(final @Nullable Direction worldSide) {
+    public @Nullable IFluidHandler fluidHandler(final @Nullable Direction worldSide) {
         if (tank == null) {
             return null;
         }
@@ -322,7 +323,6 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity
         return new MachineMenu(containerId, inventory, worldPosition);
     }
 
-    @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
         if (level != null) {
@@ -333,11 +333,12 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
         output.putLong(TAG_ENERGY, machine.energy().stored());
-        ContainerHelper.saveAllItems(output.child(TAG_INPUTS), slots.inputStacks());
-        ContainerHelper.saveAllItems(output.child(TAG_OUTPUTS), slots.outputStacks());
+        output.saveItems(TAG_INPUTS, slots.inputStacks());
+        output.saveItems(TAG_OUTPUTS, slots.outputStacks());
         for (int line = 0; line < machine.lineCount(); line++) {
             output.putLong(TAG_PROGRESS + line, machine.line(line).progress());
         }
@@ -347,16 +348,17 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity
         }
         output.putInt(TAG_MODE, machine.inventory().mode().ordinal());
         output.putInt(TAG_SIDES, machine.sides().toBits());
-        ContainerHelper.saveAllItems(output.child(TAG_UPGRADES), upgrades.getItems());
+        output.saveItems(TAG_UPGRADES, upgrades.getItems());
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         machine.energy().restore(
                 SimpleEnergyBuffer.Snapshot.storing(Math.max(0, input.getLongOr(TAG_ENERGY, 0))));
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_INPUTS), slots.inputStacks());
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_OUTPUTS), slots.outputStacks());
+        input.loadItems(TAG_INPUTS, slots.inputStacks());
+        input.loadItems(TAG_OUTPUTS, slots.outputStacks());
         for (int line = 0; line < machine.lineCount(); line++) {
             machine.line(line).restoreProgress(input.getLongOr(TAG_PROGRESS + line, 0));
         }
@@ -367,7 +369,7 @@ public final class MachineBlockEntity extends ShowcaseDeviceBlockEntity
         final InputMode[] modes = InputMode.values();
         machine.inventory().setMode(modes[Math.clamp(input.getIntOr(TAG_MODE, 0), 0, modes.length - 1)]);
         restoreSides(input.getIntOr(TAG_SIDES, -1));
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
+        input.loadItems(TAG_UPGRADES, upgrades.getItems());
         applyUpgrades();
     }
 

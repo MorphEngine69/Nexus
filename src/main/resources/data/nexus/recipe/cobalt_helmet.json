@@ -2,7 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "X": "#nexus:cobalt_tool_materials"
+    "X": {
+      "tag": "nexus:cobalt_tool_materials"
+    }
   },
   "pattern": [
     "XXX",

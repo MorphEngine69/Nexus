@@ -3,17 +3,17 @@ package com.morphengine.nexus.client.screen;
 import com.morphengine.nexus.api.automation.DispatchResult;
 import com.morphengine.nexus.api.automation.TaskEntry;
 import com.morphengine.nexus.api.automation.TaskStatus;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.CraftingMonitorMenu;
 import com.morphengine.nexus.networking.CancelTaskPayload;
 import com.morphengine.nexus.resource.NexusResource;
 import com.morphengine.nexus.resource.NexusResources;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Inventory;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -87,11 +87,11 @@ public final class CraftingMonitorScreen extends PanelScreen<CraftingMonitorMenu
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         PanelStyle.drawNetwork(graphics, font, getMenu().badge(), leftPos, topPos);
         final List<TaskStatus> tasks = getMenu().tasks();
         if (tasks.isEmpty()) {
-            graphics.text(font, Component.translatable("gui.nexus.monitor.empty"), leftPos + PanelStyle.PADDING,
+            graphics.drawString(font, Component.translatable("gui.nexus.monitor.empty"), leftPos + PanelStyle.PADDING,
                     topPos + LIST_TOP + TEXT_INSET, PanelStyle.TEXT_DIM, false);
             return;
         }
@@ -111,21 +111,23 @@ public final class CraftingMonitorScreen extends PanelScreen<CraftingMonitorMenu
                 TASK_HEIGHT - 2);
     }
 
-    private void drawTask(final GuiGraphicsExtractor graphics, final PanelStyle style, final TaskStatus task,
+    private void drawTask(final GuiGraphics graphics, final PanelStyle style, final TaskStatus task,
                           final PanelBounds row, final boolean isShown) {
         graphics.fill(row.left(), row.top(), row.left() + row.width(), row.top() + row.height(), style.buttonFill());
         if (isShown) {
             graphics.fill(row.left(), row.top(), row.left() + row.width(), row.top() + row.height(), SELECTED_RGB);
         }
-        graphics.outline(row.left(), row.top(), row.width(), row.height(), style.border());
+        graphics.renderOutline(row.left(), row.top(), row.width(), row.height(), style.border());
         final NexusResource product = NexusResources.of(task.target().resource());
         ResourceRenderers.icon(product).draw(graphics, row.left() + 2, row.top() + 1);
         final String amount = product.type().unit().compact(task.target().amount());
-        graphics.text(font, amount, row.left() + TASK_TEXT_LEFT, row.top() + TASK_AMOUNT_TOP, PanelStyle.TEXT_LIGHT,
+        graphics.drawString(font, amount, row.left() + TASK_TEXT_LEFT, row.top() + TASK_AMOUNT_TOP,
+                PanelStyle.TEXT_LIGHT,
                 false);
         final Component state = Component.translatable(
                 "gui.nexus.monitor.state." + task.state().name().toLowerCase(Locale.ROOT));
-        graphics.text(font, state, row.left() + TASK_TEXT_LEFT, row.top() + TASK_STATE_TOP, PanelStyle.TEXT_DIM, false);
+        graphics.drawString(font, state, row.left() + TASK_TEXT_LEFT, row.top() + TASK_STATE_TOP, PanelStyle.TEXT_DIM,
+                false);
         final int barLeft = row.left() + 2;
         final int barWidth = row.width() - 4;
         final int barTop = row.top() + row.height() - BAR_HEIGHT - BAR_INSET;
@@ -134,16 +136,16 @@ public final class CraftingMonitorScreen extends PanelScreen<CraftingMonitorMenu
                 style.accent());
     }
 
-    private void drawDetails(final GuiGraphicsExtractor graphics, final PanelStyle style, final TaskStatus task) {
+    private void drawDetails(final GuiGraphics graphics, final PanelStyle style, final TaskStatus task) {
         final int left = leftPos + DETAIL_LEFT;
         final NexusResource product = NexusResources.of(task.target().resource());
-        graphics.text(font, product.name(), left, topPos + LIST_TOP, PanelStyle.TEXT_LIGHT, false);
+        graphics.drawString(font, product.name(), left, topPos + LIST_TOP, PanelStyle.TEXT_LIGHT, false);
         final MutableComponent progress = Component.translatable("gui.nexus.monitor.progress",
                 Math.round(task.progress() * PERCENT));
         if (!task.requester().isEmpty()) {
             progress.append(" · ").append(task.requester());
         }
-        graphics.text(font, progress, left, topPos + LIST_TOP + LINE, PanelStyle.TEXT_DIM, false);
+        graphics.drawString(font, progress, left, topPos + LIST_TOP + LINE, PanelStyle.TEXT_DIM, false);
         drawLegend(graphics, left, topPos + LIST_TOP + 2 * LINE);
         final List<TaskEntry> entries = task.entries();
         entryScroll = Math.clamp(entryScroll, 0, Math.max(0, entries.size() - ENTRY_ROWS));
@@ -158,14 +160,14 @@ public final class CraftingMonitorScreen extends PanelScreen<CraftingMonitorMenu
     /**
      * What the colors of the amounts mean, each word in its own color.
      */
-    private void drawLegend(final GuiGraphicsExtractor graphics, final int left, final int top) {
+    private void drawLegend(final GuiGraphics graphics, final int left, final int top) {
         int column = left;
         for (Amount amount : Amount.values()) {
             column = drawFitting(graphics, Component.translatable(amount.legendKey), column, top, amount.color);
         }
     }
 
-    private void drawEntry(final GuiGraphicsExtractor graphics, final TaskEntry entry, final int x, final int y) {
+    private void drawEntry(final GuiGraphics graphics, final TaskEntry entry, final int x, final int y) {
         final NexusResource resource = NexusResources.of(entry.resource());
         ResourceRenderers.icon(resource).draw(graphics, x + 1, y + 1);
         int column = x + PanelStyle.SLOT_SIZE + TEXT_INSET;
@@ -188,13 +190,13 @@ public final class CraftingMonitorScreen extends PanelScreen<CraftingMonitorMenu
      *
      * @return where the next text starts; past the panel's edge once one did not fit
      */
-    private int drawFitting(final GuiGraphicsExtractor graphics, final Component text, final int x, final int y,
+    private int drawFitting(final GuiGraphics graphics, final Component text, final int x, final int y,
                             final int color) {
         final int end = x + font.width(text);
         if (end > leftPos + IMAGE_WIDTH - PanelStyle.PADDING) {
             return leftPos + IMAGE_WIDTH;
         }
-        graphics.text(font, text, x, y, color, false);
+        graphics.drawString(font, text, x, y, color, false);
         return end + TEXT_GAP;
     }
 
@@ -204,11 +206,11 @@ public final class CraftingMonitorScreen extends PanelScreen<CraftingMonitorMenu
     }
 
     @Override
-    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
-        super.extractTooltip(graphics, mouseX, mouseY);
+    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
         final List<Component> lines = entryTooltip(mouseX, mouseY);
         if (!lines.isEmpty()) {
-            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+            graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
         }
     }
 
@@ -238,7 +240,8 @@ public final class CraftingMonitorScreen extends PanelScreen<CraftingMonitorMenu
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         final List<TaskStatus> tasks = getMenu().tasks();
         for (int row = 0; row < TASK_ROWS && taskScroll + row < tasks.size(); row++) {
             if (taskRow(row).contains(event.x(), event.y())) {
@@ -249,10 +252,10 @@ public final class CraftingMonitorScreen extends PanelScreen<CraftingMonitorMenu
         }
         final TaskStatus task = selectedTask();
         if (task != null && cancelButton().contains(event.x(), event.y())) {
-            ClientPacketDistributor.sendToServer(new CancelTaskPayload(getMenu().containerId, task.id()));
+            PacketDistributor.sendToServer(new CancelTaskPayload(getMenu().containerId, task.id()));
             return true;
         }
-        return super.mouseClicked(event, doubleClick);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override

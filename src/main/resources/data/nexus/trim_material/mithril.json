@@ -1,10 +1,12 @@
 {
   "asset_name": "mithril",
+  "ingredient": "nexus:mithril_ingot",
+  "item_model_index": 0.4,
   "description": {
     "color": "#6FB7B0",
     "translate": "trim_material.nexus.mithril"
   },
-  "override_armor_assets": {
+  "override_armor_materials": {
     "nexus:mithril": "mithril_darker"
   }
 }

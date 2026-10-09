@@ -28,6 +28,8 @@ import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.OperationToll;
 import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.AssemblerMenu;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.resource.NexusResources;
 import com.morphengine.nexus.transport.TransferRate;
@@ -35,9 +37,10 @@ import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -45,8 +48,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -159,7 +160,7 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity
         final DispatchResult result = switch (encoded) {
             case null -> DispatchResult.NO_TARGET;
             case CraftingBlueprint crafting -> work.craft(serverLevel, crafting, inputs, action);
-            case ProcessingBlueprint _ -> dispatchProcessing(serverLevel, inputs, action);
+            case ProcessingBlueprint ignored -> dispatchProcessing(serverLevel, inputs, action);
         };
         if (result.isAccepted() && action.isExecute()) {
             if (network != null) {
@@ -281,7 +282,6 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity
      * tasks and gives what they held and what it crafted back to the network;
      * items the network does not take drop too.
      */
-    @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
         ChunkAnchors.release(this);
@@ -306,21 +306,23 @@ public final class AssemblerBlockEntity extends AnimatedDeviceBlockEntity
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
         output.store(TAG_SETTINGS, AssemblerSettings.CODEC, settings);
-        ContainerHelper.saveAllItems(output.child(TAG_BLUEPRINTS), blueprintSlots.getItems());
-        ContainerHelper.saveAllItems(output.child(TAG_UPGRADES), upgrades.getItems());
+        output.saveItems(TAG_BLUEPRINTS, blueprintSlots.getItems());
+        output.saveItems(TAG_UPGRADES, upgrades.getItems());
         output.store(TAG_TASKS, BlueprintCodecs.TASK_CODEC.listOf(), tasks.snapshots());
         output.store(TAG_CRAFTED, NexusResources.AMOUNT_CODEC.listOf(), work.held());
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         settings = input.read(TAG_SETTINGS, AssemblerSettings.CODEC).orElse(AssemblerSettings.DEFAULT);
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_BLUEPRINTS), blueprintSlots.getItems());
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
+        input.loadItems(TAG_BLUEPRINTS, blueprintSlots.getItems());
+        input.loadItems(TAG_UPGRADES, upgrades.getItems());
         blueprintSlots.readBlueprints();
         rate = AssemblerRates.rateOf(upgrades);
         tasks.restore(input.read(TAG_TASKS, BlueprintCodecs.TASK_CODEC.listOf()).orElse(List.of()));

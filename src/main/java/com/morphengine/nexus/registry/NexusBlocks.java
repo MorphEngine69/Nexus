@@ -41,7 +41,7 @@ public final class NexusBlocks {
     public static final DeferredBlock<NexusBlock> NEXUS = BLOCKS.registerBlock(
             "nexus",
             NexusBlock::new,
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<EnergyCellBlock> BASIC_ENERGY_CELL =
             energyCell("basic_energy_cell", EnergyCellTier.BASIC);
@@ -68,72 +68,72 @@ public final class NexusBlocks {
     public static final DeferredBlock<StorageVaultBlock> STORAGE_VAULT = BLOCKS.registerBlock(
             "storage_vault",
             StorageVaultBlock::new,
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<TerminalBlock> TERMINAL = BLOCKS.registerBlock(
             "terminal",
             properties -> new TerminalBlock(TerminalKind.TERMINAL, properties),
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<TerminalBlock> CRAFTING_TERMINAL = BLOCKS.registerBlock(
             "crafting_terminal",
             properties -> new TerminalBlock(TerminalKind.CRAFTING_TERMINAL, properties),
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<TransferDeviceBlock> PULLER = BLOCKS.registerBlock(
             "puller",
             properties -> new TransferDeviceBlock(TransferKind.PULLER, properties),
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<TransferDeviceBlock> PUSHER = BLOCKS.registerBlock(
             "pusher",
             properties -> new TransferDeviceBlock(TransferKind.PUSHER, properties),
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<TransferDeviceBlock> PLACER = BLOCKS.registerBlock(
             "placer",
             properties -> new TransferDeviceBlock(TransferKind.PLACER, properties),
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<TransferDeviceBlock> REMOVER = BLOCKS.registerBlock(
             "remover",
             properties -> new TransferDeviceBlock(TransferKind.REMOVER, properties),
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<ExternalVaultBlock> EXTERNAL_VAULT = BLOCKS.registerBlock(
             "external_vault",
             ExternalVaultBlock::new,
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<AssemblerBlock> ASSEMBLER = BLOCKS.registerBlock(
             "assembler",
             AssemblerBlock::new,
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<CraftingMonitorBlock> CRAFTING_MONITOR = BLOCKS.registerBlock(
             "crafting_monitor",
             CraftingMonitorBlock::new,
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<TerminalBlock> BLUEPRINT_TERMINAL = BLOCKS.registerBlock(
             "blueprint_terminal",
             properties -> new TerminalBlock(TerminalKind.BLUEPRINT_TERMINAL, properties),
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<WirelessBlock> NETWORK_TRANSMITTER = BLOCKS.registerBlock(
             "network_transmitter",
             properties -> new WirelessBlock(WirelessKind.TRANSMITTER, properties),
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<WirelessBlock> NETWORK_RECEIVER = BLOCKS.registerBlock(
             "network_receiver",
             properties -> new WirelessBlock(WirelessKind.RECEIVER, properties),
-            NexusBlocks::device);
+            device());
 
     public static final DeferredBlock<WirelessBlock> NEXUS_LINK = BLOCKS.registerBlock(
             "nexus_link",
             properties -> new WirelessBlock(WirelessKind.LINK, properties),
-            NexusBlocks::device);
+            device());
 
     public static final Map<DyeColor, DeferredBlock<CableBlock>> CABLES = registerCables();
 
@@ -153,7 +153,7 @@ public final class NexusBlocks {
     }
 
     private static DeferredBlock<EnergyCellBlock> energyCell(final String name, final EnergyCellTier tier) {
-        return BLOCKS.registerBlock(name, properties -> new EnergyCellBlock(tier, properties), NexusBlocks::device);
+        return BLOCKS.registerBlock(name, properties -> new EnergyCellBlock(tier, properties), device());
     }
 
     /**
@@ -171,7 +171,7 @@ public final class NexusBlocks {
             for (int rank = 1; rank <= tierNames.size(); rank++) {
                 final MachineTier tier = MachineTier.ofRank(rank);
                 tiers.add(BLOCKS.registerBlock(tierNames.get(rank - 1) + "_" + kind.id(),
-                        properties -> new MachineBlock(kind, tier, properties), NexusBlocks::machine));
+                        properties -> new MachineBlock(kind, tier, properties), machine()));
             }
             machines.put(kind, List.copyOf(tiers));
         }
@@ -184,27 +184,27 @@ public final class NexusBlocks {
             cables.put(color, BLOCKS.registerBlock(
                     cableName(color),
                     properties -> new CableBlock(color, properties),
-                    properties -> properties.strength(CABLE_HARDNESS).sound(SoundType.METAL)
+                    BlockBehaviour.Properties.of().strength(CABLE_HARDNESS).sound(SoundType.METAL)
                             .pushReaction(PushReaction.BLOCK)));
         }
         return Collections.unmodifiableMap(cables);
     }
 
-    private static BlockBehaviour.Properties device(final BlockBehaviour.Properties properties) {
-        return properties.strength(DEVICE_HARDNESS, DEVICE_BLAST_RESISTANCE).sound(SoundType.METAL).noOcclusion();
+    private static BlockBehaviour.Properties device() {
+        return BlockBehaviour.Properties.of()
+                .strength(DEVICE_HARDNESS, DEVICE_BLAST_RESISTANCE).sound(SoundType.METAL).noOcclusion();
     }
 
-    private static BlockBehaviour.Properties machine(final BlockBehaviour.Properties properties) {
-        return device(properties).lightLevel(
+    private static BlockBehaviour.Properties machine() {
+        return device().lightLevel(
                 state -> state.getValue(MachineBlock.PHASE) == MachinePhase.ACTIVE ? ACTIVE_MACHINE_LIGHT : 0);
     }
 
     /**
      * The light is worked out from the kind, not from the block: the block does not exist yet when its states are made.
      */
-    private static BlockBehaviour.Properties generator(
-            final GeneratorKind kind, final BlockBehaviour.Properties properties) {
-        return device(properties).lightLevel(
+    private static BlockBehaviour.Properties generator(final GeneratorKind kind) {
+        return device().lightLevel(
                 state -> state.getValue(GeneratorBlock.PHASE) == MachinePhase.ACTIVE ? kind.workLight() : 0);
     }
 
@@ -212,7 +212,7 @@ public final class NexusBlocks {
         final Map<GeneratorKind, DeferredBlock<GeneratorBlock>> generators = new EnumMap<>(GeneratorKind.class);
         for (GeneratorKind kind : GeneratorKind.values()) {
             generators.put(kind, BLOCKS.registerBlock(kind.id(),
-                    properties -> new GeneratorBlock(kind, properties), properties -> generator(kind, properties)));
+                    properties -> new GeneratorBlock(kind, properties), generator(kind)));
         }
         return Collections.unmodifiableMap(generators);
     }

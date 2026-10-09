@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.networking.NullableStreamCodec;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import org.jspecify.annotations.Nullable;
 
@@ -19,7 +19,7 @@ import java.util.Optional;
  * @param shownType id of the only resource type shown; {@code null} shows every type
  */
 public record TerminalSettings(
-        SortOrder sort, SortDirection direction, @Nullable Identifier shownType, TerminalSize size) {
+        SortOrder sort, SortDirection direction, @Nullable ResourceLocation shownType, TerminalSize size) {
 
     public static final TerminalSettings DEFAULT =
             new TerminalSettings(SortOrder.AMOUNT, SortDirection.DESCENDING, null, TerminalSize.MEDIUM);
@@ -28,7 +28,7 @@ public record TerminalSettings(
                     SortOrder.CODEC.optionalFieldOf("sort", DEFAULT.sort()).forGetter(TerminalSettings::sort),
                     SortDirection.CODEC.optionalFieldOf("direction", DEFAULT.direction())
                             .forGetter(TerminalSettings::direction),
-                    Identifier.CODEC.optionalFieldOf("shown_type")
+                    ResourceLocation.CODEC.optionalFieldOf("shown_type")
                             .forGetter(settings -> Optional.ofNullable(settings.shownType())),
                     TerminalSize.CODEC.optionalFieldOf("size", DEFAULT.size()).forGetter(TerminalSettings::size))
             .apply(instance, (sort, direction, shownType, size) ->
@@ -38,7 +38,7 @@ public record TerminalSettings(
             StreamCodec.composite(
                     NeoForgeStreamCodecs.enumCodec(SortOrder.class), TerminalSettings::sort,
                     NeoForgeStreamCodecs.enumCodec(SortDirection.class), TerminalSettings::direction,
-                    NullableStreamCodec.of(Identifier.STREAM_CODEC), TerminalSettings::shownType,
+                    NullableStreamCodec.of(ResourceLocation.STREAM_CODEC), TerminalSettings::shownType,
                     NeoForgeStreamCodecs.enumCodec(TerminalSize.class), TerminalSettings::size,
                     TerminalSettings::new);
 
@@ -56,7 +56,7 @@ public record TerminalSettings(
         return new TerminalSettings(sort, newDirection, shownType, size);
     }
 
-    public TerminalSettings withShownType(final @Nullable Identifier newShownType) {
+    public TerminalSettings withShownType(final @Nullable ResourceLocation newShownType) {
         return new TerminalSettings(sort, direction, newShownType, size);
     }
 

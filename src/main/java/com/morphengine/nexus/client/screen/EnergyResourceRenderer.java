@@ -2,9 +2,8 @@ package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.resource.EnergyKey;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -13,10 +12,11 @@ import java.util.List;
  */
 final class EnergyResourceRenderer implements ResourceRenderer<EnergyKey> {
 
-    private static final Identifier SPRITE = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "resource/energy");
+    private static final ResourceLocation SPRITE = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID,
+            "resource/energy");
     private static final int ICON_SIZE = 16;
     private static final ResourceIcon ICON = (graphics, x, y) ->
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SPRITE, x, y, ICON_SIZE, ICON_SIZE);
+            graphics.blitSprite(SPRITE, x, y, ICON_SIZE, ICON_SIZE);
 
     @Override
     public ResourceIcon icon(final EnergyKey resource) {

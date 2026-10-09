@@ -57,7 +57,7 @@ public final class ChunkLoadersComponent implements NetworkComponent {
     }
 
     private static long chunkOf(final BlockEntity block) {
-        return ChunkPos.pack(SectionPos.blockToSectionCoord(block.getBlockPos().getX()),
+        return ChunkPos.asLong(SectionPos.blockToSectionCoord(block.getBlockPos().getX()),
                 SectionPos.blockToSectionCoord(block.getBlockPos().getZ()));
     }
 }

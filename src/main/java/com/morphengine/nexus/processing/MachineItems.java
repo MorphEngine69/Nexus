@@ -2,14 +2,13 @@ package com.morphengine.nexus.processing;
 
 import com.morphengine.nexus.machine.MachineInventory;
 import com.morphengine.nexus.resource.ItemKey;
+import com.morphengine.nexus.transfer.CombinedItemHandler;
+import com.morphengine.nexus.transfer.ItemResource;
 import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.transfer.CombinedResourceHandler;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
-import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Predicate;
@@ -21,9 +20,9 @@ import java.util.function.Predicate;
  */
 public final class MachineItems {
 
-    private final ResourceHandler<ItemResource> intake;
-    private final ResourceHandler<ItemResource> output;
-    private final ResourceHandler<ItemResource> both;
+    private final IItemHandler intake;
+    private final IItemHandler output;
+    private final IItemHandler both;
 
     /**
      * @param accepts whether an item has a recipe, so that the input slots take it
@@ -34,13 +33,13 @@ public final class MachineItems {
             final Runnable changed) {
         this.intake = new StacksHandler(slots.inputStacks(), inventory, true, accepts, changed);
         this.output = new StacksHandler(slots.outputStacks(), inventory, false, accepts, changed);
-        this.both = new CombinedResourceHandler<>(intake, output);
+        this.both = new CombinedItemHandler(intake, output);
     }
 
     /**
      * @return the handler for a side with {@code mode}, {@code null} when the side is closed
      */
-    public @Nullable ResourceHandler<ItemResource> handlerFor(final SideMode mode) {
+    public @Nullable IItemHandler handlerFor(final SideMode mode) {
         return switch (mode) {
             case CLOSED -> null;
             case INPUT -> intake;
@@ -50,10 +49,10 @@ public final class MachineItems {
     }
 
     /**
-     * The stacks of one half of the slots, which only takes things in or only gives them out. The superclass copies the
-     * list it is given, so the constructor puts the original back: the stacks are the slots the machine works on.
+     * The stacks of one half of the slots, which only takes things in or only gives them out. The stacks are the
+     * slots the machine works on.
      */
-    private static final class StacksHandler extends ItemStacksResourceHandler {
+    private static final class StacksHandler extends ItemStackHandler {
 
         private final MachineInventory inventory;
         private final boolean takesIn;
@@ -64,7 +63,6 @@ public final class MachineItems {
                 final NonNullList<ItemStack> stacks, final MachineInventory inventory, final boolean takesIn,
                 final Predicate<ItemResource> accepts, final Runnable changed) {
             super(stacks);
-            this.stacks = stacks;
             this.inventory = inventory;
             this.takesIn = takesIn;
             this.accepts = accepts;
@@ -72,38 +70,42 @@ public final class MachineItems {
         }
 
         @Override
-        public int size() {
+        public int getSlots() {
             return takesIn ? inventory.inputCount() : inventory.lineCount();
         }
 
         @Override
-        public boolean isValid(final int index, final ItemResource resource) {
-            return takesIn && index < size() && accepts.test(resource) && super.isValid(index, resource);
+        public boolean isItemValid(final int slot, final ItemStack stack) {
+            return takesIn && slot < getSlots() && accepts.test(ItemResource.of(stack));
         }
 
         @Override
-        public int insert(final ItemResource resource, final int amount, final TransactionContext transaction) {
-            if (!takesIn || !accepts.test(resource)) {
-                return 0;
+        public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
+            if (!takesIn || stack.isEmpty() || slot >= getSlots()) {
+                return stack;
             }
-            final long[] parts = inventory.planInsert(new ItemKey(resource), amount);
-            int accepted = 0;
-            for (int index = 0; index < parts.length; index++) {
-                if (parts[index] > 0) {
-                    accepted += insert(index, resource, (int) parts[index], transaction);
-                }
+            final ItemResource resource = ItemResource.of(stack);
+            if (!accepts.test(resource)) {
+                return stack;
             }
-            return accepted;
+            final long[] parts = inventory.planInsert(new ItemKey(resource), stack.getCount());
+            final int allowed = slot < parts.length ? (int) parts[slot] : 0;
+            if (allowed <= 0) {
+                return stack;
+            }
+            final ItemStack offered = stack.copyWithCount(Math.min(stack.getCount(), allowed));
+            final ItemStack left = super.insertItem(slot, offered, simulate);
+            final int inserted = offered.getCount() - left.getCount();
+            return inserted >= stack.getCount() ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - inserted);
         }
 
         @Override
-        public int extract(
-                final int index, final ItemResource resource, final int amount, final TransactionContext transaction) {
-            return takesIn || index >= size() ? 0 : super.extract(index, resource, amount, transaction);
+        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
+            return takesIn || slot >= getSlots() ? ItemStack.EMPTY : super.extractItem(slot, amount, simulate);
         }
 
         @Override
-        protected void onContentsChanged(final int index, final ItemStack previousContents) {
+        protected void onContentsChanged(final int slot) {
             changed.run();
         }
     }

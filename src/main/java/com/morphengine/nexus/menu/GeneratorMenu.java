@@ -64,7 +64,7 @@ public final class GeneratorMenu extends DeviceMenu<GeneratorBlockEntity> {
             addSlot(new UpgradeSlot(upgrades, slot, UPGRADE_SLOT_X,
                     UPGRADE_SLOT_Y + slot * UPGRADE_PITCH));
         }
-        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
+        InventorySlots.add(this::addSlot, inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(settings);
     }
 

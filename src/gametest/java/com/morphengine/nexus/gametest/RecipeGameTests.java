@@ -1,16 +1,11 @@
 package com.morphengine.nexus.gametest;
 
 import com.morphengine.nexus.Nexus;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -22,10 +17,10 @@ import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +34,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class RecipeGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 100;
 
     private static final List<String> TIERS = List.of("basic", "advanced", "superior", "quantum");
@@ -72,21 +67,16 @@ public final class RecipeGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(RecipeGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "recipes"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void everythingCraftedHasARecipe(final GameTestHelper helper) {
@@ -105,18 +95,18 @@ public final class RecipeGameTests {
     }
 
     private static void polymerYields(final GameTestHelper helper) {
-        final Identifier polymer = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "polymer");
+        final ResourceLocation polymer = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "polymer");
         final Set<Integer> counts = new HashSet<>();
-        for (RecipeHolder<?> holder : helper.getLevel().getServer().getRecipeManager().recipeMap().values()) {
+        for (RecipeHolder<?> holder : helper.getLevel().getServer().getRecipeManager().getRecipes()) {
             if (holder.value() instanceof ShapedRecipe shaped) {
-                final ItemStack result = shaped.assemble(CraftingInput.EMPTY);
+                final ItemStack result = shaped.assemble(CraftingInput.EMPTY, helper.getLevel().registryAccess());
                 if (BuiltInRegistries.ITEM.getKey(result.getItem()).equals(polymer)) {
                     counts.add(result.getCount());
                 }
             }
         }
         helper.assertTrue(counts.equals(Set.of(2, 4)),
-                Component.literal("polymer recipes give " + counts + ", expected 4 from slime and 2 from sugar"));
+                String.valueOf("polymer recipes give " + counts + ", expected 4 from slime and 2 from sugar"));
         helper.succeed();
     }
 
@@ -129,12 +119,12 @@ public final class RecipeGameTests {
                 final ItemStack upgrade = stackOf(TIERS.get(tier) + "_tier_upgrade");
                 final Item expected = stackOf(TIERS.get(tier) + "_" + device).getItem();
                 helper.assertTrue(craftedFrom(helper, lower, upgrade) == expected,
-                        Component.literal(TIERS.get(tier) + " " + device + " is not crafted from the tier below and "
+                        String.valueOf(TIERS.get(tier) + " " + device + " is not crafted from the tier below and "
                                 + "its upgrade"));
                 if (tier + 1 < TIERS.size()) {
                     final ItemStack skipped = stackOf(TIERS.get(tier + 1) + "_tier_upgrade");
                     helper.assertTrue(craftedFrom(helper, lower, skipped) == null,
-                            Component.literal(TIERS.get(tier) + " " + device + " skipped a tier with an upgrade"));
+                            String.valueOf(TIERS.get(tier) + " " + device + " skipped a tier with an upgrade"));
                 }
             }
         }
@@ -148,53 +138,53 @@ public final class RecipeGameTests {
         final Item screen = craftedGrid(helper, List.of(glass, glass, glass, plate, redstone, plate,
                 ItemStack.EMPTY, plate, ItemStack.EMPTY));
         helper.assertTrue(screen == stackOf("screen").getItem(),
-                Component.literal("glass, steel plates and redstone do not make a Screen: " + screen));
+                String.valueOf("glass, steel plates and redstone do not make a Screen: " + screen));
         final ItemStack steel = stackOf("steel_ingot");
         final ItemStack chest = new ItemStack(Items.CHEST);
         final ItemStack hopper = new ItemStack(Items.HOPPER);
         final Item vault = craftedGrid(helper, List.of(steel, chest, steel, hopper, stackOf("core"), hopper, steel,
                 redstone, steel));
         helper.assertTrue(vault == stackOf("external_vault").getItem(),
-                Component.literal("steel, a chest, hoppers, a Core and redstone do not make an External Vault: "
+                String.valueOf("steel, a chest, hoppers, a Core and redstone do not make an External Vault: "
                         + vault));
         helper.succeed();
     }
 
     private static @Nullable Item craftedGrid(final GameTestHelper helper, final List<ItemStack> nine) {
         final CraftingInput input = CraftingInput.of(3, 3, nine);
-        return helper.getLevel().getServer().getRecipeManager().recipeMap()
-                .getRecipesFor(RecipeType.CRAFTING, input, helper.getLevel())
-                .findFirst()
-                .map(holder -> holder.value().assemble(input).getItem())
+        return helper.getLevel().getServer().getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                .map(holder -> holder.value().assemble(input, helper.getLevel().registryAccess()).getItem())
                 .orElse(null);
     }
 
     private static ItemStack stackOf(final String name) {
-        return new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name)));
+        return new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, name)));
     }
 
     private static @Nullable Item craftedFrom(final GameTestHelper helper, final ItemStack first,
                                               final ItemStack second) {
         final CraftingInput input = CraftingInput.of(2, 1, List.of(first, second));
-        return helper.getLevel().getServer().getRecipeManager().recipeMap()
-                .getRecipesFor(RecipeType.CRAFTING, input, helper.getLevel())
-                .findFirst()
-                .map(holder -> holder.value().assemble(input).getItem())
+        return helper.getLevel().getServer().getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                .map(holder -> holder.value().assemble(input, helper.getLevel().registryAccess()).getItem())
                 .orElse(null);
     }
 
     private static void assertCrafted(final GameTestHelper helper, final List<String> names) {
-        final Set<Identifier> results = new HashSet<>();
-        for (RecipeHolder<?> holder : helper.getLevel().getServer().getRecipeManager().recipeMap().values()) {
+        final Set<ResourceLocation> results = new HashSet<>();
+        for (RecipeHolder<?> holder : helper.getLevel().getServer().getRecipeManager().getRecipes()) {
             if (holder.value() instanceof ShapedRecipe shaped) {
-                results.add(BuiltInRegistries.ITEM.getKey(shaped.assemble(CraftingInput.EMPTY).getItem()));
+                results.add(BuiltInRegistries.ITEM.getKey(shaped.assemble(CraftingInput.EMPTY,
+                        helper.getLevel().registryAccess()).getItem()));
             } else if (holder.value() instanceof ShapelessRecipe shapeless) {
-                results.add(BuiltInRegistries.ITEM.getKey(shapeless.assemble(CraftingInput.EMPTY).getItem()));
+                results.add(BuiltInRegistries.ITEM.getKey(shapeless.assemble(CraftingInput.EMPTY,
+                        helper.getLevel().registryAccess()).getItem()));
             }
         }
         for (String name : names) {
-            final Identifier item = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            helper.assertTrue(results.contains(item), Component.literal("no crafting recipe makes " + item));
+            final ResourceLocation item = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, name);
+            helper.assertTrue(results.contains(item), String.valueOf("no crafting recipe makes " + item));
         }
     }
 }

@@ -21,7 +21,7 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 
 
@@ -38,10 +38,10 @@ import net.minecraft.world.level.ItemLike;
 @JeiPlugin
 public final class NexusJeiPlugin implements IModPlugin {
 
-    private static final Identifier UID = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "jei_plugin");
+    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "jei_plugin");
 
     @Override
-    public Identifier getPluginUid() {
+    public ResourceLocation getPluginUid() {
         return UID;
     }
 
@@ -70,16 +70,16 @@ public final class NexusJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(final IRecipeCatalystRegistration registration) {
-        registration.addCraftingStation(MachineRecipeTypes.CRUSHING, machines(MachineKind.CRUSHER));
-        registration.addCraftingStation(MachineRecipeTypes.PULVERIZING, machines(MachineKind.PULVERIZER));
-        registration.addCraftingStation(MachineRecipeTypes.COMPRESSING, machines(MachineKind.COMPRESSOR));
-        registration.addCraftingStation(MachineRecipeTypes.ALLOYING, machines(MachineKind.ALLOY_SMELTER));
-        registration.addCraftingStation(MachineRecipeTypes.EXTRACTING, machines(MachineKind.EXTRACTOR));
+        registration.addRecipeCatalysts(MachineRecipeTypes.CRUSHING, machines(MachineKind.CRUSHER));
+        registration.addRecipeCatalysts(MachineRecipeTypes.PULVERIZING, machines(MachineKind.PULVERIZER));
+        registration.addRecipeCatalysts(MachineRecipeTypes.COMPRESSING, machines(MachineKind.COMPRESSOR));
+        registration.addRecipeCatalysts(MachineRecipeTypes.ALLOYING, machines(MachineKind.ALLOY_SMELTER));
+        registration.addRecipeCatalysts(MachineRecipeTypes.EXTRACTING, machines(MachineKind.EXTRACTOR));
         final ItemLike[] furnaces = machines(MachineKind.ENERGY_FURNACE);
-        registration.addCraftingStation(RecipeTypes.SMELTING, furnaces);
-        registration.addCraftingStation(RecipeTypes.BLASTING, furnaces);
-        registration.addCraftingStation(RecipeTypes.SMOKING, furnaces);
-        registration.addCraftingStation(RecipeTypes.CRAFTING, NexusItems.CRAFTING_TERMINAL.get());
+        registration.addRecipeCatalysts(RecipeTypes.SMELTING, furnaces);
+        registration.addRecipeCatalysts(RecipeTypes.BLASTING, furnaces);
+        registration.addRecipeCatalysts(RecipeTypes.SMOKING, furnaces);
+        registration.addRecipeCatalyst(NexusItems.CRAFTING_TERMINAL.get(), RecipeTypes.CRAFTING);
     }
 
     private static ItemLike[] machines(final MachineKind kind) {

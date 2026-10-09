@@ -1,14 +1,13 @@
 package com.morphengine.nexus.block.entity;
 
-import com.geckolib.animatable.GeoBlockEntity;
-import com.geckolib.animatable.instance.AnimatableInstanceCache;
-import com.geckolib.animatable.manager.AnimatableManager;
-import com.geckolib.animation.AnimationController;
-import com.geckolib.animation.RawAnimation;
-import com.geckolib.animation.object.PlayState;
-import com.geckolib.animation.state.AnimationPoint;
-import com.geckolib.util.GeckoLibUtil;
 import net.minecraft.world.level.block.state.BlockState;
+import software.bernie.geckolib.animatable.GeoBlockEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Objects;
 import java.util.function.DoubleSupplier;
@@ -25,6 +24,7 @@ final class BlockAnimation {
     private static final String CONTROLLER = "state";
     private static final int BLEND_TICKS = 10;
 
+    private final GeoBlockEntity owner;
     private final AnimatableInstanceCache cache;
     private final Supplier<BlockState> state;
     private final Function<BlockState, RawAnimation> animationOf;
@@ -40,6 +40,7 @@ final class BlockAnimation {
     BlockAnimation(
             final GeoBlockEntity owner, final Supplier<BlockState> state,
             final Function<BlockState, RawAnimation> animationOf, final DoubleSupplier phase) {
+        this.owner = Objects.requireNonNull(owner, "owner must not be null");
         this.phase = Objects.requireNonNull(phase, "phase must not be null");
         this.cache = GeckoLibUtil.createInstanceCache(owner);
         this.state = Objects.requireNonNull(state, "state must not be null");
@@ -51,14 +52,36 @@ final class BlockAnimation {
     }
 
     void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(CONTROLLER, BLEND_TICKS, test -> {
+        controllers.add(new PhasedController<>(owner, CONTROLLER, BLEND_TICKS, test -> {
             final PlayState playing = test.setAndContinue(animationOf.apply(state.get()));
             final double wanted = phase.getAsDouble();
-            final AnimationPoint point = test.controller().getCurrentAnimationPoint();
-            if (wanted >= 0 && point != null) {
-                test.controller().setAnimationTime(wanted * point.animation().length());
+            if (wanted >= 0 && test.getController() instanceof PhasedController<GeoBlockEntity> controller) {
+                controller.seekToPhase(wanted, test.getAnimationTick());
             }
             return playing;
         }));
+    }
+
+    /**
+     * A controller that can be told how far through its animation it is. The new place takes hold from the next frame,
+     * which is soon enough for an animation that follows work that lasts a good many ticks.
+     */
+    private static final class PhasedController<T extends GeoBlockEntity> extends AnimationController<T> {
+
+        PhasedController(
+                final T animatable, final String name, final int transitionTicks,
+                final AnimationStateHandler<T> handler) {
+            super(animatable, name, transitionTicks, handler);
+        }
+
+        void seekToPhase(final double fraction, final double seekTime) {
+            if (getAnimationState() != State.RUNNING || currentAnimation == null) {
+                return;
+            }
+            final double speed = getAnimationSpeed();
+            if (speed > 0) {
+                tickOffset = seekTime - fraction * currentAnimation.animation().length() / speed;
+            }
+        }
     }
 }

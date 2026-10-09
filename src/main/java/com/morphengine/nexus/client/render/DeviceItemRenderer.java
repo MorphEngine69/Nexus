@@ -1,12 +1,16 @@
 package com.morphengine.nexus.client.render;
 
-import com.geckolib.constant.DataTickets;
-import com.geckolib.renderer.GeoItemRenderer;
-import com.geckolib.renderer.base.BoneSnapshots;
-import com.geckolib.renderer.base.GeoRenderState;
-import com.geckolib.renderer.base.RenderPassInfo;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.item.DeviceBlockItem;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.cache.object.BakedGeoModel;
+import software.bernie.geckolib.renderer.GeoItemRenderer;
 
 import java.util.List;
 import java.util.Locale;
@@ -16,30 +20,29 @@ import java.util.Locale;
  */
 public final class DeviceItemRenderer extends GeoItemRenderer<DeviceBlockItem> {
 
-    private static final float CENTER = 0.5F;
     private static final float PIXELS_PER_BLOCK = 16F;
+    private static final float GECKOLIB_LIFT = 0.51F;
 
     private final float shiftTowardFront;
-    private final List<String> hiddenBones;
+    private final ItemLook itemLook;
 
     public DeviceItemRenderer(final DeviceBlockItem.Look look) {
-        super(modelOf(look));
-        this.shiftTowardFront = look.shiftTowardFrontPixels() / PIXELS_PER_BLOCK;
-        this.hiddenBones = look.hiddenBones();
-        withRenderLayer(new GlowWhenLitLayer<>(this));
+        this(look, new ItemLook(look));
     }
 
-    private static DeviceGeoModel<DeviceBlockItem> modelOf(final DeviceBlockItem.Look look) {
-        final String textureName = look.color().getName().toLowerCase(Locale.ROOT) + look.textureSuffix();
-        final String slotTextureName = look.slotColor().getName().toLowerCase(Locale.ROOT) + look.textureSuffix();
-        return new DeviceGeoModel<>(look.asset()) {
-            @Override
-            protected String textureName(final GeoRenderState renderState) {
-                final ItemDisplayContext context = renderState.getOrDefaultGeckolibData(
-                        DataTickets.ITEM_RENDER_PERSPECTIVE, ItemDisplayContext.NONE);
-                return context == ItemDisplayContext.GUI ? slotTextureName : textureName;
-            }
-        };
+    private DeviceItemRenderer(final DeviceBlockItem.Look look, final ItemLook itemLook) {
+        super(new ItemDeviceGeoModel(look, itemLook));
+        this.shiftTowardFront = look.shiftTowardFrontPixels() / PIXELS_PER_BLOCK;
+        this.itemLook = itemLook;
+        addRenderLayer(new GlowWhenLitLayer<>(this, item -> true));
+    }
+
+    @Override
+    public void renderByItem(
+            final ItemStack stack, final ItemDisplayContext transformType, final PoseStack poseStack,
+            final MultiBufferSource bufferSource, final int packedLight, final int packedOverlay) {
+        itemLook.perspective = transformType;
+        super.renderByItem(stack, transformType, poseStack, bufferSource, packedLight, packedOverlay);
     }
 
     /**
@@ -47,26 +50,87 @@ public final class DeviceItemRenderer extends GeoItemRenderer<DeviceBlockItem> {
      * assumes by default, so the item is not lifted half a block.
      */
     @Override
-    public void adjustRenderPose(final RenderPassInfo<GeoRenderState> renderPassInfo) {
-        renderPassInfo.poseStack().translate(CENTER, 0, CENTER - shiftTowardFront);
+    public void preRender(
+            final PoseStack poseStack, final DeviceBlockItem item, final BakedGeoModel model,
+            final @Nullable MultiBufferSource bufferSource, final @Nullable VertexConsumer buffer,
+            final boolean isReRender, final float partialTick, final int packedLight, final int packedOverlay,
+            final int colour) {
+        super.preRender(poseStack, item, model, bufferSource, buffer, isReRender, partialTick, packedLight,
+                packedOverlay, colour);
+        if (!isReRender) {
+            poseStack.translate(0, -GECKOLIB_LIFT, -shiftTowardFront);
+        }
     }
 
-    @Override
-    public void adjustModelBonesForRender(
-            final RenderPassInfo<GeoRenderState> renderPassInfo, final BoneSnapshots snapshots) {
-        DeviceRenderData.showPorts(snapshots, 0);
-        DeviceRenderData.showItemBones(snapshots);
-        for (String hidden : hiddenBones) {
-            snapshots.ifPresent(hidden, bone -> bone.skipRender(true));
+    /**
+     * What the item model needs to know about the frame it draws.
+     */
+    static final class ItemLook {
+
+        private final DeviceBlockItem.Look look;
+        private ItemDisplayContext perspective = ItemDisplayContext.NONE;
+
+        ItemLook(final DeviceBlockItem.Look look) {
+            this.look = look;
         }
-        for (String segment : ChargeBar.segmentBones()) {
-            snapshots.ifPresent(segment, bone -> bone.skipRender(true));
+
+        String textureName() {
+            final String color = perspective == ItemDisplayContext.GUI ? look.slotColor().getName()
+                    : look.color().getName();
+            return color.toLowerCase(Locale.ROOT) + look.textureSuffix();
         }
-        for (String step : StorageVaultRenderer.itemHiddenBones()) {
-            snapshots.ifPresent(step, bone -> bone.skipRender(true));
+
+        List<String> hiddenBones() {
+            return look.hiddenBones();
         }
-        for (String piece : CraftingMonitorRenderer.itemHiddenBones()) {
-            snapshots.ifPresent(piece, bone -> bone.skipRender(true));
+    }
+
+    /**
+     * The model of the item: the texture of the color the look says, the bones the look hides.
+     */
+    private static final class ItemDeviceGeoModel extends AdjustableGeoModel<DeviceBlockItem> {
+
+        private final String asset;
+        private final ItemLook itemLook;
+
+        ItemDeviceGeoModel(final DeviceBlockItem.Look look, final ItemLook itemLook) {
+            this.asset = look.asset();
+            this.itemLook = itemLook;
+            adjustWith(this::adjust);
+        }
+
+        @Override
+        public ResourceLocation getModelResource(final DeviceBlockItem item) {
+            return ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "geo/block/" + asset + ".geo.json");
+        }
+
+        @Override
+        public ResourceLocation getTextureResource(final DeviceBlockItem item) {
+            return ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID,
+                    "textures/geo/" + asset + "/" + itemLook.textureName() + ".png");
+        }
+
+        @Override
+        public ResourceLocation getAnimationResource(final DeviceBlockItem item) {
+            return ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID,
+                    "animations/block/" + asset + ".animation.json");
+        }
+
+        private void adjust(final DeviceBlockItem item, final Bones bones, final float partialTick) {
+            DeviceRenderData.showPorts(bones, 0);
+            DeviceRenderData.showItemBones(bones);
+            for (String hidden : itemLook.hiddenBones()) {
+                bones.hide(hidden, true);
+            }
+            for (String segment : ChargeBar.segmentBones()) {
+                bones.hide(segment, true);
+            }
+            for (String step : StorageVaultRenderer.itemHiddenBones()) {
+                bones.hide(step, true);
+            }
+            for (String piece : CraftingMonitorRenderer.itemHiddenBones()) {
+                bones.hide(piece, true);
+            }
         }
     }
 }

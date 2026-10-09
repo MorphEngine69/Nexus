@@ -1,27 +1,26 @@
 package com.morphengine.nexus.item;
 
-import com.geckolib.animatable.GeoItem;
-import com.geckolib.animatable.client.GeoRenderProvider;
-import com.geckolib.animatable.instance.AnimatableInstanceCache;
-import com.geckolib.animatable.manager.AnimatableManager;
-import com.geckolib.animation.AnimationController;
-import com.geckolib.animation.RawAnimation;
-import com.geckolib.renderer.GeoItemRenderer;
-import com.geckolib.util.GeckoLibUtil;
 import com.morphengine.nexus.block.NetworkColoring;
 import com.morphengine.nexus.client.render.DeviceItemRenderer;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -53,9 +52,10 @@ public final class DeviceBlockItem extends BlockItem implements GeoItem {
     @Override
     @SuppressWarnings("deprecation")
     public void appendHoverText(
-            final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display,
-            final Consumer<Component> builder, final TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, builder, flag);
+            final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip,
+            final TooltipFlag flag) {
+        final Consumer<Component> builder = tooltip::add;
+        super.appendHoverText(stack, context, tooltip, flag);
         final long energy = stack.getOrDefault(NexusDataComponents.STORED_ENERGY.get(), 0L);
         if (energy > 0) {
             builder.accept(Component.translatable("tooltip.nexus.stored_energy", NUMBERS.format(energy))
@@ -76,7 +76,7 @@ public final class DeviceBlockItem extends BlockItem implements GeoItem {
             private @Nullable DeviceItemRenderer renderer;
 
             @Override
-            public @Nullable GeoItemRenderer<?> getGeoItemRenderer() {
+            public @Nullable BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (renderer == null) {
                     renderer = new DeviceItemRenderer(look);
                 }
@@ -87,7 +87,7 @@ public final class DeviceBlockItem extends BlockItem implements GeoItem {
 
     @Override
     public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("state", state -> state.setAndContinue(still)));
+        controllers.add(new AnimationController<>(this, "state", state -> state.setAndContinue(still)));
     }
 
     @Override

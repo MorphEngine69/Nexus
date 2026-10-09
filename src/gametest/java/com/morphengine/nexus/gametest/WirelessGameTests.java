@@ -20,15 +20,10 @@ import com.morphengine.nexus.storage.NetworkStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -41,8 +36,10 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -59,7 +56,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class WirelessGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos CELL = NEXUS.south();
@@ -81,21 +78,16 @@ public final class WirelessGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(WirelessGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "wireless"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void transmitterCarriesNetwork(final GameTestHelper helper) {
@@ -132,24 +124,24 @@ public final class WirelessGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(access(helper).hasAccessPoints(),
-                        Component.literal("the network has no access point")))
+                        String.valueOf("the network has no access point")))
                 .thenExecute(() -> helper.assertTrue(reaches(helper, link.add(NexusConfig.linkRange(0) - 1, 0,
-                        0)), Component.literal("the link does not reach within its range")))
+                        0)), String.valueOf("the link does not reach within its range")))
                 .thenExecute(() -> helper.assertFalse(reaches(helper, link.add(NexusConfig.linkRange(0) + 1,
-                        0, 0)), Component.literal("the link reaches beyond its range")))
+                        0, 0)), String.valueOf("the link reaches beyond its range")))
                 .thenSucceed();
     }
 
     private static void rangeUpgradeExtendsLink(final GameTestHelper helper) {
         buildNetwork(helper);
         place(helper, LINK, NexusBlocks.NEXUS_LINK.get().defaultBlockState());
-        helper.getBlockEntity(LINK, NexusLinkBlockEntity.class).upgrades()
+        helper.<NexusLinkBlockEntity>getBlockEntity(LINK).upgrades()
                 .setItem(0, new ItemStack(NexusItems.RANGE_UPGRADE.get()));
         final Vec3 far = Vec3.atCenterOf(helper.absolutePos(LINK)).add(NexusConfig.linkRange(0) + 1, 0, 0);
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(reaches(helper, far),
-                        Component.literal("a Range Upgrade did not extend the link")))
+                        String.valueOf("a Range Upgrade did not extend the link")))
                 .thenSucceed();
     }
 
@@ -159,7 +151,7 @@ public final class WirelessGameTests {
         TestEnergy.charge(helper, CELL, 10_000);
         place(helper, VAULT, NexusBlocks.STORAGE_VAULT.get().defaultBlockState()
                 .setValue(StorageVaultBlock.FACING, Direction.SOUTH));
-        helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class).cells()
+        helper.<StorageVaultBlockEntity>getBlockEntity(VAULT).cells()
                 .setItem(0, new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get()));
         place(helper, CABLE, NexusBlocks.CABLES.get(DyeColor.BLUE).get().defaultBlockState());
     }
@@ -185,19 +177,19 @@ public final class WirelessGameTests {
     }
 
     private static WirelessAccessComponent access(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class).component(NetworkComponentTypes.WIRELESS_ACCESS);
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS).component(NetworkComponentTypes.WIRELESS_ACCESS);
     }
 
     private static NetworkStorage network(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class).component(NetworkComponentTypes.STORAGE).storage();
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS).component(NetworkComponentTypes.STORAGE).storage();
     }
 
     private static NetworkTransmitterBlockEntity transmitter(final GameTestHelper helper) {
-        return helper.getBlockEntity(TRANSMITTER, NetworkTransmitterBlockEntity.class);
+        return helper.<NetworkTransmitterBlockEntity>getBlockEntity(TRANSMITTER);
     }
 
     private static Container container(final GameTestHelper helper) {
-        return helper.getBlockEntity(CHEST, BaseContainerBlockEntity.class);
+        return helper.<BaseContainerBlockEntity>getBlockEntity(CHEST);
     }
 
     private static ItemKey stone() {
@@ -206,7 +198,7 @@ public final class WirelessGameTests {
 
     private static void assertAmount(final GameTestHelper helper, final long actual, final long expected,
                                      final String what) {
-        helper.assertTrue(actual == expected, Component.literal(what + ": " + actual + ", expected " + expected));
+        helper.assertTrue(actual == expected, String.valueOf(what + ": " + actual + ", expected " + expected));
     }
 
     private static void place(final GameTestHelper helper, final BlockPos pos, final BlockState state) {

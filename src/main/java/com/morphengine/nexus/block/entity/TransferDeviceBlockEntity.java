@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block.entity;
 
-import com.geckolib.animation.RawAnimation;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.resource.FilterMode;
@@ -18,6 +17,8 @@ import com.morphengine.nexus.level.OperationToll;
 import com.morphengine.nexus.level.SideStorage;
 import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.TransferDeviceMenu;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.resource.NexusResources;
 import com.morphengine.nexus.storage.NetworkStorage;
@@ -40,10 +41,11 @@ import com.morphengine.nexus.world.FrontSpace;
 import com.morphengine.nexus.world.HarvestTool;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -51,9 +53,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animation.RawAnimation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -338,7 +339,6 @@ public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity i
         return new TransferDeviceMenu(containerId, inventory, worldPosition, kind, settings);
     }
 
-    @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
         ChunkAnchors.release(this);
@@ -348,20 +348,22 @@ public final class TransferDeviceBlockEntity extends AnimatedDeviceBlockEntity i
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
         output.store(TAG_SETTINGS, TransferSettings.CODEC, settings);
         output.putBoolean(TAG_SIGNAL, gate.isPowered());
-        ContainerHelper.saveAllItems(output, upgrades.getItems());
+        output.saveItems(upgrades.getItems());
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         applySettings(input.read(TAG_SETTINGS, TransferSettings.CODEC).orElse(TransferSettings.DEFAULT));
         gate.restore(input.getBooleanOr(TAG_SIGNAL, false));
         signalKnown = true;
-        ContainerHelper.loadAllItems(input, upgrades.getItems());
+        input.loadItems(upgrades.getItems());
         readUpgrades();
     }
 }

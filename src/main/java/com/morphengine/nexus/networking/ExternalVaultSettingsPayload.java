@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Server to client: the settings of the External Vault whose panel the player looks at changed.
@@ -15,7 +15,7 @@ public record ExternalVaultSettingsPayload(int containerId, ExternalVaultSetting
         implements CustomPacketPayload {
 
     public static final Type<ExternalVaultSettingsPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "external_vault_settings"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "external_vault_settings"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ExternalVaultSettingsPayload> STREAM_CODEC =
             StreamCodec.composite(

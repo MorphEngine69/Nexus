@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -16,7 +15,7 @@ import com.morphengine.nexus.registry.NexusBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -33,12 +32,11 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animation.RawAnimation;
 
 import java.util.Objects;
 
@@ -138,8 +136,8 @@ public final class MachineBlock extends NetworkDeviceBlock implements TieredBloc
     @Override
     protected void neighborChanged(
             final BlockState state, final Level level, final BlockPos pos, final Block block,
-            final @Nullable Orientation orientation, final boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+            final BlockPos fromPos, final boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
             machine.redstone().receive(level.hasNeighborSignal(pos));
         }
@@ -150,23 +148,23 @@ public final class MachineBlock extends NetworkDeviceBlock implements TieredBloc
      * without opening the panel.
      */
     @Override
-    protected InteractionResult useItemOn(
+    protected ItemInteractionResult useItemOn(
             final ItemStack stack, final BlockState state, final Level level, final BlockPos pos, final Player player,
             final InteractionHand hand, final BlockHitResult hit) {
         if (!(level.getBlockEntity(pos) instanceof MachineBlockEntity machine) || machine.fluidHandler(null) == null) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
         if (!NetworkAccess.permits(player, machine, Permission.OPEN)) {
             NetworkAccess.refuse(player, Permission.OPEN);
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
-        final ResourceHandler<FluidResource> tank = machine.fluidHandler(null);
-        return FluidUtil.interactWithFluidHandler(player, hand, pos, tank, null)
-                ? InteractionResult.SUCCESS
-                : InteractionResult.TRY_WITH_EMPTY_HAND;
+        final IFluidHandler tank = machine.fluidHandler(null);
+        return FluidUtil.interactWithFluidHandler(player, hand, tank)
+                ? ItemInteractionResult.SUCCESS
+                : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Override

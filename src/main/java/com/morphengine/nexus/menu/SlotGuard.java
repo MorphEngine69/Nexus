@@ -5,7 +5,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 
 import java.util.EnumSet;
@@ -24,11 +24,11 @@ final class SlotGuard {
     }
 
     static boolean allows(
-            final AbstractContainerMenu menu, final int slotIndex, final ContainerInput input, final Player player) {
+            final AbstractContainerMenu menu, final int slotIndex, final ClickType input, final Player player) {
         if (!(player instanceof ServerPlayer) || !(menu instanceof GuardedMenu guarded)) {
             return true;
         }
-        if (input == ContainerInput.PICKUP_ALL) {
+        if (input == ClickType.PICKUP_ALL) {
             return holdsAll(guarded, player, everySlot(menu, guarded));
         }
         if (slotIndex < 0 || slotIndex >= menu.slots.size()) {
@@ -36,7 +36,7 @@ final class SlotGuard {
         }
         final Slot slot = menu.slots.get(slotIndex);
         final boolean fromInventory = slot.container instanceof Inventory;
-        return holdsAll(guarded, player, input == ContainerInput.QUICK_MOVE && fromInventory
+        return holdsAll(guarded, player, input == ClickType.QUICK_MOVE && fromInventory
                 ? guarded.quickMovePermissions() : guarded.permissionsFor(slot));
     }
 

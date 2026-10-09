@@ -6,10 +6,9 @@ import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.resource.ItemKey;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -25,7 +24,8 @@ final class BlueprintEncoderButtons {
 
     private static final int ICON_SIZE = 16;
     private static final int NONE = -1;
-    private static final Identifier ENCODE_ICON = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "blueprint/encode");
+    private static final ResourceLocation ENCODE_ICON = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID,
+            "blueprint/encode");
     private static final ItemKey CRAFTING_ICON = ItemKey.of(new ItemStack(Items.CRAFTING_TABLE));
     private static final ItemKey PROCESSING_ICON = ItemKey.of(new ItemStack(Items.FURNACE));
 
@@ -48,29 +48,29 @@ final class BlueprintEncoderButtons {
         return menu.draft().kind() == BlueprintKind.CRAFTING;
     }
 
-    void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+    void draw(final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         drawButton(graphics, style, kind, mouseX, mouseY);
         ResourceRenderers.icon(isCrafting() ? CRAFTING_ICON : PROCESSING_ICON)
                 .draw(graphics, kind.left() + 1, kind.top() + 1);
         drawButton(graphics, style, substitution, mouseX, mouseY);
-        drawIcon(graphics, substitution, Identifier.fromNamespaceAndPath(Nexus.MOD_ID,
+        drawIcon(graphics, substitution, ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID,
                 "blueprint/substitutes_" + menu.draft().substitution().getSerializedName()));
         style.drawCrossButton(graphics, clear, clear.contains(mouseX, mouseY));
         drawButton(graphics, style, encode, mouseX, mouseY);
         drawIcon(graphics, encode, ENCODE_ICON);
     }
 
-    private static void drawButton(final GuiGraphicsExtractor graphics, final PanelStyle style,
+    private static void drawButton(final GuiGraphics graphics, final PanelStyle style,
                                    final PanelBounds bounds, final int mouseX, final int mouseY) {
         graphics.fill(bounds.left(), bounds.top(), bounds.left() + bounds.width(), bounds.top() + bounds.height(),
                 style.buttonFill());
-        graphics.outline(bounds.left(), bounds.top(), bounds.width(), bounds.height(),
+        graphics.renderOutline(bounds.left(), bounds.top(), bounds.width(), bounds.height(),
                 bounds.contains(mouseX, mouseY) ? PanelStyle.TEXT_LIGHT : style.border());
     }
 
-    private static void drawIcon(final GuiGraphicsExtractor graphics, final PanelBounds bounds,
-                                 final Identifier icon) {
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, icon, bounds.left() + 1, bounds.top() + 1, ICON_SIZE,
+    private static void drawIcon(final GuiGraphics graphics, final PanelBounds bounds,
+                                 final ResourceLocation icon) {
+        graphics.blitSprite(icon, bounds.left() + 1, bounds.top() + 1, ICON_SIZE,
                 ICON_SIZE);
     }
 

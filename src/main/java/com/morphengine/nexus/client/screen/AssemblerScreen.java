@@ -3,14 +3,14 @@ package com.morphengine.nexus.client.screen;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.AssemblerBlock;
 import com.morphengine.nexus.block.AssemblerChain;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.AssemblerMenu;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.block.state.BlockState;
@@ -70,10 +70,10 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> implements
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         PanelStyle.drawNetwork(graphics, font, getMenu().badge(), leftPos, topPos);
         priority.draw(graphics, font, style, getMenu().priority());
-        graphics.text(font, Component.translatable("gui.nexus.assembler.blueprints"),
+        graphics.drawString(font, Component.translatable("gui.nexus.assembler.blueprints"),
                 leftPos + AssemblerMenu.BLUEPRINTS_LEFT, topPos + AssemblerMenu.BLUEPRINTS_TOP - LABEL_GAP,
                 PanelStyle.TEXT_DIM, false);
         for (Slot slot : getMenu().slots) {
@@ -82,7 +82,7 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> implements
         drawInfo(graphics);
         final SideButtons buttons = sideButtons();
         buttons.draw(graphics, style, 0, lockIcon(), buttons.buttonAt(mouseX, mouseY) == 0);
-        graphics.text(font, playerInventoryTitle, leftPos + AssemblerMenu.INVENTORY_LEFT,
+        graphics.drawString(font, playerInventoryTitle, leftPos + AssemblerMenu.INVENTORY_LEFT,
                 topPos + AssemblerMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 
@@ -90,13 +90,13 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> implements
      * The block the Assembler faces, read from the world the client sees, and
      * how many tasks it keeps.
      */
-    private void drawInfo(final GuiGraphicsExtractor graphics) {
+    private void drawInfo(final GuiGraphics graphics) {
         final int left = leftPos + INFO_LEFT;
         final int top = topPos + AssemblerMenu.BLUEPRINTS_TOP;
-        graphics.text(font, Component.translatable("gui.nexus.assembler.machine"), left, top, PanelStyle.TEXT_DIM,
+        graphics.drawString(font, Component.translatable("gui.nexus.assembler.machine"), left, top, PanelStyle.TEXT_DIM,
                 false);
-        graphics.textWithWordWrap(font, machineName(), left, top + INFO_LINE, INFO_WIDTH, PanelStyle.TEXT_LIGHT);
-        graphics.text(font, Component.translatable("gui.nexus.assembler.tasks", getMenu().taskCount()), left,
+        graphics.drawWordWrap(font, machineName(), left, top + INFO_LINE, INFO_WIDTH, PanelStyle.TEXT_LIGHT);
+        graphics.drawString(font, Component.translatable("gui.nexus.assembler.tasks", getMenu().taskCount()), left,
                 top + TASKS_LINE, PanelStyle.TEXT_DIM, false);
     }
 
@@ -114,17 +114,17 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> implements
                 : state.getBlock().getName();
     }
 
-    private Identifier lockIcon() {
-        return Identifier.fromNamespaceAndPath(Nexus.MOD_ID,
+    private ResourceLocation lockIcon() {
+        return ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID,
                 "assembler/lock_" + getMenu().lock().getSerializedName());
     }
 
     @Override
-    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
-        super.extractTooltip(graphics, mouseX, mouseY);
+    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
         if (sideButtons().buttonAt(mouseX, mouseY) == 0) {
             final String choice = "gui.nexus.assembler.lock." + getMenu().lock().getSerializedName();
-            graphics.setComponentTooltipForNextFrame(font, List.of(
+            graphics.renderComponentTooltip(font, List.of(
                     Component.translatable("gui.nexus.assembler.lock"),
                     Component.translatable(choice).withStyle(ChatFormatting.GRAY),
                     Component.translatable(choice + ".hint").withStyle(ChatFormatting.DARK_GRAY)), mouseX, mouseY);
@@ -132,9 +132,10 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> implements
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         if (minecraft == null) {
-            return super.mouseClicked(event, doubleClick);
+            return super.mouseClicked(mouseX, mouseY, button);
         }
         if (sideButtons().buttonAt(event.x(), event.y()) == 0 && minecraft.gameMode != null) {
             final boolean backwards = event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT;
@@ -143,11 +144,13 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> implements
             return true;
         }
         return priority.click(minecraft, getMenu().containerId, event.x(), event.y())
-                || super.mouseClicked(event, doubleClick);
+                || super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    protected boolean hasClickedOutside(final double mouseX, final double mouseY, final int left, final int top) {
-        return super.hasClickedOutside(mouseX, mouseY, left, top) && !sideButtons().area().contains(mouseX, mouseY);
+    protected boolean hasClickedOutside(
+            final double mouseX, final double mouseY, final int left, final int top, final int button) {
+        return super.hasClickedOutside(mouseX, mouseY, left, top, button) && !sideButtons().area().contains(mouseX,
+                mouseY);
     }
 }

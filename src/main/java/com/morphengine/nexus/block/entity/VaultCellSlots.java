@@ -4,14 +4,14 @@ import com.morphengine.nexus.api.storage.CellStatus;
 import com.morphengine.nexus.api.storage.Storage;
 import com.morphengine.nexus.api.storage.StorageCell;
 import com.morphengine.nexus.item.VaultCellItem;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.storage.FilteredStorage;
 import com.morphengine.nexus.storage.ObservedStorage;
-import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.ItemStackWithSlot;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -27,6 +27,12 @@ import java.util.List;
 final class VaultCellSlots extends SimpleContainer {
 
     static final int SIZE = 16;
+
+    private static final String ITEMS_TAG = "Items";
+    private static final String SLOT_TAG = "Slot";
+    private static final int COMPOUND_TAG = 10;
+    private static final int MAX_SLOT_MASK = 255;
+
 
     private final Owner owner;
     private final @Nullable LiveCell[] live = new LiveCell[SIZE];
@@ -79,7 +85,7 @@ final class VaultCellSlots extends SimpleContainer {
 
     void save(final ValueOutput output) {
         flush();
-        ContainerHelper.saveAllItems(output, getItems());
+        output.saveItems(getItems());
     }
 
     /**
@@ -91,11 +97,18 @@ final class VaultCellSlots extends SimpleContainer {
      */
     List<ItemStack> load(final ValueInput input) {
         final List<ItemStack> homeless = new ArrayList<>();
-        for (ItemStackWithSlot saved : input.listOrEmpty(ContainerHelper.TAG_ITEMS, ItemStackWithSlot.CODEC)) {
-            if (saved.isValidInContainer(SIZE)) {
-                getItems().set(saved.slot(), saved.stack());
+        final ListTag saved = input.tag().getList(ITEMS_TAG, COMPOUND_TAG);
+        for (int index = 0; index < saved.size(); index++) {
+            final CompoundTag entry = saved.getCompound(index);
+            final int slot = entry.getByte(SLOT_TAG) & MAX_SLOT_MASK;
+            final ItemStack stack = ItemStack.parse(input.registries(), entry).orElse(ItemStack.EMPTY);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            if (slot < SIZE) {
+                getItems().set(slot, stack);
             } else {
-                homeless.add(saved.stack());
+                homeless.add(stack);
             }
         }
         for (int slot = 0; slot < SIZE && !homeless.isEmpty(); slot++) {

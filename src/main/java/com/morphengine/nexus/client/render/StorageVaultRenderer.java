@@ -1,14 +1,8 @@
 package com.morphengine.nexus.client.render;
 
-import com.geckolib.constant.dataticket.DataTicket;
-import com.geckolib.renderer.base.BoneSnapshots;
-import com.geckolib.renderer.base.GeoRenderState;
 import com.morphengine.nexus.block.StorageVaultBlock;
-import com.morphengine.nexus.block.VaultLamp;
 import com.morphengine.nexus.block.entity.StorageVaultBlockEntity;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +14,6 @@ import java.util.List;
  */
 public final class StorageVaultRenderer extends FacedDeviceRenderer<StorageVaultBlockEntity> {
 
-    private static final DataTicket<Long> METERS = DataTicket.create("vault_meters", Long.class);
-    private static final DataTicket<Integer> BUSY = DataTicket.create("vault_busy", Integer.class);
-    private static final DataTicket<Float> TICKS = DataTicket.create("vault_ticks", Float.class);
     private static final String[] STEP_BONES = {"lamp_green_", "lamp_orange_", "lamp_red_"};
     private static final String[][] BONE_NAMES = boneNames();
     private static final float SWELL = 0.35F;
@@ -56,37 +47,18 @@ public final class StorageVaultRenderer extends FacedDeviceRenderer<StorageVault
     }
 
     @Override
-    public void addRenderData(
-            final StorageVaultBlockEntity vault, final @Nullable Void relatedObject,
-            final BlockEntityRenderState renderState, final float partialTick) {
-        super.addRenderData(vault, relatedObject, renderState, partialTick);
-        long meters = 0;
-        int busy = 0;
+    protected void adjustDeviceBones(
+            final StorageVaultBlockEntity vault, final Bones bones, final int ports, final float partialTick) {
+        final float ticks = vault.getLevel() == null ? 0F : vault.getLevel().getGameTime() + partialTick;
+        final float swell = swellAt(ticks);
         for (int slot = 0; slot < StorageVaultBlockEntity.SLOTS; slot++) {
-            meters = vault.lampAt(slot).packInto(meters, slot);
-            busy |= vault.isBusyAt(slot) ? 1 << slot : 0;
-        }
-        renderState.addGeckolibData(METERS, meters);
-        renderState.addGeckolibData(BUSY, busy);
-        renderState.addGeckolibData(TICKS, vault.getLevel() == null
-                ? 0F : vault.getLevel().getGameTime() + partialTick);
-    }
-
-    @Override
-    protected void adjustDeviceBones(final GeoRenderState renderState, final BoneSnapshots snapshots) {
-        final long meters = renderState.getOrDefaultGeckolibData(METERS, 0L);
-        final int busy = renderState.getOrDefaultGeckolibData(BUSY, 0);
-        final float swell = swellAt(renderState.getOrDefaultGeckolibData(TICKS, 0F));
-        for (int slot = 0; slot < StorageVaultBlockEntity.SLOTS; slot++) {
-            final int lit = VaultLamp.unpack(meters, slot).ordinal();
-            final boolean working = (busy & 1 << slot) != 0;
+            final int lit = vault.lampAt(slot).ordinal();
+            final boolean working = vault.isBusyAt(slot);
             for (int step = 0; step < STEP_BONES.length; step++) {
                 final float scale = working && step == lit - 1 ? swell : 1;
-                final boolean hidden = step >= lit;
-                snapshots.ifPresent(BONE_NAMES[slot][step], bone -> {
-                    bone.skipRender(hidden);
-                    bone.setScale(scale, scale, scale);
-                });
+                final String name = BONE_NAMES[slot][step];
+                bones.hide(name, step >= lit);
+                bones.scale(name, scale, scale, scale);
             }
         }
     }

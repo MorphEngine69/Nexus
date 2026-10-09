@@ -24,7 +24,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
@@ -101,8 +100,8 @@ public final class TransferDeviceBlock extends NetworkDeviceBlock implements Tur
     @Override
     protected void neighborChanged(
             final BlockState state, final Level level, final BlockPos pos, final Block block,
-            final @Nullable Orientation orientation, final boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+            final BlockPos fromPos, final boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TransferDeviceBlockEntity device) {
             device.receiveSignal(level.hasNeighborSignal(pos));
         }

@@ -1,7 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:cobalt_block"
+    {
+      "item": "nexus:cobalt_block"
+    }
   ],
   "result": {
     "id": "nexus:cobalt_ingot",

@@ -1,6 +1,5 @@
 package com.morphengine.nexus.generator;
 
-import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.Codec;
 import com.morphengine.nexus.generator.GeneratorFuel.FluidFuel;
 import com.morphengine.nexus.generator.GeneratorFuel.ItemFuel;
@@ -8,11 +7,13 @@ import com.morphengine.nexus.processing.MachinePhase;
 import com.morphengine.nexus.registry.NexusFluids;
 import com.morphengine.nexus.registry.NexusTags;
 import com.morphengine.nexus.resource.FluidKey;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import software.bernie.geckolib.animation.RawAnimation;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -29,7 +30,7 @@ public enum GeneratorKind implements StringRepresentable {
     /** Burns coal, charcoal and coal blocks, as the first generator of the mod did. */
     COAL("coal_generator",
             new ItemFuel(stack -> stack.is(NexusTags.COAL_GENERATOR_FUELS),
-                    (level, stack) -> level.fuelValues().burnDuration(stack)),
+                    (level, stack) -> stack.getBurnTime(RecipeType.SMELTING)),
             GeneratorBalance.COAL_ENERGY_PER_TICK, GeneratorBalance.COAL_LIGHT, true),
 
     /** Burns nether stars, one for a long time. */

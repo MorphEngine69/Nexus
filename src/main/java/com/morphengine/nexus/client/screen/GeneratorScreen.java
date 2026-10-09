@@ -1,13 +1,13 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.machine.MachineSide;
 import com.morphengine.nexus.menu.GeneratorMenu;
 import com.morphengine.nexus.menu.GeneratorView;
 import com.morphengine.nexus.menu.NetworkBadge;
 import com.morphengine.nexus.menu.TankView;
 import com.morphengine.nexus.resource.FluidKey;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -92,7 +92,7 @@ public final class GeneratorScreen extends PanelScreen<GeneratorMenu> implements
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final GeneratorView view = getMenu().view();
         PanelStyle.drawNetworkOrStandalone(graphics, font, view.network(), leftPos, topPos);
         sides.draw(graphics, font, style, getMenu().sideModes(), mouseX, mouseY);
@@ -108,11 +108,11 @@ public final class GeneratorScreen extends PanelScreen<GeneratorMenu> implements
         }
         drawChargeBar(graphics, style, view);
         drawStatus(graphics, view);
-        graphics.text(font, playerInventoryTitle, leftPos + GeneratorMenu.INVENTORY_LEFT,
+        graphics.drawString(font, playerInventoryTitle, leftPos + GeneratorMenu.INVENTORY_LEFT,
                 topPos + GeneratorMenu.INVENTORY_TOP - INVENTORY_LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 
-    private void drawFlame(final GuiGraphicsExtractor graphics, final PanelStyle style, final GeneratorView view) {
+    private void drawFlame(final GuiGraphics graphics, final PanelStyle style, final GeneratorView view) {
         final PanelBounds flame = flameBounds();
         final int bottom = flame.top() + flame.height();
         graphics.fill(flame.left(), flame.top(), flame.left() + flame.width(), bottom, style.track());
@@ -120,14 +120,14 @@ public final class GeneratorScreen extends PanelScreen<GeneratorMenu> implements
             final int height = flame.height() * view.burnTicksLeft() / view.burnTicksTotal();
             graphics.fill(flame.left(), bottom - height, flame.left() + flame.width(), bottom, FLAME_RGB);
         }
-        graphics.outline(flame.left(), flame.top(), flame.width(), flame.height(), style.border());
+        graphics.renderOutline(flame.left(), flame.top(), flame.width(), flame.height(), style.border());
     }
 
     /**
      * A tank as a bar that fills from below with the still texture of its fluid.
      */
     private void drawTank(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final PanelBounds bounds,
+            final GuiGraphics graphics, final PanelStyle style, final PanelBounds bounds,
             final TankView tank) {
         graphics.fill(bounds.left(), bounds.top(), bounds.left() + bounds.width(), bounds.top() + bounds.height(),
                 style.track());
@@ -142,11 +142,11 @@ public final class GeneratorScreen extends PanelScreen<GeneratorMenu> implements
             }
             graphics.disableScissor();
         }
-        graphics.outline(bounds.left(), bounds.top(), bounds.width(), bounds.height(), style.border());
+        graphics.renderOutline(bounds.left(), bounds.top(), bounds.width(), bounds.height(), style.border());
     }
 
     private void drawChargeBar(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final GeneratorView view) {
+            final GuiGraphics graphics, final PanelStyle style, final GeneratorView view) {
         final int x = leftPos + barX(view);
         final int y = topPos + BAR_Y;
         final ChargeBar bar = ChargeBar.at(x, y, BAR_WIDTH);
@@ -155,42 +155,43 @@ public final class GeneratorScreen extends PanelScreen<GeneratorMenu> implements
                 EnergyFormat.amount(view.stored()) + " / " + EnergyFormat.amount(view.capacity()) + " FE");
     }
 
-    private void drawStatus(final GuiGraphicsExtractor graphics, final GeneratorView view) {
+    private void drawStatus(final GuiGraphics graphics, final GeneratorView view) {
         final Component status = switch (view.status()) {
             case GENERATING -> Component.translatable("gui.nexus.generator.generating",
                     EnergyFormat.amount(view.production()));
             case BUFFER_FULL -> Component.translatable("gui.nexus.generator.full");
             case NO_FUEL -> Component.translatable("gui.nexus.generator.no_fuel");
         };
-        graphics.textWithWordWrap(font, status, leftPos + barX(view),
+        graphics.drawWordWrap(font, status, leftPos + barX(view),
                 topPos + BAR_Y + BAR_HEIGHT + 2 * TEXT_GAP + font.lineHeight, STATUS_RIGHT - barX(view),
                 PanelStyle.TEXT_DIM);
     }
 
     @Override
-    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
-        super.extractTooltip(graphics, mouseX, mouseY);
+    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
         sides.showTooltip(graphics, font, getMenu().sideModes(), mouseX, mouseY);
         final GeneratorView view = getMenu().view();
         if (view.tanks().isEmpty()) {
             if (flameBounds().contains(mouseX, mouseY)) {
-                graphics.setTooltipForNextFrame(font, burnTooltip(view), mouseX, mouseY);
+                graphics.renderTooltip(font, burnTooltip(view), mouseX, mouseY);
             }
             return;
         }
         for (int index = 0; index < view.tanks().size(); index++) {
             if (tankBounds(index).contains(mouseX, mouseY)) {
-                graphics.setComponentTooltipForNextFrame(font,
+                graphics.renderComponentTooltip(font,
                         tankTooltip(view.tanks().get(index), view.accepted().get(index)), mouseX, mouseY);
             }
         }
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         return minecraft != null
                 && sides.click(minecraft, getMenu().containerId, event.x(), event.y(), event.button())
-                || super.mouseClicked(event, doubleClick);
+                || super.mouseClicked(mouseX, mouseY, button);
     }
 
     private static List<Component> tankTooltip(final TankView tank, final FluidKey accepted) {

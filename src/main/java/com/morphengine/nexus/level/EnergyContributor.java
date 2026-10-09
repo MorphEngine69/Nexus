@@ -1,7 +1,7 @@
 package com.morphengine.nexus.level;
 
 import com.morphengine.nexus.api.energy.EnergyBuffer;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 /**
  * A block entity whose energy buffer becomes part of the pool of the network it
@@ -22,7 +22,7 @@ public interface EnergyContributor {
      *         network goes through it when a transaction of another mod moves
      *         energy through the Nexus
      */
-    EnergyHandler energyHandler();
+    IEnergyStorage energyHandler();
 
     /**
      * @return whether the block entity has left the level, removed or unloaded;

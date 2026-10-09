@@ -3,7 +3,7 @@ package com.morphengine.nexus.client.screen;
 import com.morphengine.nexus.resource.NexusResource;
 import com.morphengine.nexus.search.SearchTarget;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.ModList;
 import org.jspecify.annotations.Nullable;
 
@@ -54,7 +54,7 @@ final class ResourceSearchTarget implements SearchTarget {
     @Override
     public Collection<String> tags() {
         if (tags == null) {
-            tags = resource.tags().stream().map(Identifier::toString).map(ResourceSearchTarget::lower).toList();
+            tags = resource.tags().stream().map(ResourceLocation::toString).map(ResourceSearchTarget::lower).toList();
         }
         return tags;
     }

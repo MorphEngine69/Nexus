@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:aether_ingot",
-    "B": "minecraft:ender_pearl",
-    "C": "nexus:core",
-    "D": "nexus:mithril_plate"
+    "A": {
+      "item": "nexus:aether_ingot"
+    },
+    "B": {
+      "item": "minecraft:ender_pearl"
+    },
+    "C": {
+      "item": "nexus:core"
+    },
+    "D": {
+      "item": "nexus:mithril_plate"
+    }
   },
   "pattern": [
     " A ",

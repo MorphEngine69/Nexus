@@ -1,11 +1,11 @@
 package com.morphengine.nexus.block.entity;
 
+import com.morphengine.nexus.access.NameAndId;
 import com.morphengine.nexus.level.DeviceActor;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.security.Member;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.server.players.NameAndId;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;

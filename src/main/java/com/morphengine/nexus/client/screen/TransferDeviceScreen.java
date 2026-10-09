@@ -2,6 +2,7 @@ package com.morphengine.nexus.client.screen;
 
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.api.resource.FilterMode;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.menu.NetworkBadge;
 import com.morphengine.nexus.menu.TransferDeviceMenu;
@@ -11,16 +12,16 @@ import com.morphengine.nexus.resource.AmountUnit;
 import com.morphengine.nexus.resource.NexusResource;
 import com.morphengine.nexus.transfer.TransferSettings;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -94,10 +95,10 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu>
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final NetworkBadge network = getMenu().badge();
         PanelStyle.drawNetwork(graphics, font, network, leftPos, topPos);
-        graphics.text(font, Component.translatable("gui.nexus.filter"),
+        graphics.drawString(font, Component.translatable("gui.nexus.filter"),
                 leftPos + PanelStyle.PADDING, topPos + FILTER_LABEL_TOP, PanelStyle.TEXT_DIM, false);
         filterGrid.draw(graphics, style, mouseX, mouseY);
         if (getMenu().showsKeepAmounts()) {
@@ -107,11 +108,11 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu>
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
         }
         drawSideButtons(graphics, style, mouseX, mouseY);
-        graphics.text(font, playerInventoryTitle, leftPos + TransferDeviceMenu.INVENTORY_LEFT,
+        graphics.drawString(font, playerInventoryTitle, leftPos + TransferDeviceMenu.INVENTORY_LEFT,
                 topPos + TransferDeviceMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 
-    private void drawKeepAmounts(final GuiGraphicsExtractor graphics) {
+    private void drawKeepAmounts(final GuiGraphics graphics) {
         final TransferSettings settings = getMenu().settings();
         for (FilterSlots.Entry entry : settings.filter().entries()) {
             if (entry.tag() != null) {
@@ -125,7 +126,7 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu>
     }
 
     private void drawSideButtons(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final List<Control> controls = controls();
         final SideButtons buttons = sideButtons();
         final int hovered = buttons.buttonAt(mouseX, mouseY);
@@ -135,11 +136,11 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu>
     }
 
     @Override
-    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
-        super.extractTooltip(graphics, mouseX, mouseY);
+    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
         final List<Component> lines = tooltipAt(mouseX, mouseY);
         if (!lines.isEmpty()) {
-            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+            graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
         }
     }
 
@@ -173,18 +174,19 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu>
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
-        final int button = sideButtons().buttonAt(event.x(), event.y());
-        if (button >= 0) {
-            press(controls().get(button), event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
+        final int sideButton = sideButtons().buttonAt(event.x(), event.y());
+        if (sideButton >= 0) {
+            press(controls().get(sideButton), event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT);
             return true;
         }
-        return filterGrid.click(event) || super.mouseClicked(event, doubleClick);
+        return filterGrid.click(event) || super.mouseClicked(mouseX, mouseY, button);
     }
 
     private void press(final Control control, final boolean backwards) {
         if (control == Control.FILTER_MODE) {
-            ClientPacketDistributor.sendToServer(new FilterModePayload(getMenu().containerId));
+            PacketDistributor.sendToServer(new FilterModePayload(getMenu().containerId));
         } else if (minecraft != null && minecraft.gameMode != null) {
             minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId,
                     control.buttonId + (backwards ? 1 : 0));
@@ -203,10 +205,10 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu>
             return super.mouseScrolled(x, y, scrollX, scrollY);
         }
         final NexusResource resource = entry.resource();
-        final long steps = minecraft != null && minecraft.hasShiftDown() ? SHIFT_STEP : 1;
+        final long steps = minecraft != null && Screen.hasShiftDown() ? SHIFT_STEP : 1;
         final long step = steps * resource.type().unit().step() * (long) Math.signum(scrollY);
         final long current = getMenu().settings().keepAmount(slot, resource);
-        ClientPacketDistributor.sendToServer(new KeepAmountPayload(getMenu().containerId, slot, current + step));
+        PacketDistributor.sendToServer(new KeepAmountPayload(getMenu().containerId, slot, current + step));
         return true;
     }
 
@@ -298,13 +300,13 @@ public final class TransferDeviceScreen extends PanelScreen<TransferDeviceMenu>
          * @return the button's icon; the resource shares the icons of the
          *         terminal's button that picks the type shown
          */
-        Identifier icon(final TransferDeviceMenu menu) {
+        ResourceLocation icon(final TransferDeviceMenu menu) {
             final String path = switch (this) {
                 case RESOURCE -> "terminal/type_";
                 case WORLD_MODE -> "transfer/" + key + "_" + menu.kind().getSerializedName() + "_";
                 default -> "transfer/" + key + "_";
             };
-            return Identifier.fromNamespaceAndPath(Nexus.MOD_ID, path + choiceName(menu.settings()));
+            return ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, path + choiceName(menu.settings()));
         }
 
         private String choiceName(final TransferSettings settings) {

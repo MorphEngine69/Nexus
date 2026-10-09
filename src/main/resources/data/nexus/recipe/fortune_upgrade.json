@@ -1,10 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:mithril_ingot",
-    "B": "minecraft:lapis_lazuli",
-    "C": "minecraft:diamond",
-    "D": "nexus:upgrade_blank"
+    "A": {
+      "item": "nexus:mithril_ingot"
+    },
+    "B": {
+      "item": "minecraft:lapis_lazuli"
+    },
+    "C": {
+      "item": "minecraft:diamond"
+    },
+    "D": {
+      "item": "nexus:upgrade_blank"
+    }
   },
   "pattern": [
     "ABA",

@@ -1,6 +1,8 @@
 {
   "type": "nexus:crushing",
-  "ingredient": "minecraft:bamboo",
+  "ingredient": {
+    "item": "minecraft:bamboo"
+  },
   "result": {
     "id": "nexus:biomass"
   }

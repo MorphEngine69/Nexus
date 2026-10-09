@@ -1,14 +1,9 @@
 package com.morphengine.nexus.client.render;
 
-import com.geckolib.constant.dataticket.DataTicket;
-import com.geckolib.renderer.base.BoneSnapshots;
-import com.geckolib.renderer.base.GeoRenderState;
 import com.morphengine.nexus.automation.TaskRows;
 import com.morphengine.nexus.block.CraftingMonitorBlock;
 import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +17,6 @@ import java.util.List;
  */
 public final class CraftingMonitorRenderer extends FacedDeviceRenderer<CraftingMonitorBlockEntity> {
 
-    private static final DataTicket<Integer> ROWS = DataTicket.create("monitor_rows", Integer.class);
-    private static final DataTicket<Boolean> ACTIVE = DataTicket.create("monitor_active", Boolean.class);
-    private static final DataTicket<Float> TICKS = DataTicket.create("monitor_ticks", Float.class);
     private static final String[] ICON_LIT = rowBones("icon_lit_");
     private static final String[] ICON_DARK = rowBones("icon_dark_");
     private static final String[] ICON_PAUSE = rowBones("icon_pause_");
@@ -69,36 +61,26 @@ public final class CraftingMonitorRenderer extends FacedDeviceRenderer<CraftingM
     }
 
     @Override
-    public void addRenderData(
-            final CraftingMonitorBlockEntity monitor, final @Nullable Void relatedObject,
-            final BlockEntityRenderState renderState, final float partialTick) {
-        super.addRenderData(monitor, relatedObject, renderState, partialTick);
-        renderState.addGeckolibData(ROWS, monitor.rows());
-        renderState.addGeckolibData(ACTIVE, monitor.getBlockState().getValue(CraftingMonitorBlock.ACTIVE));
-        renderState.addGeckolibData(TICKS, monitor.getLevel() == null
-                ? 0F : monitor.getLevel().getGameTime() + partialTick);
-    }
-
-    @Override
-    protected void adjustDeviceBones(final GeoRenderState renderState, final BoneSnapshots snapshots) {
-        final boolean powered = DeviceRenderData.isLit(renderState);
-        final boolean active = renderState.getOrDefaultGeckolibData(ACTIVE, false);
-        final int rows = renderState.getOrDefaultGeckolibData(ROWS, 0);
-        final float ticks = renderState.getOrDefaultGeckolibData(TICKS, 0F);
+    protected void adjustDeviceBones(
+            final CraftingMonitorBlockEntity monitor, final Bones bones, final int ports, final float partialTick) {
+        final boolean powered = monitor.getBlockState().getValue(CraftingMonitorBlock.POWERED);
+        final boolean active = monitor.getBlockState().getValue(CraftingMonitorBlock.ACTIVE);
+        final int rows = monitor.rows();
+        final float ticks = monitor.getLevel() == null ? 0F : monitor.getLevel().getGameTime() + partialTick;
         for (int row = 0; row < TaskRows.ROWS; row++) {
             final boolean hasTask = active && TaskRows.hasTask(rows, row);
             final boolean ready = powered && !active;
             final boolean litIcon = powered && (ready || hasTask);
             final boolean pausedIcon = !powered && hasTask;
-            show(snapshots, ICON_LIT[row], litIcon);
-            show(snapshots, ICON_PAUSE[row], pausedIcon);
-            show(snapshots, ICON_DARK[row], !litIcon && !pausedIcon);
+            bones.hide(ICON_LIT[row], !litIcon);
+            bones.hide(ICON_PAUSE[row], !pausedIcon);
+            bones.hide(ICON_DARK[row], litIcon || pausedIcon);
             final int segments = hasTask ? TaskRows.segmentsOf(rows, row) : 0;
             final boolean running = powered && hasTask;
             for (int segment = 0; segment < TaskRows.SEGMENTS; segment++) {
                 final float lit = powered ? litSegment(segment, ready ? 1 : segments, running, ticks) : 0;
-                grow(snapshots, FILL_LIT[row][segment], lit);
-                grow(snapshots, FILL_DARK[row][segment], !powered && segment < segments ? 1 : 0);
+                grow(bones, FILL_LIT[row][segment], lit);
+                grow(bones, FILL_DARK[row][segment], !powered && segment < segments ? 1 : 0);
             }
         }
     }
@@ -107,14 +89,8 @@ public final class CraftingMonitorRenderer extends FacedDeviceRenderer<CraftingM
         return SegmentSweep.SLOW.fill(segment, level, TaskRows.SEGMENTS, running, ticks);
     }
 
-    private static void grow(final BoneSnapshots snapshots, final String name, final float fill) {
-        snapshots.ifPresent(name, bone -> {
-            bone.skipRender(fill <= 0);
-            bone.setScale(fill, 1, 1);
-        });
-    }
-
-    private static void show(final BoneSnapshots snapshots, final String name, final boolean visible) {
-        snapshots.ifPresent(name, bone -> bone.skipRender(!visible));
+    private static void grow(final Bones bones, final String name, final float fill) {
+        bones.hide(name, fill <= 0);
+        bones.scale(name, fill, 1, 1);
     }
 }

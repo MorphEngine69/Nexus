@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Client to server: the energy tab of the Nexus menu with the given container id is shown or hidden, so that the
@@ -14,7 +14,7 @@ import net.minecraft.resources.Identifier;
 public record NexusEnergyTabPayload(int containerId, boolean shown) implements CustomPacketPayload {
 
     public static final Type<NexusEnergyTabPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus_energy_tab"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "nexus_energy_tab"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, NexusEnergyTabPayload> STREAM_CODEC =
             StreamCodec.composite(

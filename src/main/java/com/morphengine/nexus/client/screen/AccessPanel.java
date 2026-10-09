@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.access.NameAndId;
 import com.morphengine.nexus.access.NetworkAccess;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.network.security.Role;
@@ -9,12 +10,11 @@ import com.morphengine.nexus.networking.NetworkAccessEditPayload;
 import com.morphengine.nexus.security.Editor;
 import com.morphengine.nexus.security.Member;
 import com.morphengine.nexus.security.SecurityEdit;
+import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.players.NameAndId;
-import net.minecraft.util.Util;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -59,10 +59,11 @@ final class AccessPanel {
         this.viewer = viewer;
     }
 
-    void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final AccessLayout layout) {
+    void draw(final GuiGraphics graphics, final PanelStyle style, final AccessLayout layout) {
         final AccessChoices current = choices();
         if (current == null) {
-            graphics.text(font, Component.translatable("gui.nexus.access.loading"), layout.left(), layout.ownerY(),
+            graphics.drawString(font, Component.translatable("gui.nexus.access.loading"), layout.left(),
+                    layout.ownerY(),
                     PanelStyle.TEXT_DIM, false);
             return;
         }
@@ -73,7 +74,7 @@ final class AccessPanel {
             drawDetails(graphics, style, layout, current, member);
             drawToggles(graphics, style, layout, current, member);
         } else if (!adding) {
-            graphics.textWithWordWrap(font, Component.translatable("gui.nexus.access.select"), layout.left(),
+            graphics.drawWordWrap(font, Component.translatable("gui.nexus.access.select"), layout.left(),
                     layout.detailY(), layout.width(), PanelStyle.TEXT_DIM);
         }
     }
@@ -139,7 +140,7 @@ final class AccessPanel {
         return choices;
     }
 
-    private void drawSummary(final GuiGraphicsExtractor graphics, final PanelStyle style, final AccessLayout layout,
+    private void drawSummary(final GuiGraphics graphics, final PanelStyle style, final AccessLayout layout,
                              final AccessChoices current) {
         final Member owner = current.rules().owner().flatMap(current.rules()::member).orElse(null);
         final Component ownerLine = owner != null ? Component.translatable("gui.nexus.access.owner", owner.name())
@@ -148,28 +149,30 @@ final class AccessPanel {
                 ? Component.translatable("gui.nexus.access.operator")
                 : NetworkAccess.nameOf(current.rules().roleOf(viewer));
         final Component you = Component.translatable("gui.nexus.access.you", standing);
-        graphics.text(font, you, layout.right() - font.width(you), layout.ownerY(), PanelStyle.TEXT_DIM, false);
-        graphics.text(font, font.plainSubstrByWidth(ownerLine.getString(), layout.width() - font.width(you) - GAP),
+        graphics.drawString(font, you, layout.right() - font.width(you), layout.ownerY(), PanelStyle.TEXT_DIM, false);
+        graphics.drawString(font, font.plainSubstrByWidth(ownerLine.getString(),
+                layout.width() - font.width(you) - GAP),
                 layout.left(), layout.ownerY(), PanelStyle.TEXT_LIGHT, false);
-        graphics.text(font, Component.translatable("gui.nexus.access.default"), layout.left(),
+        graphics.drawString(font, Component.translatable("gui.nexus.access.default"), layout.left(),
                 layout.defaultRole().top() + TEXT_INSET, PanelStyle.TEXT_DIM, false);
         button(graphics, style, layout.defaultRole(), NetworkAccess.nameOf(current.view().defaultRole()),
                 nextDefault(current) != null);
         final Component heading = adding ? Component.translatable("gui.nexus.access.candidates")
                 : Component.translatable("gui.nexus.access.members", current.view().members().size());
-        graphics.text(font, heading, layout.left(), layout.header().top() + TEXT_INSET, PanelStyle.TEXT_DIM, false);
+        graphics.drawString(font, heading, layout.left(), layout.header().top() + TEXT_INSET, PanelStyle.TEXT_DIM,
+                false);
         final HeaderAction action = headerAction(current);
         button(graphics, style, layout.header(), action.label(), action.isEnabled(current));
     }
 
-    private void drawList(final GuiGraphicsExtractor graphics, final PanelStyle style, final AccessLayout layout,
+    private void drawList(final GuiGraphics graphics, final PanelStyle style, final AccessLayout layout,
                           final AccessChoices current) {
         final PanelBounds list = layout.list();
         graphics.fill(list.left(), list.top(), list.left() + list.width(), list.top() + list.height(), style.track());
-        graphics.outline(list.left(), list.top(), list.width(), list.height(), style.border());
+        graphics.renderOutline(list.left(), list.top(), list.width(), list.height(), style.border());
         final List<Row> rows = rows(current);
         if (rows.isEmpty()) {
-            graphics.text(font, Component.translatable(adding ? "gui.nexus.access.no_candidates"
+            graphics.drawString(font, Component.translatable(adding ? "gui.nexus.access.no_candidates"
                     : "gui.nexus.access.no_members"), list.left() + TEXT_INSET, list.top() + TEXT_INSET,
                     PanelStyle.TEXT_DIM, false);
             return;
@@ -182,25 +185,26 @@ final class AccessPanel {
                         bounds.top() + bounds.height(), SELECTED_FILL);
             }
             final String name = row.id().equals(viewer) ? row.name() + " *" : row.name();
-            graphics.text(font, font.plainSubstrByWidth(name, bounds.width() / 2), bounds.left() + 2,
+            graphics.drawString(font, font.plainSubstrByWidth(name, bounds.width() / 2), bounds.left() + 2,
                     bounds.top() + 2, PanelStyle.TEXT_LIGHT, false);
             if (row.role() != null) {
                 final Component role = NetworkAccess.nameOf(row.role());
-                graphics.text(font, role, bounds.left() + bounds.width() - font.width(role) - 2, bounds.top() + 2,
+                graphics.drawString(font, role, bounds.left() + bounds.width() - font.width(role) - 2, bounds.top() + 2,
                         AccessDrawing.colorOf(row.role()), false);
             }
         }
     }
 
-    private void drawDetails(final GuiGraphicsExtractor graphics, final PanelStyle style, final AccessLayout layout,
+    private void drawDetails(final GuiGraphics graphics, final PanelStyle style, final AccessLayout layout,
                              final AccessChoices current, final Member member) {
-        graphics.text(font, font.plainSubstrByWidth(member.name(), layout.width()), layout.left(), layout.detailY(),
+        graphics.drawString(font, font.plainSubstrByWidth(member.name(), layout.width()), layout.left(),
+                layout.detailY(),
                 PanelStyle.TEXT_LIGHT, false);
         button(graphics, style, layout.rolePrevious(), Component.literal("<"),
                 stepRole(current, member, -1) != null);
         final PanelBounds label = layout.roleLabel();
         final Component role = NetworkAccess.nameOf(member.role());
-        graphics.text(font, role, label.left() + (label.width() - font.width(role)) / 2, label.top() + TEXT_INSET,
+        graphics.drawString(font, role, label.left() + (label.width() - font.width(role)) / 2, label.top() + TEXT_INSET,
                 AccessDrawing.colorOf(member.role()), false);
         button(graphics, style, layout.roleNext(), Component.literal(">"), stepRole(current, member, 1) != null);
         button(graphics, style, layout.remove(), Component.translatable("gui.nexus.access.remove"),
@@ -210,7 +214,7 @@ final class AccessPanel {
                 : "gui.nexus.access.transfer"), current.allows(new SecurityEdit.TransferOwnership(member.id())));
     }
 
-    private void drawToggles(final GuiGraphicsExtractor graphics, final PanelStyle style, final AccessLayout layout,
+    private void drawToggles(final GuiGraphics graphics, final PanelStyle style, final AccessLayout layout,
                              final AccessChoices current, final Member member) {
         for (int index = 0; index < ADJUSTABLE.size(); index++) {
             final Permission permission = ADJUSTABLE.get(index);
@@ -220,10 +224,10 @@ final class AccessPanel {
             final boolean enabled = current.allows(new SecurityEdit.Adjust(member.id(), permission,
                     AccessDrawing.next(member.stateOf(permission))));
             graphics.fill(box.left(), box.top(), box.left() + box.width(), box.top() + box.height(), style.track());
-            graphics.outline(box.left(), box.top(), box.width(), box.height(),
+            graphics.renderOutline(box.left(), box.top(), box.width(), box.height(),
                     enabled ? style.border() : style.track());
             AccessDrawing.drawState(graphics, box, member, permission);
-            graphics.text(font, NetworkAccess.nameOf(permission), box.left() + box.width() + LABEL_GAP,
+            graphics.drawString(font, NetworkAccess.nameOf(permission), box.left() + box.width() + LABEL_GAP,
                     toggle.top() + TEXT_INSET,
                     member.grants(permission) ? PanelStyle.TEXT_LIGHT : PanelStyle.TEXT_DIM, false);
         }
@@ -379,11 +383,11 @@ final class AccessPanel {
 
     private void send(final @Nullable SecurityEdit edit) {
         if (edit != null) {
-            ClientPacketDistributor.sendToServer(new NetworkAccessEditPayload(menu.pos(), edit));
+            PacketDistributor.sendToServer(new NetworkAccessEditPayload(menu.pos(), edit));
         }
     }
 
-    private void button(final GuiGraphicsExtractor graphics, final PanelStyle style, final PanelBounds bounds,
+    private void button(final GuiGraphics graphics, final PanelStyle style, final PanelBounds bounds,
                         final Component label, final boolean enabled) {
         style.drawButton(graphics, font, bounds, label);
         if (!enabled) {

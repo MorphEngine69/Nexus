@@ -2,7 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "#": "nexus:steel_ingot"
+    "#": {
+      "item": "nexus:steel_ingot"
+    }
   },
   "pattern": [
     "###",

@@ -1,8 +1,8 @@
 package com.morphengine.nexus.client.screen;
 
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.resource.NexusResource;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 interface TerminalWorkArea {
 
-    void draw(GuiGraphicsExtractor graphics, PanelStyle style, int mouseX, int mouseY);
+    void draw(GuiGraphics graphics, PanelStyle style, int mouseX, int mouseY);
 
     /**
      * @return the tooltip of what is under the cursor; empty when there is nothing

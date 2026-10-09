@@ -20,15 +20,10 @@ import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.storage.NetworkStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -39,8 +34,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -51,7 +48,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class VoidUpgradeGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos CELL = NEXUS.south();
@@ -74,22 +71,16 @@ public final class VoidUpgradeGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(VoidUpgradeGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "void_upgrade"),
-                new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void destroysListed(final GameTestHelper helper) {
@@ -156,7 +147,7 @@ public final class VoidUpgradeGameTests {
         place(helper, CHEST, Blocks.CHEST.defaultBlockState());
         place(helper, EXTERNAL, NexusBlocks.EXTERNAL_VAULT.get().defaultBlockState()
                 .setValue(ExternalVaultBlock.FACING, Direction.EAST));
-        helper.getBlockEntity(EXTERNAL, ExternalVaultBlockEntity.class).upgrades()
+        helper.<ExternalVaultBlockEntity>getBlockEntity(EXTERNAL).upgrades()
                 .setItem(0, voidUpgradeListing(stone()));
 
         helper.startSequence()
@@ -171,11 +162,11 @@ public final class VoidUpgradeGameTests {
         final SimpleContainer slots = new SimpleContainer(DeviceUpgrades.SIZE);
 
         helper.assertTrue(StorageVaultBlockEntity.UPGRADE_LIMITS.accepts(upgrade, slots),
-                Component.literal("a Storage Vault refused a Void Upgrade"));
+                String.valueOf("a Storage Vault refused a Void Upgrade"));
         helper.assertTrue(ExternalVaultBlockEntity.UPGRADE_LIMITS.accepts(upgrade, slots),
-                Component.literal("an External Vault refused a Void Upgrade"));
+                String.valueOf("an External Vault refused a Void Upgrade"));
         helper.assertFalse(DeviceUpgrades.LIMITS.accepts(upgrade, slots),
-                Component.literal("a Nexus or an Energy Cell took a Void Upgrade"));
+                String.valueOf("a Nexus or an Energy Cell took a Void Upgrade"));
         helper.succeed();
     }
 
@@ -198,7 +189,7 @@ public final class VoidUpgradeGameTests {
 
     private static void assertNetworkHasStorage(final GameTestHelper helper, final int sources) {
         helper.assertTrue(network(helper).sourceCount() >= sources,
-                Component.literal("the network has " + network(helper).sourceCount() + " storages, expected "
+                String.valueOf("the network has " + network(helper).sourceCount() + " storages, expected "
                         + sources));
     }
 
@@ -207,11 +198,11 @@ public final class VoidUpgradeGameTests {
     }
 
     private static StorageVaultBlockEntity vault(final GameTestHelper helper) {
-        return helper.getBlockEntity(VAULT, StorageVaultBlockEntity.class);
+        return helper.<StorageVaultBlockEntity>getBlockEntity(VAULT);
     }
 
     private static NetworkStorage network(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class)
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS)
                 .component(NetworkComponentTypes.STORAGE).storage();
     }
 
@@ -221,7 +212,7 @@ public final class VoidUpgradeGameTests {
 
     private static void assertAmount(
             final GameTestHelper helper, final long actual, final long expected, final String what) {
-        helper.assertTrue(actual == expected, Component.literal(what + ": " + actual + ", expected " + expected));
+        helper.assertTrue(actual == expected, String.valueOf(what + ": " + actual + ", expected " + expected));
     }
 
     private static ItemKey stone() {

@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Client to server: the player set how much of the resource in a filter slot
@@ -16,7 +16,7 @@ import net.minecraft.resources.Identifier;
 public record KeepAmountPayload(int containerId, int slot, long amount) implements CustomPacketPayload {
 
     public static final Type<KeepAmountPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "keep_amount"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "keep_amount"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, KeepAmountPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, KeepAmountPayload::containerId,

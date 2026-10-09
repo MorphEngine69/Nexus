@@ -20,6 +20,8 @@ import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.machine.MachineSide;
 import com.morphengine.nexus.menu.GeneratorMenu;
 import com.morphengine.nexus.menu.GeneratorView;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.processing.MachinePhase;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.transport.SideConfig;
@@ -29,9 +31,10 @@ import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -41,12 +44,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -90,7 +90,7 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity
     private final @Nullable GeneratorTanks tanks;
     private final UpgradeContainer upgrades = new UpgradeContainer(UPGRADE_SLOTS, UPGRADE_LIMITS,
             this::upgradesChanged);
-    private final EnergyHandler handler;
+    private final IEnergyStorage handler;
     private final GeneratorItems items;
     private final NeighbourEnergyOutputs outputs = new NeighbourEnergyOutputs(MAX_OUTPUT_PER_SIDE);
     private final GeneratorSides sides = new GeneratorSides();
@@ -138,7 +138,7 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity
      *
      * @return the handler, {@code null} when the side gives nothing
      */
-    public @Nullable EnergyHandler energyHandler(final @Nullable Direction worldSide) {
+    public @Nullable IEnergyStorage energyHandler(final @Nullable Direction worldSide) {
         return worldSide == null || sides.modeOn(getBlockState(), worldSide).allowsOutput() ? handler : null;
     }
 
@@ -146,7 +146,7 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity
      * @return the tanks as a neighbour on {@code worldSide} sees them, {@code null} when the generator burns items or
      *         the side lets nothing in
      */
-    public @Nullable ResourceHandler<FluidResource> fluidHandler(final @Nullable Direction worldSide) {
+    public @Nullable IFluidHandler fluidHandler(final @Nullable Direction worldSide) {
         return worldSide == null || sides.modeOn(getBlockState(), worldSide).allowsInput() ? tanks : null;
     }
 
@@ -154,7 +154,7 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity
      * @return the input slot as a neighbour on {@code worldSide} sees it, {@code null} when the side is closed or no
      *         side is named
      */
-    public @Nullable ResourceHandler<ItemResource> itemHandler(final @Nullable Direction worldSide) {
+    public @Nullable IItemHandler itemHandler(final @Nullable Direction worldSide) {
         return worldSide == null ? null : items.handlerFor(sides.modeOn(getBlockState(), worldSide));
     }
 
@@ -288,7 +288,6 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity
         return new GeneratorMenu(containerId, inventory, worldPosition);
     }
 
-    @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
         ChunkAnchors.release(this);
@@ -299,28 +298,30 @@ public final class GeneratorBlockEntity extends AnimatedDeviceBlockEntity
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
         output.putLong(TAG_ENERGY, buffer.stored());
         output.putInt(TAG_BURN_LEFT, burner.burnTicksLeft());
         output.putInt(TAG_BURN_TOTAL, burner.burnTicksTotal());
-        ContainerHelper.saveAllItems(output, input.getItems());
-        ContainerHelper.saveAllItems(output.child(TAG_UPGRADES), upgrades.getItems());
+        output.saveItems(input.getItems());
+        output.saveItems(TAG_UPGRADES, upgrades.getItems());
         if (tanks != null) {
-            tanks.serialize(output.child(TAG_TANKS));
+            tanks.save(output.child(TAG_TANKS));
         }
         output.putInt(TAG_SIDES, sides.config().toBits());
     }
 
     @Override
-    protected void loadAdditional(final ValueInput source) {
-        super.loadAdditional(source);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput source = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         buffer.restore(SimpleEnergyBuffer.Snapshot.storing(Math.max(0, source.getLongOr(TAG_ENERGY, 0))));
         burner.restore(source.getIntOr(TAG_BURN_LEFT, 0), source.getIntOr(TAG_BURN_TOTAL, 0));
-        ContainerHelper.loadAllItems(source, input.getItems());
-        ContainerHelper.loadAllItems(source.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
+        source.loadItems(input.getItems());
+        source.loadItems(TAG_UPGRADES, upgrades.getItems());
         if (tanks != null) {
-            tanks.deserialize(source.childOrEmpty(TAG_TANKS));
+            tanks.load(source.childOrEmpty(TAG_TANKS));
         }
         sides.restore(source.getIntOr(TAG_SIDES, -1));
         applyUpgrades();

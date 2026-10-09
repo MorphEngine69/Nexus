@@ -4,9 +4,9 @@ import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.machine.MachineSlot;
 import com.morphengine.nexus.resource.FluidKey;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.core.NonNullList;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;

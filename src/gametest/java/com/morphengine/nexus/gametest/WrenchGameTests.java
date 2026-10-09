@@ -33,16 +33,11 @@ import com.morphengine.nexus.security.SecurityEdit;
 import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -64,8 +59,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -77,7 +73,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class WrenchGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos DEVICE = new BlockPos(4, 2, 4);
@@ -119,21 +115,16 @@ public final class WrenchGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(WrenchGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "wrench"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void turnsAroundAllSides(final GameTestHelper helper) {
@@ -145,7 +136,7 @@ public final class WrenchGameTests {
         for (Direction side : expected) {
             click(helper, player, DEVICE, false);
             helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(TransferDeviceBlock.FACING), side,
-                    Component.literal("facing after a turn"));
+                    String.valueOf("facing after a turn"));
         }
         leave(helper, player);
         helper.succeed();
@@ -158,7 +149,7 @@ public final class WrenchGameTests {
         click(helper, player, DEVICE, false);
 
         helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(StorageVaultBlock.FACING), Direction.NORTH,
-                Component.literal("a vault turned from west goes on round the horizontal"));
+                String.valueOf("a vault turned from west goes on round the horizontal"));
         leave(helper, player);
         helper.succeed();
     }
@@ -168,12 +159,12 @@ public final class WrenchGameTests {
         place(helper, DEVICE.east(), cable());
         place(helper, DEVICE, pusherFacing(Direction.NORTH));
         helper.assertTrue(SideConnections.isAttached(helper.getBlockState(DEVICE), Direction.EAST),
-                Component.literal("the cable at the side is not joined before turning"));
+                String.valueOf("the cable at the side is not joined before turning"));
 
         click(helper, player, DEVICE, false);
 
         helper.assertFalse(SideConnections.isAttached(helper.getBlockState(DEVICE), Direction.EAST),
-                Component.literal("the cable arm stays on the new front"));
+                String.valueOf("the cable arm stays on the new front"));
         leave(helper, player);
         helper.succeed();
     }
@@ -186,8 +177,8 @@ public final class WrenchGameTests {
                 helper.getLevel(), helper.absolutePos(DEVICE), player, Direction.UP);
 
         helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(TransferDeviceBlock.FACING), Direction.UP,
-                Component.literal("facing after striking the top"));
-        helper.assertTrue(result.consumesAction(), Component.literal("setting a front is an action"));
+                String.valueOf("facing after striking the top"));
+        helper.assertTrue(result.consumesAction(), String.valueOf("setting a front is an action"));
         leave(helper, player);
         helper.succeed();
     }
@@ -200,8 +191,8 @@ public final class WrenchGameTests {
                 helper.getLevel(), helper.absolutePos(DEVICE), player, Direction.UP);
 
         helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(StorageVaultBlock.FACING), Direction.WEST,
-                Component.literal("a vault struck on its top keeps its front"));
-        helper.assertFalse(result.consumesAction(), Component.literal("a refused turn is not an action"));
+                String.valueOf("a vault struck on its top keeps its front"));
+        helper.assertFalse(result.consumesAction(), String.valueOf("a refused turn is not an action"));
         leave(helper, player);
         helper.succeed();
     }
@@ -214,9 +205,9 @@ public final class WrenchGameTests {
         final InteractionResult result = click(helper, player, DEVICE, false);
 
         helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(TerminalBlock.FACING), Direction.UP,
-                Component.literal("a terminal stays as it is"));
+                String.valueOf("a terminal stays as it is"));
         helper.assertValueEqual(result, InteractionResult.PASS,
-                Component.literal("the click goes on to the terminal, which opens"));
+                String.valueOf("the click goes on to the terminal, which opens"));
         leave(helper, player);
         helper.succeed();
     }
@@ -225,15 +216,15 @@ public final class WrenchGameTests {
         final ServerPlayer player = survivalPlayer(helper);
         final ItemStack cell = new ItemStack(NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get());
         place(helper, DEVICE, NexusBlocks.STORAGE_VAULT.get().defaultBlockState());
-        helper.getBlockEntity(DEVICE, StorageVaultBlockEntity.class).cells().setItem(0, cell.copy());
+        helper.<StorageVaultBlockEntity>getBlockEntity(DEVICE).cells().setItem(0, cell.copy());
 
         click(helper, player, DEVICE, true);
 
-        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), Component.literal("the vault is still there"));
+        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), String.valueOf("the vault is still there"));
         helper.assertTrue(carries(player, NexusItems.STORAGE_VAULT.get()),
-                Component.literal("the vault is not in the inventory"));
-        helper.assertTrue(carries(player, cell.getItem()), Component.literal("the cell is not in the inventory"));
-        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), Component.literal("something fell to the ground"));
+                String.valueOf("the vault is not in the inventory"));
+        helper.assertTrue(carries(player, cell.getItem()), String.valueOf("the cell is not in the inventory"));
+        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), String.valueOf("something fell to the ground"));
         leave(helper, player);
         helper.succeed();
     }
@@ -245,18 +236,18 @@ public final class WrenchGameTests {
 
         click(helper, player, DEVICE, true);
 
-        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), Component.literal("the terminal is still there"));
+        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), String.valueOf("the terminal is still there"));
         helper.assertTrue(helper.getBlockState(DEVICE.below()).getBlock() instanceof CableBlock,
-                Component.literal("the cable under the terminal went with it"));
+                String.valueOf("the cable under the terminal went with it"));
         helper.assertTrue(carries(player, NexusItems.TERMINAL.get()),
-                Component.literal("the terminal is not in the inventory"));
+                String.valueOf("the terminal is not in the inventory"));
         leave(helper, player);
         helper.succeed();
     }
 
     private static void dismantleOverflowsToTheGround(final GameTestHelper helper) {
         final ServerPlayer player = survivalPlayer(helper);
-        for (int slot = 0; slot < player.getInventory().getNonEquipmentItems().size(); slot++) {
+        for (int slot = 0; slot < player.getInventory().items.size(); slot++) {
             player.getInventory().setItem(slot, new ItemStack(Items.DIRT, Items.DIRT.getDefaultMaxStackSize()));
         }
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(NexusItems.WRENCH.get()));
@@ -264,9 +255,9 @@ public final class WrenchGameTests {
 
         click(helper, player, DEVICE, true);
 
-        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), Component.literal("the vault is still there"));
+        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), String.valueOf("the vault is still there"));
         helper.assertFalse(itemsOnTheGround(helper).isEmpty(),
-                Component.literal("with a full inventory the vault must fall beside the block"));
+                String.valueOf("with a full inventory the vault must fall beside the block"));
         leave(helper, player);
         helper.succeed();
     }
@@ -284,7 +275,7 @@ public final class WrenchGameTests {
                 .thenExecute(() -> click(helper, stranger, pusher, false))
                 .thenExecute(() -> helper.assertValueEqual(
                         helper.getBlockState(pusher).getValue(TransferDeviceBlock.FACING), Direction.NORTH,
-                        Component.literal("a stranger turned a device of the network")))
+                        String.valueOf("a stranger turned a device of the network")))
                 .thenExecute(() -> leave(helper, stranger))
                 .thenSucceed();
     }
@@ -296,7 +287,7 @@ public final class WrenchGameTests {
         for (Direction side : List.of(Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH)) {
             click(helper, player, DEVICE, false);
             helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(MachineBlock.FACING), side,
-                    Component.literal("facing of a machine after a turn"));
+                    String.valueOf("facing of a machine after a turn"));
         }
         leave(helper, player);
         helper.succeed();
@@ -309,7 +300,7 @@ public final class WrenchGameTests {
         for (Direction side : List.of(Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH)) {
             click(helper, player, DEVICE, false);
             helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(GeneratorBlock.FACING), side,
-                    Component.literal("facing of a generator after a turn"));
+                    String.valueOf("facing of a generator after a turn"));
         }
         leave(helper, player);
         helper.succeed();
@@ -323,7 +314,7 @@ public final class WrenchGameTests {
                 Direction.DOWN, Direction.NORTH)) {
             click(helper, player, DEVICE, false);
             helper.assertValueEqual(helper.getBlockState(DEVICE).getValue(ExternalVaultBlock.FACING), side,
-                    Component.literal("facing of an external vault after a turn"));
+                    String.valueOf("facing of an external vault after a turn"));
         }
         leave(helper, player);
         helper.succeed();
@@ -332,21 +323,21 @@ public final class WrenchGameTests {
     private static void turnedMachineKeepsSettings(final GameTestHelper helper) {
         final ServerPlayer player = survivalPlayer(helper);
         place(helper, DEVICE, machineFacing(Direction.NORTH));
-        final MachineBlockEntity machine = helper.getBlockEntity(DEVICE, MachineBlockEntity.class);
+        final MachineBlockEntity machine = helper.<MachineBlockEntity>getBlockEntity(DEVICE);
         machine.setSideMode(MachineSide.LEFT, SideMode.CLOSED);
         machine.machine().inventory().setMode(InputMode.SPLIT);
         helper.assertValueEqual(closedHorizontalSides(machine).size(), 1,
-                Component.literal("sides closed before the turn"));
+                String.valueOf("sides closed before the turn"));
 
         click(helper, player, DEVICE, false);
 
         final Direction facing = helper.getBlockState(DEVICE).getValue(MachineBlock.FACING);
-        final List<Direction> closed = closedHorizontalSides(helper.getBlockEntity(DEVICE, MachineBlockEntity.class));
-        helper.assertValueEqual(closed.size(), 1, Component.literal("sides closed after the turn"));
+        final List<Direction> closed = closedHorizontalSides(helper.<MachineBlockEntity>getBlockEntity(DEVICE));
+        helper.assertValueEqual(closed.size(), 1, String.valueOf("sides closed after the turn"));
         helper.assertValueEqual(MachineFacing.sideOf(facing, closed.getFirst()), MachineSide.LEFT,
-                Component.literal("the side that stayed closed, counted from the new front"));
+                String.valueOf("the side that stayed closed, counted from the new front"));
         helper.assertValueEqual(machine.machine().inventory().mode(), InputMode.SPLIT,
-                Component.literal("input mode after the turn"));
+                String.valueOf("input mode after the turn"));
         leave(helper, player);
         helper.succeed();
     }
@@ -359,16 +350,16 @@ public final class WrenchGameTests {
         final ServerPlayer player = survivalPlayer(helper);
         place(helper, DEVICE, machineFacing(Direction.NORTH));
         final Item machineItem = helper.getBlockState(DEVICE).getBlock().asItem();
-        helper.getBlockEntity(DEVICE, MachineBlockEntity.class).upgrades()
+        helper.<MachineBlockEntity>getBlockEntity(DEVICE).upgrades()
                 .setItem(0, new ItemStack(NexusItems.SPEED_UPGRADE.get()));
 
         click(helper, player, DEVICE, true);
 
-        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), Component.literal("the machine is still there"));
-        helper.assertTrue(carries(player, machineItem), Component.literal("the machine is not in the inventory"));
+        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), String.valueOf("the machine is still there"));
+        helper.assertTrue(carries(player, machineItem), String.valueOf("the machine is not in the inventory"));
         helper.assertTrue(carries(player, NexusItems.SPEED_UPGRADE.get()),
-                Component.literal("the upgrade is not in the inventory"));
-        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), Component.literal("something fell to the ground"));
+                String.valueOf("the upgrade is not in the inventory"));
+        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), String.valueOf("something fell to the ground"));
         leave(helper, player);
         helper.succeed();
     }
@@ -377,18 +368,18 @@ public final class WrenchGameTests {
         final ServerPlayer player = survivalPlayer(helper);
         place(helper, DEVICE, generatorFacing(Direction.NORTH));
         final Item generatorItem = helper.getBlockState(DEVICE).getBlock().asItem();
-        final GeneratorBlockEntity generator = helper.getBlockEntity(DEVICE, GeneratorBlockEntity.class);
+        final GeneratorBlockEntity generator = helper.<GeneratorBlockEntity>getBlockEntity(DEVICE);
         generator.input().setItem(0, new ItemStack(Items.COAL, 5));
         generator.upgrades().setItem(0, new ItemStack(NexusItems.SPEED_UPGRADE.get()));
 
         click(helper, player, DEVICE, true);
 
-        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), Component.literal("the generator is still there"));
-        helper.assertTrue(carries(player, generatorItem), Component.literal("the generator is not in the inventory"));
-        helper.assertTrue(carries(player, Items.COAL), Component.literal("the fuel is not in the inventory"));
+        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), String.valueOf("the generator is still there"));
+        helper.assertTrue(carries(player, generatorItem), String.valueOf("the generator is not in the inventory"));
+        helper.assertTrue(carries(player, Items.COAL), String.valueOf("the fuel is not in the inventory"));
         helper.assertTrue(carries(player, NexusItems.SPEED_UPGRADE.get()),
-                Component.literal("the upgrade is not in the inventory"));
-        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), Component.literal("something fell to the ground"));
+                String.valueOf("the upgrade is not in the inventory"));
+        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), String.valueOf("something fell to the ground"));
         leave(helper, player);
         helper.succeed();
     }
@@ -396,16 +387,16 @@ public final class WrenchGameTests {
     private static void dismantleExternalVault(final GameTestHelper helper) {
         final ServerPlayer player = survivalPlayer(helper);
         place(helper, DEVICE, externalVaultFacing(Direction.NORTH));
-        helper.getBlockEntity(DEVICE, ExternalVaultBlockEntity.class).upgrades()
+        helper.<ExternalVaultBlockEntity>getBlockEntity(DEVICE).upgrades()
                 .setItem(0, new ItemStack(NexusItems.CHUNK_LOADER_UPGRADE.get()));
 
         click(helper, player, DEVICE, true);
 
-        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), Component.literal("the vault is still there"));
+        helper.assertTrue(helper.getBlockState(DEVICE).isAir(), String.valueOf("the vault is still there"));
         helper.assertTrue(carries(player, NexusItems.EXTERNAL_VAULT.get()),
-                Component.literal("the vault is not in the inventory"));
+                String.valueOf("the vault is not in the inventory"));
         helper.assertTrue(carries(player, NexusItems.CHUNK_LOADER_UPGRADE.get()),
-                Component.literal("the upgrade is not in the inventory"));
+                String.valueOf("the upgrade is not in the inventory"));
         leave(helper, player);
         helper.succeed();
     }
@@ -428,17 +419,17 @@ public final class WrenchGameTests {
         final ServerPlayer player = survivalPlayer(helper);
         place(helper, DEVICE, machineFacing(Direction.NORTH));
         final Item machineItem = helper.getBlockState(DEVICE).getBlock().asItem();
-        seed(helper.getBlockEntity(DEVICE, MachineBlockEntity.class), STORED_FE, StoredFluids.EMPTY);
+        seed(helper.<MachineBlockEntity>getBlockEntity(DEVICE), STORED_FE, StoredFluids.EMPTY);
 
         click(helper, player, DEVICE, true);
         final ItemStack dropped = carried(player, machineItem);
         place(helper, DEVICE.east(), machineFacing(Direction.NORTH));
-        helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class).applyComponentsFromItemStack(dropped);
+        helper.<MachineBlockEntity>getBlockEntity(DEVICE.east()).applyComponentsFromItemStack(dropped);
 
         helper.assertValueEqual(dropped.get(NexusDataComponents.STORED_ENERGY.get()), STORED_FE,
-                Component.literal("energy on the item"));
-        helper.assertValueEqual(helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class)
-                .machine().energy().stored(), STORED_FE, Component.literal("energy in the machine put up again"));
+                String.valueOf("energy on the item"));
+        helper.assertValueEqual(helper.<MachineBlockEntity>getBlockEntity(DEVICE.east())
+                .machine().energy().stored(), STORED_FE, String.valueOf("energy in the machine put up again"));
         leave(helper, player);
         helper.succeed();
     }
@@ -451,10 +442,10 @@ public final class WrenchGameTests {
         click(helper, player, DEVICE, true);
         final ItemStack dropped = carried(player, machineItem);
         place(helper, DEVICE.east(), machineFacing(Direction.NORTH));
-        helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class).applyComponentsFromItemStack(dropped);
+        helper.<MachineBlockEntity>getBlockEntity(DEVICE.east()).applyComponentsFromItemStack(dropped);
 
-        helper.assertValueEqual(helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class)
-                .machine().energy().stored(), 0L, Component.literal("energy in a machine that held none"));
+        helper.assertValueEqual(helper.<MachineBlockEntity>getBlockEntity(DEVICE.east())
+                .machine().energy().stored(), 0L, String.valueOf("energy in a machine that held none"));
         leave(helper, player);
         helper.succeed();
     }
@@ -466,18 +457,18 @@ public final class WrenchGameTests {
         place(helper, DEVICE, extractor);
         final Item extractorItem = extractor.getBlock().asItem();
         final StoredFluids fluid = new StoredFluids(List.of(new FluidStack(Fluids.WATER, STORED_FLUID)));
-        seed(helper.getBlockEntity(DEVICE, MachineBlockEntity.class), STORED_FE, fluid);
+        seed(helper.<MachineBlockEntity>getBlockEntity(DEVICE), STORED_FE, fluid);
 
         click(helper, player, DEVICE, true);
         final ItemStack dropped = carried(player, extractorItem);
         place(helper, DEVICE.east(), extractor);
-        helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class).applyComponentsFromItemStack(dropped);
+        helper.<MachineBlockEntity>getBlockEntity(DEVICE.east()).applyComponentsFromItemStack(dropped);
 
         helper.assertValueEqual(dropped.get(NexusDataComponents.STORED_FLUIDS.get()), fluid,
-                Component.literal("fluid on the item"));
-        helper.assertValueEqual(helper.getBlockEntity(DEVICE.east(), MachineBlockEntity.class)
+                String.valueOf("fluid on the item"));
+        helper.assertValueEqual(helper.<MachineBlockEntity>getBlockEntity(DEVICE.east())
                 .collectComponents().get(NexusDataComponents.STORED_FLUIDS.get()), fluid,
-                Component.literal("fluid in the extractor put up again"));
+                String.valueOf("fluid in the extractor put up again"));
         leave(helper, player);
         helper.succeed();
     }
@@ -489,19 +480,19 @@ public final class WrenchGameTests {
         final Item generatorItem = generator.getBlock().asItem();
         final StoredFluids fluids = new StoredFluids(List.of(
                 new FluidStack(Fluids.LAVA, STORED_FLUID), new FluidStack(Fluids.WATER, STORED_FLUID)));
-        seed(helper.getBlockEntity(DEVICE, GeneratorBlockEntity.class), STORED_FE, fluids);
+        seed(helper.<GeneratorBlockEntity>getBlockEntity(DEVICE), STORED_FE, fluids);
 
         click(helper, player, DEVICE, true);
         final ItemStack dropped = carried(player, generatorItem);
         place(helper, DEVICE.east(), generator);
-        helper.getBlockEntity(DEVICE.east(), GeneratorBlockEntity.class).applyComponentsFromItemStack(dropped);
+        helper.<GeneratorBlockEntity>getBlockEntity(DEVICE.east()).applyComponentsFromItemStack(dropped);
 
-        final DataComponentMap again = helper.getBlockEntity(DEVICE.east(), GeneratorBlockEntity.class)
+        final DataComponentMap again = helper.<GeneratorBlockEntity>getBlockEntity(DEVICE.east())
                 .collectComponents();
         helper.assertValueEqual(again.get(NexusDataComponents.STORED_ENERGY.get()), STORED_FE,
-                Component.literal("energy in the generator put up again"));
+                String.valueOf("energy in the generator put up again"));
         helper.assertValueEqual(again.get(NexusDataComponents.STORED_FLUIDS.get()), fluids,
-                Component.literal("fluids in the generator put up again"));
+                String.valueOf("fluids in the generator put up again"));
         leave(helper, player);
         helper.succeed();
     }
@@ -514,7 +505,7 @@ public final class WrenchGameTests {
     }
 
     private static ItemStack carried(final ServerPlayer player, final Item item) {
-        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+        for (ItemStack stack : player.getInventory().items) {
             if (stack.is(item)) {
                 return stack;
             }
@@ -523,12 +514,12 @@ public final class WrenchGameTests {
     }
 
     private static void shutStrangersOut(final GameTestHelper helper) {
-        final NexusBlockEntity nexus = helper.getBlockEntity(NEXUS, NexusBlockEntity.class);
+        final NexusBlockEntity nexus = helper.<NexusBlockEntity>getBlockEntity(NEXUS);
         helper.assertValueEqual(nexus.security().apply(Editor.operator(OWNER), new SecurityEdit.Claim("Owner")),
-                EditResult.APPLIED, Component.literal("claiming the network"));
+                EditResult.APPLIED, String.valueOf("claiming the network"));
         helper.assertValueEqual(
                 nexus.security().apply(Editor.player(OWNER), new SecurityEdit.ChangeDefaultRole(Role.BLOCKED)),
-                EditResult.APPLIED, Component.literal("shutting strangers out"));
+                EditResult.APPLIED, String.valueOf("shutting strangers out"));
     }
 
     private static ServerPlayer survivalPlayer(final GameTestHelper helper) {

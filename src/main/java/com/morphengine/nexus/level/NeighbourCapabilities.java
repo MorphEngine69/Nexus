@@ -5,10 +5,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -54,9 +53,9 @@ public final class NeighbourCapabilities {
         final BlockPos target = pos.relative(face);
         final Direction side = face.getOpposite();
         final Caches created = new Caches(
-                BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, target, side),
-                BlockCapabilityCache.create(Capabilities.Fluid.BLOCK, level, target, side),
-                BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, target, side));
+                BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, level, target, side),
+                BlockCapabilityCache.create(Capabilities.FluidHandler.BLOCK, level, target, side),
+                BlockCapabilityCache.create(Capabilities.EnergyStorage.BLOCK, level, target, side));
         caches = created;
         watchedPos = pos.immutable();
         watchedFace = face;
@@ -64,8 +63,8 @@ public final class NeighbourCapabilities {
     }
 
     private record Caches(
-            BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> items,
-            BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> fluids,
-            BlockCapabilityCache<EnergyHandler, Direction> energy) {
+            BlockCapabilityCache<IItemHandler, Direction> items,
+            BlockCapabilityCache<IFluidHandler, Direction> fluids,
+            BlockCapabilityCache<IEnergyStorage, Direction> energy) {
     }
 }

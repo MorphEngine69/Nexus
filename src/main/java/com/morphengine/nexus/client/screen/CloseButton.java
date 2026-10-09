@@ -1,6 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 /**
  * The cross in the top right corner of a device panel.
@@ -27,7 +27,7 @@ final class CloseButton {
         return bounds.contains(x, y);
     }
 
-    void draw(final GuiGraphicsExtractor graphics) {
+    void draw(final GuiGraphics graphics) {
         final int centerX = bounds.left() + SIZE / 2;
         final int centerY = bounds.top() + SIZE / 2;
         for (int offset = -GLYPH_RADIUS; offset <= GLYPH_RADIUS; offset++) {

@@ -4,15 +4,13 @@ import com.morphengine.nexus.block.entity.FluidKeeper;
 import com.morphengine.nexus.machine.MachineSlot;
 import com.morphengine.nexus.machine.MachineSlots;
 import com.morphengine.nexus.menu.TankView;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.resource.FluidKey;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.core.NonNullList;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
-import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import java.util.List;
 import java.util.function.LongSupplier;
@@ -38,7 +36,7 @@ public final class MachineTank implements FluidKeeper {
     public MachineTank(final LongSupplier capacity, final Runnable changed) {
         this.capacity = capacity;
         this.changed = changed;
-        this.output = new Output(stacks, changed);
+        this.output = new Output(stacks, capacity, changed);
     }
 
     /**
@@ -62,8 +60,7 @@ public final class MachineTank implements FluidKeeper {
     /**
      * @return what a pipe sees of the tank: its fluid to take out, nothing to put in
      */
-    public ResourceHandler<FluidResource> handler() {
-        output.setCapacity((int) capacity.getAsLong());
+    public IFluidHandler handler() {
         return output;
     }
 
@@ -94,38 +91,68 @@ public final class MachineTank implements FluidKeeper {
     }
 
     /**
-     * The stacks of the tank as a handler of the game. The superclass copies the list it is given, so the constructor
-     * puts the original back: the stacks are what the line works on.
+     * The tank as a handler of the game, which only gives its fluid out. The stacks are what the line works on.
      */
-    private static final class Output extends FluidStacksResourceHandler {
+    private static final class Output implements IFluidHandler {
 
+        private final NonNullList<FluidStack> stacks;
+        private final LongSupplier capacity;
         private final Runnable changed;
 
-        Output(final NonNullList<FluidStack> stacks, final Runnable changed) {
-            super(stacks, 0);
+        Output(final NonNullList<FluidStack> stacks, final LongSupplier capacity, final Runnable changed) {
             this.stacks = stacks;
+            this.capacity = capacity;
             this.changed = changed;
         }
 
-        void setCapacity(final int millibuckets) {
-            this.capacity = millibuckets;
+        @Override
+        public int getTanks() {
+            return 1;
         }
 
         @Override
-        public boolean isValid(final int index, final FluidResource resource) {
+        public FluidStack getFluidInTank(final int tank) {
+            return stacks.get(0);
+        }
+
+        @Override
+        public int getTankCapacity(final int tank) {
+            return (int) capacity.getAsLong();
+        }
+
+        @Override
+        public boolean isFluidValid(final int tank, final FluidStack stack) {
             return false;
         }
 
         @Override
-        public int insert(
-                final int index, final FluidResource resource, final int amount,
-                final TransactionContext transaction) {
+        public int fill(final FluidStack resource, final FluidAction action) {
             return 0;
         }
 
         @Override
-        protected void onContentsChanged(final int index, final FluidStack previousContents) {
-            changed.run();
+        public FluidStack drain(final FluidStack resource, final FluidAction action) {
+            final FluidStack held = stacks.get(0);
+            return FluidStack.isSameFluidSameComponents(held, resource) ? drain(resource.getAmount(), action)
+                    : FluidStack.EMPTY;
+        }
+
+        @Override
+        public FluidStack drain(final int maxDrain, final FluidAction action) {
+            final FluidStack held = stacks.get(0);
+            if (held.isEmpty() || maxDrain <= 0) {
+                return FluidStack.EMPTY;
+            }
+            final int drained = Math.min(maxDrain, held.getAmount());
+            final FluidStack result = held.copyWithAmount(drained);
+            if (action.execute()) {
+                held.shrink(drained);
+                if (held.isEmpty()) {
+                    stacks.set(0, FluidStack.EMPTY);
+                }
+                changed.run();
+            }
+            return result;
         }
     }
 }

@@ -6,14 +6,17 @@ import com.morphengine.nexus.level.AccessPoint;
 import com.morphengine.nexus.level.ChunkAnchors;
 import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.NexusLinkMenu;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -21,8 +24,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.Map;
 import java.util.Objects;
@@ -115,7 +116,6 @@ public final class NexusLinkBlockEntity extends AnimatedDeviceBlockEntity
         return new NexusLinkMenu(containerId, inventory, worldPosition);
     }
 
-    @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
         ChunkAnchors.release(this);
@@ -125,14 +125,16 @@ public final class NexusLinkBlockEntity extends AnimatedDeviceBlockEntity
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
-        ContainerHelper.saveAllItems(output.child(TAG_UPGRADES), upgrades.getItems());
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
+        output.saveItems(TAG_UPGRADES, upgrades.getItems());
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
+        input.loadItems(TAG_UPGRADES, upgrades.getItems());
     }
 }

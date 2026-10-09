@@ -14,6 +14,7 @@ import com.morphengine.nexus.processing.MachineKind;
 import com.morphengine.nexus.processing.MachineOutput;
 import com.morphengine.nexus.registry.NexusMenuTypes;
 import com.morphengine.nexus.resource.ItemKey;
+import com.morphengine.nexus.transfer.ItemResource;
 import com.morphengine.nexus.transport.SideConfig;
 import com.morphengine.nexus.transport.SideMode;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
@@ -28,7 +29,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -96,7 +96,7 @@ public final class MachineMenu extends DeviceMenu<MachineBlockEntity> {
         for (int slot = 0; slot < MachineBlockEntity.UPGRADE_SLOTS; slot++) {
             addSlot(new UpgradeSlot(upgrades, slot, UPGRADE_LEFT, UPGRADE_TOP + slot * SLOT_SIZE));
         }
-        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
+        InventorySlots.add(this::addSlot, inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(settings);
     }
 

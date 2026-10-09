@@ -1,8 +1,7 @@
 package com.morphengine.nexus.client.screen;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * A column of square buttons standing just left of a panel, each showing an
@@ -46,14 +45,14 @@ final class SideButtons {
         return -1;
     }
 
-    void draw(final GuiGraphicsExtractor graphics, final PanelStyle style, final int index, final Identifier icon,
+    void draw(final GuiGraphics graphics, final PanelStyle style, final int index, final ResourceLocation icon,
               final boolean hovered) {
         final PanelBounds bounds = bounds(index);
         graphics.fill(bounds.left(), bounds.top(), bounds.left() + BUTTON_SIZE, bounds.top() + BUTTON_SIZE,
                 style.buttonFill());
-        graphics.outline(bounds.left(), bounds.top(), BUTTON_SIZE, BUTTON_SIZE,
+        graphics.renderOutline(bounds.left(), bounds.top(), BUTTON_SIZE, BUTTON_SIZE,
                 hovered ? PanelStyle.TEXT_LIGHT : style.border());
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, icon, bounds.left() + 1, bounds.top() + 1,
+        graphics.blitSprite(icon, bounds.left() + 1, bounds.top() + 1,
                 ICON_SIZE, ICON_SIZE);
     }
 

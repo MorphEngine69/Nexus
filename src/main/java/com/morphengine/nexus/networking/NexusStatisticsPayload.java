@@ -7,7 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import java.util.EnumMap;
@@ -19,7 +19,7 @@ import java.util.Map;
 public record NexusStatisticsPayload(int containerId, NetworkStatistics statistics) implements CustomPacketPayload {
 
     public static final Type<NexusStatisticsPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus_statistics"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "nexus_statistics"));
 
     private static final StreamCodec<RegistryFriendlyByteBuf, NetworkStatistics> STATISTICS_CODEC =
             StreamCodec.composite(

@@ -10,6 +10,8 @@ import com.morphengine.nexus.level.NetworkController;
 import com.morphengine.nexus.level.StorageHost;
 import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.menu.StorageVaultMenu;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
@@ -29,8 +31,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -200,7 +200,6 @@ public final class StorageVaultBlockEntity extends AnimatedDeviceBlockEntity
      * Leaves the network before the cells drop, so nothing is stored into a cell
      * already on the ground.
      */
-    @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
         detachFromNetwork();
@@ -220,20 +219,22 @@ public final class StorageVaultBlockEntity extends AnimatedDeviceBlockEntity
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
         cells.save(output);
         upgrades.save(output);
         if (!homeless.isEmpty()) {
-            final ValueOutput.TypedOutputList<ItemStack> list = output.list(TAG_HOMELESS, ItemStack.CODEC);
+            final ValueOutput.TypedList<ItemStack> list = output.list(TAG_HOMELESS, ItemStack.CODEC);
             homeless.forEach(list::add);
         }
         output.putInt(TAG_PRIORITY, priority);
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
         homeless.clear();
         homeless.addAll(cells.load(input));
         upgrades.load(input);

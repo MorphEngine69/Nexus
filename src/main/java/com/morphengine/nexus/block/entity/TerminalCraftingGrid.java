@@ -3,7 +3,7 @@ package com.morphengine.nexus.block.entity;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.StackedItemContents;
+import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -119,7 +119,7 @@ public final class TerminalCraftingGrid implements CraftingContainer {
     }
 
     @Override
-    public void fillStackedContents(final StackedItemContents contents) {
+    public void fillStackedContents(final StackedContents contents) {
         for (ItemStack stack : items) {
             contents.accountSimpleStack(stack);
         }

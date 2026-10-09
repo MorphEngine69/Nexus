@@ -11,7 +11,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import org.jspecify.annotations.Nullable;
@@ -130,8 +130,8 @@ public record BlueprintDraft(BlueprintKind kind, List<Slot> slots, Substitution 
         return new Slot(index, resource, amount, hasTag ? firstTagOf(resource) : null);
     }
 
-    private static @Nullable Identifier firstTagOf(final NexusResource resource) {
-        final List<Identifier> tags = resource.tags();
+    private static @Nullable ResourceLocation firstTagOf(final NexusResource resource) {
+        final List<ResourceLocation> tags = resource.tags();
         return tags.isEmpty() ? null : tags.getFirst();
     }
 
@@ -164,7 +164,7 @@ public record BlueprintDraft(BlueprintKind kind, List<Slot> slots, Substitution 
         if (slot == null || kind == BlueprintKind.CRAFTING || index >= INPUTS) {
             return this;
         }
-        final Identifier next = slot.resource().nextTag(slot.tag(), step);
+        final ResourceLocation next = slot.resource().nextTag(slot.tag(), step);
         final List<Slot> updated = without(index);
         updated.add(new Slot(index, slot.resource(), slot.amount(), next));
         return new BlueprintDraft(kind, updated, substitution);
@@ -282,13 +282,13 @@ public record BlueprintDraft(BlueprintKind kind, List<Slot> slots, Substitution 
      * @param tag    for a processing input, the tag its substitutes come from;
      *               {@code null} when it has none, and always for other slots
      */
-    public record Slot(int index, NexusResource resource, long amount, @Nullable Identifier tag) {
+    public record Slot(int index, NexusResource resource, long amount, @Nullable ResourceLocation tag) {
 
         static final Codec<Slot> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                         Codec.intRange(0, SIZE - 1).fieldOf("slot").forGetter(Slot::index),
                         NexusResources.CODEC.fieldOf("resource").forGetter(Slot::resource),
                         Codec.LONG.fieldOf("amount").forGetter(Slot::amount),
-                        Identifier.CODEC.optionalFieldOf("tag").forGetter(Slot::tagIfAny))
+                        ResourceLocation.CODEC.optionalFieldOf("tag").forGetter(Slot::tagIfAny))
                 .apply(instance, (index, resource, amount, tag) -> new Slot(index, resource, amount,
                         tag.orElse(null))));
 
@@ -296,7 +296,7 @@ public record BlueprintDraft(BlueprintKind kind, List<Slot> slots, Substitution 
                 ByteBufCodecs.VAR_INT, Slot::index,
                 NexusResources.STREAM_CODEC, Slot::resource,
                 ByteBufCodecs.VAR_LONG, Slot::amount,
-                ByteBufCodecs.optional(Identifier.STREAM_CODEC), Slot::tagIfAny,
+                ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), Slot::tagIfAny,
                 (index, resource, amount, tag) -> new Slot(index, resource, amount, tag.orElse(null)));
 
         public Slot {
@@ -307,7 +307,7 @@ public record BlueprintDraft(BlueprintKind kind, List<Slot> slots, Substitution 
             }
         }
 
-        private Optional<Identifier> tagIfAny() {
+        private Optional<ResourceLocation> tagIfAny() {
             return Optional.ofNullable(tag);
         }
     }

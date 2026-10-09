@@ -55,7 +55,7 @@ public final class AnalyserMenu extends AbstractContainerMenu implements PanelMe
 
     @Override
     public boolean stillValid(final Player viewer) {
-        return target != null && !target.isRemoved() && viewer.isWithinBlockInteractionRange(pos, REACH)
+        return target != null && !target.isRemoved() && viewer.canInteractWithBlock(pos, REACH)
                 && mayOpen(viewer, target);
     }
 

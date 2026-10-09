@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.block.entity.NetworkReceiverBlockEntity;
@@ -21,6 +20,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animation.RawAnimation;
 
 /**
  * A device that carries a network beyond its cables: a Network Transmitter, a

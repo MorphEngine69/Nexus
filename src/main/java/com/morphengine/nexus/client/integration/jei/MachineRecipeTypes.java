@@ -6,21 +6,24 @@ import com.morphengine.nexus.processing.CrushingRecipe;
 import com.morphengine.nexus.processing.ExtractingRecipe;
 import com.morphengine.nexus.processing.PulverizingRecipe;
 import com.morphengine.nexus.registry.NexusRecipes;
-import mezz.jei.api.recipe.types.IRecipeHolderType;
+import mezz.jei.api.recipe.RecipeType;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 /**
  * The recipe types of the machines as JEI knows them: one for each, made once the registries are filled.
  */
 final class MachineRecipeTypes {
 
-    static final IRecipeHolderType<CrushingRecipe> CRUSHING = IRecipeHolderType.create(NexusRecipes.CRUSHING.get());
-    static final IRecipeHolderType<PulverizingRecipe> PULVERIZING =
-            IRecipeHolderType.create(NexusRecipes.PULVERIZING.get());
-    static final IRecipeHolderType<CompressingRecipe> COMPRESSING =
-            IRecipeHolderType.create(NexusRecipes.COMPRESSING.get());
-    static final IRecipeHolderType<AlloyingRecipe> ALLOYING = IRecipeHolderType.create(NexusRecipes.ALLOYING.get());
-    static final IRecipeHolderType<ExtractingRecipe> EXTRACTING =
-            IRecipeHolderType.create(NexusRecipes.EXTRACTING.get());
+    static final RecipeType<RecipeHolder<CrushingRecipe>> CRUSHING =
+            RecipeType.createFromVanilla(NexusRecipes.CRUSHING.get());
+    static final RecipeType<RecipeHolder<PulverizingRecipe>> PULVERIZING =
+            RecipeType.createFromVanilla(NexusRecipes.PULVERIZING.get());
+    static final RecipeType<RecipeHolder<CompressingRecipe>> COMPRESSING =
+            RecipeType.createFromVanilla(NexusRecipes.COMPRESSING.get());
+    static final RecipeType<RecipeHolder<AlloyingRecipe>> ALLOYING =
+            RecipeType.createFromVanilla(NexusRecipes.ALLOYING.get());
+    static final RecipeType<RecipeHolder<ExtractingRecipe>> EXTRACTING =
+            RecipeType.createFromVanilla(NexusRecipes.EXTRACTING.get());
 
     private MachineRecipeTypes() {
     }

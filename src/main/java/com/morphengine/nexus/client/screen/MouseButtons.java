@@ -1,6 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
-import net.minecraft.client.input.MouseButtonEvent;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import org.lwjgl.glfw.GLFW;
 
 /**

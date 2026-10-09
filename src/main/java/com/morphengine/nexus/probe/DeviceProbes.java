@@ -1,5 +1,6 @@
 package com.morphengine.nexus.probe;
 
+import com.morphengine.nexus.access.NameAndId;
 import com.morphengine.nexus.access.NetworkAccess;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.entity.NetworkDeviceBlockEntity;
@@ -7,7 +8,6 @@ import com.morphengine.nexus.block.entity.StandaloneDevice;
 import com.morphengine.nexus.menu.NetworkBadge;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.players.NameAndId;
 
 import java.util.Locale;
 

@@ -1,6 +1,7 @@
 package com.morphengine.nexus.world;
 
 import com.mojang.authlib.GameProfile;
+import com.morphengine.nexus.access.NameAndId;
 import com.morphengine.nexus.api.resource.ResourceFilter;
 import com.morphengine.nexus.api.storage.Actor;
 import com.morphengine.nexus.api.storage.Storage;
@@ -8,7 +9,6 @@ import com.morphengine.nexus.transfer.WorldMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -120,7 +120,7 @@ public final class FrontSpace {
         final FakePlayer player = FakePlayerFactory.get(level,
                 owner != null ? new GameProfile(owner.id(), owner.name()) : NOBODY);
         final Vec3 centre = Vec3.atCenterOf(device);
-        player.snapTo(centre.x, centre.y - player.getEyeHeight(), centre.z, face.toYRot(), pitchOf(face));
+        player.moveTo(centre.x, centre.y - player.getEyeHeight(), centre.z, face.toYRot(), pitchOf(face));
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         return player;
     }

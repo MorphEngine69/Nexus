@@ -13,6 +13,7 @@ import com.morphengine.nexus.client.screen.TransferDeviceScreen;
 import com.morphengine.nexus.processing.AlloyIngredient;
 import com.morphengine.nexus.processing.AlloyingRecipe;
 import com.morphengine.nexus.processing.MachineKind;
+import com.morphengine.nexus.processing.ProcessingRecipe;
 import com.morphengine.nexus.registry.NexusItems;
 import com.morphengine.nexus.registry.NexusRecipes;
 import me.shedaniel.math.Rectangle;
@@ -30,12 +31,10 @@ import me.shedaniel.rei.api.common.util.EntryStacks;
 import me.shedaniel.rei.forge.REIPluginClient;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SingleItemRecipe;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -104,28 +103,27 @@ public final class NexusReiPlugin implements REIClientPlugin {
         for (RecipeHolder<AlloyingRecipe> holder : MachineRecipes.of(NexusRecipes.ALLOYING.get())) {
             final AlloyingRecipe recipe = holder.value();
             registry.add(new MachineDisplay(ALLOYING, recipe.ingredients().stream().map(NexusReiPlugin::entriesOf)
-                    .toList(), List.of(EntryIngredients.of(recipe.resultStack())), holder.id().identifier()));
+                    .toList(), List.of(EntryIngredients.of(recipe.resultStack())), holder.id()));
         }
         for (var holder : MachineRecipes.of(NexusRecipes.EXTRACTING.get())) {
             final var recipe = holder.value();
             registry.add(new MachineDisplay(EXTRACTING, List.of(EntryIngredients.ofIngredient(recipe.ingredient())),
-                    List.of(EntryIngredients.of(recipe.fluid(), recipe.amount())), holder.id().identifier()));
+                    List.of(EntryIngredients.of(recipe.fluid(), recipe.amount())), holder.id()));
         }
     }
 
-    private static <R extends SingleItemRecipe> void addItemRecipes(
+    private static <R extends ProcessingRecipe> void addItemRecipes(
             final DisplayRegistry registry, final CategoryIdentifier<MachineDisplay> id, final RecipeType<R> type) {
         for (RecipeHolder<R> holder : MachineRecipes.of(type)) {
             final R recipe = holder.value();
-            final ItemStack result = recipe.assemble(new SingleRecipeInput(ItemStack.EMPTY));
-            registry.add(new MachineDisplay(id, List.of(EntryIngredients.ofIngredient(recipe.input())),
-                    List.of(EntryIngredients.of(result)), holder.id().identifier()));
+            registry.add(new MachineDisplay(id, List.of(EntryIngredients.ofIngredient(recipe.ingredient())),
+                    List.of(EntryIngredients.of(recipe.result())), holder.id()));
         }
     }
 
     private static EntryIngredient entriesOf(final AlloyIngredient needed) {
-        return EntryIngredients.ofItemStacks(needed.ingredient().items()
-                .map(item -> new ItemStack(item, needed.count())).toList());
+        return EntryIngredients.ofItemStacks(Arrays.stream(needed.ingredient().getItems())
+                .map(item -> item.copyWithCount(needed.count())).toList());
     }
 
     @Override

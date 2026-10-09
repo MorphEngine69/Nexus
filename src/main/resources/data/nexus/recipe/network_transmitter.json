@@ -1,11 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:antenna",
-    "B": "nexus:aether_ingot",
-    "C": "nexus:machine_casing",
-    "D": "nexus:mithril_ingot",
-    "E": "nexus:voltsteel_ingot"
+    "A": {
+      "item": "nexus:antenna"
+    },
+    "B": {
+      "item": "nexus:aether_ingot"
+    },
+    "C": {
+      "item": "nexus:machine_casing"
+    },
+    "D": {
+      "item": "nexus:mithril_ingot"
+    },
+    "E": {
+      "item": "nexus:voltsteel_ingot"
+    }
   },
   "pattern": [
     " A ",

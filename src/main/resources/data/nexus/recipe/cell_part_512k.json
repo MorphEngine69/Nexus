@@ -1,9 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:cell_part_256k",
-    "B": "nexus:hellsteel_ingot",
-    "C": "minecraft:nether_star"
+    "A": {
+      "item": "nexus:cell_part_256k"
+    },
+    "B": {
+      "item": "nexus:hellsteel_ingot"
+    },
+    "C": {
+      "item": "minecraft:nether_star"
+    }
   },
   "pattern": [
     "ABA",

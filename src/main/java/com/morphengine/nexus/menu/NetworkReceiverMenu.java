@@ -37,7 +37,7 @@ public final class NetworkReceiverMenu extends DeviceMenu<NetworkReceiverBlockEn
         this.upgrades = viewer() != null && receiver != null ? receiver.upgrades() : new UpgradeContainer(
                 NetworkReceiverBlockEntity.UPGRADE_SLOTS, NetworkReceiverBlockEntity.UPGRADE_LIMITS, () -> { });
         addSlot(new UpgradeSlot(upgrades, 0, UPGRADE_SLOT_X, UPGRADE_SLOT_Y));
-        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
+        InventorySlots.add(this::addSlot, inventory, INVENTORY_LEFT, INVENTORY_TOP);
     }
 
     /**

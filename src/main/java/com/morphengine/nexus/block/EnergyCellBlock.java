@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
@@ -18,8 +17,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.redstone.Orientation;
 import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animation.RawAnimation;
 
 /**
  * Energy Cell: a battery that joins the network and adds its buffer to the
@@ -85,8 +84,8 @@ public final class EnergyCellBlock extends NetworkDeviceBlock implements TieredB
     @Override
     protected void neighborChanged(
             final BlockState state, final Level level, final BlockPos pos, final Block block,
-            final @Nullable Orientation orientation, final boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+            final BlockPos fromPos, final boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
         if (!level.isClientSide()) {
             level.invalidateCapabilities(pos);
         }

@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -40,7 +40,8 @@ public final class NexusBlock extends NetworkDeviceBlock {
     private static final int CONFLICT_RGB = 0xE0302A;
     private static final float SPARK_SCALE = 1.0F;
     private static final double SPARK_SPREAD = 1.1;
-    private static final DustParticleOptions CONFLICT_SPARK = new DustParticleOptions(CONFLICT_RGB, SPARK_SCALE);
+    private static final DustParticleOptions CONFLICT_SPARK = new DustParticleOptions(
+            Vec3.fromRGB24(CONFLICT_RGB).toVector3f(), SPARK_SCALE);
 
     public NexusBlock(final BlockBehaviour.Properties properties) {
         super(properties);
@@ -92,7 +93,7 @@ public final class NexusBlock extends NetworkDeviceBlock {
     @Override
     public BlockState playerWillDestroy(
             final Level level, final BlockPos pos, final BlockState state, final Player player) {
-        if (!level.isClientSide() && player.preventsBlockDrops()
+        if (!level.isClientSide() && player.isCreative()
                 && level.getBlockEntity(pos) instanceof NexusBlockEntity nexus
                 && NexusNetworks.isCustomized(nexus.network())) {
             final ItemStack stack = new ItemStack(this);
@@ -111,8 +112,8 @@ public final class NexusBlock extends NetworkDeviceBlock {
     @Override
     protected void neighborChanged(
             final BlockState state, final Level level, final BlockPos pos, final Block block,
-            final @Nullable Orientation orientation, final boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+            final BlockPos fromPos, final boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
         if (!level.isClientSide()) {
             level.invalidateCapabilities(pos);
         }
@@ -123,10 +124,13 @@ public final class NexusBlock extends NetworkDeviceBlock {
      * unloads stays in it, so its network can still be found.
      */
     @Override
-    protected void affectNeighborsAfterRemoval(
-            final BlockState state, final ServerLevel level, final BlockPos pos, final boolean movedByPiston) {
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
-        NetworkDirectory.of(level.getServer()).forgetAt(GlobalPos.of(level.dimension(), pos));
+    protected void onRemove(
+            final BlockState state, final Level level, final BlockPos pos, final BlockState newState,
+            final boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
+            NetworkDirectory.of(serverLevel.getServer()).forgetAt(GlobalPos.of(serverLevel.dimension(), pos));
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.morphengine.nexus.menu;
 
+import com.morphengine.nexus.access.NameAndId;
 import com.morphengine.nexus.access.Operators;
 import com.morphengine.nexus.api.network.security.Role;
 import com.morphengine.nexus.security.Editor;
@@ -7,7 +8,6 @@ import com.morphengine.nexus.security.Member;
 import com.morphengine.nexus.security.NetworkSecurity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 
@@ -56,7 +56,7 @@ public record AccessView(Role defaultRole, List<Member> members, List<NameAndId>
         online.sort(Comparator.comparingDouble(player -> distanceFrom(player, viewer, centre)));
         final List<NameAndId> candidates = new ArrayList<>();
         for (ServerPlayer player : online.subList(0, Math.min(online.size(), MAX_CANDIDATES))) {
-            candidates.add(player.nameAndId());
+            candidates.add(NameAndId.of(player));
         }
         candidates.sort(Comparator.comparing(candidate -> candidate.name().toLowerCase(Locale.ROOT)));
         return new AccessView(security.defaultRole(), security.members(), candidates,

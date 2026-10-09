@@ -3,7 +3,7 @@ package com.morphengine.nexus.client.screen;
 import com.morphengine.nexus.machine.InputMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 
@@ -45,10 +45,10 @@ final class InputModeButton {
     }
 
     void draw(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final InputMode mode, final int mouseX,
+            final GuiGraphics graphics, final PanelStyle style, final InputMode mode, final int mouseX,
             final int mouseY) {
         graphics.fill(bounds.left(), bounds.top(), bounds.left() + SIZE, bounds.top() + SIZE, style.buttonFill());
-        graphics.outline(bounds.left(), bounds.top(), SIZE, SIZE,
+        graphics.renderOutline(bounds.left(), bounds.top(), SIZE, SIZE,
                 bounds.contains(mouseX, mouseY) ? PanelStyle.TEXT_LIGHT : style.border());
         if (mode == InputMode.PER_RESOURCE) {
             drawSeparateLines(graphics, style);
@@ -66,11 +66,11 @@ final class InputModeButton {
     }
 
     void showTooltip(
-            final GuiGraphicsExtractor graphics, final Font font, final InputMode mode, final int mouseX,
+            final GuiGraphics graphics, final Font font, final InputMode mode, final int mouseX,
             final int mouseY) {
         if (bounds.contains(mouseX, mouseY)) {
             final String key = mode.name().toLowerCase(Locale.ROOT);
-            graphics.setComponentTooltipForNextFrame(font, List.of(
+            graphics.renderComponentTooltip(font, List.of(
                     Component.translatable("gui.nexus.machine.mode", Component.translatable(
                             "gui.nexus.machine.mode." + key)),
                     Component.translatable("gui.nexus.machine.mode." + key + ".hint")), mouseX, mouseY);
@@ -78,7 +78,7 @@ final class InputModeButton {
     }
 
     /** Three dots, each with a line of its own to the right: every resource has a line to itself. */
-    private void drawSeparateLines(final GuiGraphicsExtractor graphics, final PanelStyle style) {
+    private void drawSeparateLines(final GuiGraphics graphics, final PanelStyle style) {
         final int[] shades = {style.accent(), PanelStyle.TEXT_LIGHT, SHADE_DIM};
         for (int row = 0; row < shades.length; row++) {
             final int y = rowTop(row);
@@ -89,7 +89,7 @@ final class InputModeButton {
     }
 
     /** One dot on the left and a fork to three lines on the right: one resource goes to every line. */
-    private void drawSpread(final GuiGraphicsExtractor graphics, final PanelStyle style) {
+    private void drawSpread(final GuiGraphics graphics, final PanelStyle style) {
         final int color = style.accent();
         final int middle = rowTop(1);
         graphics.fill(bounds.left() + MARGIN, middle, bounds.left() + MARGIN + DOT, middle + DOT, color);

@@ -15,12 +15,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -85,8 +85,8 @@ public final class TierUpgradeItem extends Item {
     private InteractionResult refuse(final Level level, final Player player, final TieredBlock tiered) {
         if (!level.isClientSide()) {
             final String reason = tiered.rank() >= targetRank ? "already" : "skips";
-            player.sendOverlayMessage(Component.translatable("message.nexus.tier_upgrade." + reason)
-                    .withStyle(ChatFormatting.RED));
+            player.displayClientMessage(Component.translatable("message.nexus.tier_upgrade." + reason)
+                    .withStyle(ChatFormatting.RED), true);
         }
         return InteractionResult.FAIL;
     }
@@ -101,8 +101,9 @@ public final class TierUpgradeItem extends Item {
     @Override
     @SuppressWarnings("deprecation")
     public void appendHoverText(
-            final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display,
-            final Consumer<Component> builder, final TooltipFlag flag) {
+            final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip,
+            final TooltipFlag flag) {
+        final Consumer<Component> builder = tooltip::add;
         builder.accept(Component.translatable("tooltip.nexus.tier_upgrade.use").withStyle(ChatFormatting.GRAY));
         builder.accept(Component.translatable("tooltip.nexus.tier_upgrade.keeps").withStyle(ChatFormatting.GRAY));
     }

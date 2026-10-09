@@ -38,7 +38,7 @@ public final class NexusFluids {
             FLUIDS.register("flowing_biofuel", () -> new BaseFlowingFluid.Flowing(biofuelProperties()));
 
     public static final DeferredBlock<NexusFluidBlock> BIOFUEL_BLOCK = NexusBlocks.BLOCKS.registerBlock(
-            "biofuel", properties -> new NexusFluidBlock(BIOFUEL.get(), properties), NexusFluids::liquid);
+            "biofuel", properties -> new NexusFluidBlock(BIOFUEL.get(), properties), liquid());
 
     public static final DeferredItem<BucketItem> BIOFUEL_BUCKET = NexusItems.ITEMS.registerItem(
             "biofuel_bucket",
@@ -74,8 +74,9 @@ public final class NexusFluids {
                 .levelDecreasePerBlock(LAVA_LEVEL_DECREASE).tickRate(LAVA_TICK_RATE);
     }
 
-    private static BlockBehaviour.Properties liquid(final BlockBehaviour.Properties properties) {
-        return properties.mapColor(MapColor.COLOR_GREEN).replaceable().noCollision().strength(LIQUID_HARDNESS)
+    private static BlockBehaviour.Properties liquid() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GREEN).replaceable().noCollission()
+                .strength(LIQUID_HARDNESS)
                 .pushReaction(PushReaction.DESTROY).noLootTable().liquid().sound(SoundType.EMPTY);
     }
 }

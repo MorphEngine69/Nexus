@@ -12,27 +12,25 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -44,7 +42,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class MetalGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 20;
 
     private static final Map<String, Consumer<GameTestHelper>> TESTS = Map.ofEntries(
@@ -64,21 +62,16 @@ public final class MetalGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(MetalGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "metals"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static ItemStack pickaxe(final MetalKind metal) {
@@ -91,7 +84,7 @@ public final class MetalGameTests {
 
     private static void assertMines(final GameTestHelper helper, final ItemStack tool, final BlockState block,
                                     final boolean expected, final String what) {
-        helper.assertValueEqual(tool.isCorrectToolForDrops(block), expected, Component.literal(what));
+        helper.assertValueEqual(tool.isCorrectToolForDrops(block), expected, String.valueOf(what));
     }
 
     private static void steelOreNeedsStone(final GameTestHelper helper) {
@@ -123,8 +116,9 @@ public final class MetalGameTests {
         for (MetalKind metal : MetalKind.ALL) {
             for (MetalKind other : MetalKind.ALL) {
                 final ItemStack ingot = new ItemStack(NexusMetals.of(other).part(MetalPart.INGOT).get());
-                helper.assertValueEqual(pickaxe(metal).isValidRepairItem(ingot), metal == other,
-                        Component.literal(metal.id() + " tool repaired with " + other.id() + " ingot"));
+                helper.assertValueEqual(pickaxe(metal).getItem().isValidRepairItem(pickaxe(metal), ingot),
+                        metal == other,
+                        String.valueOf(metal.id() + " tool repaired with " + other.id() + " ingot"));
             }
         }
         helper.succeed();
@@ -132,21 +126,21 @@ public final class MetalGameTests {
 
     private static void onlyHellsteelResistsFire(final GameTestHelper helper) {
         for (MetalKind metal : MetalKind.ALL) {
-            helper.assertValueEqual(pickaxe(metal).has(DataComponents.DAMAGE_RESISTANT), metal == MetalKind.HELLSTEEL,
-                    Component.literal("fire resistance of " + metal.id()));
+            helper.assertValueEqual(pickaxe(metal).has(DataComponents.FIRE_RESISTANT), metal == MetalKind.HELLSTEEL,
+                    String.valueOf("fire resistance of " + metal.id()));
         }
         helper.succeed();
     }
 
     private static void armorSlots(final GameTestHelper helper) {
-        final Map<ArmorType, EquipmentSlot> slots = Map.of(ArmorType.HELMET, EquipmentSlot.HEAD,
-                ArmorType.CHESTPLATE, EquipmentSlot.CHEST, ArmorType.LEGGINGS, EquipmentSlot.LEGS,
-                ArmorType.BOOTS, EquipmentSlot.FEET);
+        final Map<ArmorItem.Type, EquipmentSlot> slots = Map.of(ArmorItem.Type.HELMET, EquipmentSlot.HEAD,
+                ArmorItem.Type.CHESTPLATE, EquipmentSlot.CHEST, ArmorItem.Type.LEGGINGS, EquipmentSlot.LEGS,
+                ArmorItem.Type.BOOTS, EquipmentSlot.FEET);
         for (MetalKind metal : MetalKind.ALL) {
             slots.forEach((piece, slot) -> {
                 final ItemStack stack = new ItemStack(NexusMetals.of(metal).armor().get(piece).get());
-                helper.assertValueEqual(stack.get(DataComponents.EQUIPPABLE).slot(), slot,
-                        Component.literal("slot of " + metal.id() + " " + piece.getName()));
+                helper.assertValueEqual(((ArmorItem) stack.getItem()).getEquipmentSlot(), slot,
+                        String.valueOf("slot of " + metal.id() + " " + piece.getName()));
             });
         }
         helper.succeed();
@@ -155,17 +149,16 @@ public final class MetalGameTests {
     private static void recipesAreLoaded(final GameTestHelper helper) {
         for (MetalKind metal : MetalKind.ALL) {
             for (String name : recipeNames(metal)) {
-                final ResourceKey<Recipe<?>> key = ResourceKey.create(Registries.RECIPE,
-                        Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name));
-                helper.assertTrue(helper.getLevel().getServer().getRecipeManager().recipeMap().byKey(key) != null,
-                        Component.literal("recipe " + name + " is not loaded"));
+                final ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, name);
+                helper.assertTrue(helper.getLevel().getServer().getRecipeManager().byKey(id).isPresent(),
+                        String.valueOf("recipe " + name + " is not loaded"));
             }
         }
         helper.succeed();
     }
 
     private static boolean hasCommonTag(final ItemStack stack, final String path) {
-        return stack.is(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path)));
+        return stack.is(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path)));
     }
 
     private static void commonTags(final GameTestHelper helper) {
@@ -180,19 +173,19 @@ public final class MetalGameTests {
                     "storage_blocks/" + metal.id(), new ItemStack(set.storageBlockItem().get()),
                     "ores/" + metal.id(), new ItemStack(set.oreItems().getFirst().get()));
             expected.forEach((path, stack) -> helper.assertTrue(hasCommonTag(stack, path),
-                    Component.literal(stack + " is not in c:" + path)));
+                    String.valueOf(stack + " is not in c:" + path)));
             helper.assertTrue(hasCommonTag(expected.get("ingots/" + metal.id()), "ingots"),
-                    Component.literal(metal.id() + " ingot is not in c:ingots"));
+                    String.valueOf(metal.id() + " ingot is not in c:ingots"));
         }
         for (String vanilla : List.of("iron", "gold", "copper")) {
             helper.assertTrue(hasCommonTag(stackOf(vanilla + "_dust"), "dusts/" + vanilla),
-                    Component.literal(vanilla + " dust is not in its common tag"));
+                    String.valueOf(vanilla + " dust is not in its common tag"));
             helper.assertTrue(hasCommonTag(stackOf(vanilla + "_plate"), "plates/" + vanilla),
-                    Component.literal(vanilla + " plate is not in its common tag"));
+                    String.valueOf(vanilla + " plate is not in its common tag"));
         }
         for (String alloy : List.of("voltsteel", "lumen", "aether")) {
             helper.assertTrue(hasCommonTag(stackOf(alloy + "_ingot"), "ingots/" + alloy),
-                    Component.literal(alloy + " ingot is not in its common tag"));
+                    String.valueOf(alloy + " ingot is not in its common tag"));
         }
         helper.succeed();
     }
@@ -201,15 +194,14 @@ public final class MetalGameTests {
         final var registry = helper.getLevel().registryAccess().lookupOrThrow(Registries.TRIM_MATERIAL);
         for (MetalKind metal : MetalKind.ALL) {
             final ItemStack ingot = new ItemStack(NexusMetals.of(metal).part(MetalPart.INGOT).get());
-            final var provided = ingot.get(DataComponents.PROVIDES_TRIM_MATERIAL);
-            helper.assertTrue(provided != null && provided.is(metal.trimMaterial()),
-                    Component.literal(metal.id() + " ingot does not give its trim material"));
-            helper.assertTrue(registry.get(metal.trimMaterial()).isPresent(),
-                    Component.literal("trim material of " + metal.id() + " is not loaded"));
-            helper.assertTrue(ingot.is(ItemTags.TRIM_MATERIALS),
-                    Component.literal(metal.id() + " ingot is not in the tag of trim materials"));
-            helper.assertTrue(NexusMetals.of(metal).armor().get(ArmorType.CHESTPLATE).get().getDefaultInstance()
-                    .is(ItemTags.TRIMMABLE_ARMOR), Component.literal(metal.id() + " armor cannot be trimmed"));
+            final var material = registry.get(ResourceKey.create(Registries.TRIM_MATERIAL,
+                    ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, metal.id())));
+            helper.assertTrue(material.isPresent(),
+                    String.valueOf("trim material of " + metal.id() + " is not loaded"));
+            helper.assertTrue(material.get().value().ingredient().value() == ingot.getItem(),
+                    String.valueOf(metal.id() + " ingot does not give its trim material"));
+            helper.assertTrue(NexusMetals.of(metal).armor().get(ArmorItem.Type.CHESTPLATE).get().getDefaultInstance()
+                    .is(ItemTags.TRIMMABLE_ARMOR), String.valueOf(metal.id() + " armor cannot be trimmed"));
         }
         helper.succeed();
     }
@@ -222,20 +214,20 @@ public final class MetalGameTests {
                         new ItemStack(Items.LAPIS_LAZULI)),
                 "aether_ingot", List.of(stackOf("mithril_ingot"), stackOf("cobalt_ingot"),
                         new ItemStack(Items.DIAMOND)));
-        final var recipes = helper.getLevel().getServer().getRecipeManager().recipeMap()
-                .byType(NexusRecipes.ALLOYING.get());
+        final var recipes = helper.getLevel().getServer().getRecipeManager()
+                .getAllRecipesFor(NexusRecipes.ALLOYING.get());
         alloys.forEach((result, inputs) -> {
             final var recipe = recipes.stream().map(holder -> holder.value())
                     .filter(candidate -> candidate.resultStack().is(stackOf(result).getItem())).findFirst();
-            helper.assertTrue(recipe.isPresent(), Component.literal("no alloy recipe for " + result));
+            helper.assertTrue(recipe.isPresent(), String.valueOf("no alloy recipe for " + result));
             helper.assertTrue(recipe.get().matches(new AlloyInput(inputs), helper.getLevel()),
-                    Component.literal(result + " is not made of its ingots"));
+                    String.valueOf(result + " is not made of its ingots"));
         });
         helper.succeed();
     }
 
     private static ItemStack stackOf(final String name) {
-        return new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name)));
+        return new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, name)));
     }
 
     private static List<String> recipeNames(final MetalKind metal) {
@@ -247,7 +239,8 @@ public final class MetalGameTests {
         for (ToolPart tool : ToolPart.values()) {
             names.add(tool.idFor(metal));
         }
-        for (ArmorType piece : List.of(ArmorType.HELMET, ArmorType.CHESTPLATE, ArmorType.LEGGINGS, ArmorType.BOOTS)) {
+        for (ArmorItem.Type piece : List.of(ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS,
+                ArmorItem.Type.BOOTS)) {
             names.add(id + "_" + piece.getName());
         }
         return names;
@@ -259,12 +252,12 @@ public final class MetalGameTests {
                 "nether_wastes", "ore_hellsteel_large", "deep_dark", "ore_nexus");
         featureByBiome.forEach((biomeName, featureName) -> {
             final Holder<Biome> biome = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME)
-                    .getOrThrow(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace(biomeName)));
-            final Identifier feature = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, featureName);
+                    .getOrThrow(ResourceKey.create(Registries.BIOME, ResourceLocation.withDefaultNamespace(biomeName)));
+            final ResourceLocation feature = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, featureName);
             final boolean placed = biome.value().getGenerationSettings().features().stream()
                     .flatMap(HolderSet::stream)
                     .anyMatch(holder -> holder.is(ResourceKey.create(Registries.PLACED_FEATURE, feature)));
-            helper.assertTrue(placed, Component.literal(featureName + " is not placed in " + biomeName));
+            helper.assertTrue(placed, String.valueOf(featureName + " is not placed in " + biomeName));
         });
         helper.succeed();
     }

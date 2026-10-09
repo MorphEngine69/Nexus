@@ -1,8 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "A": "nexus:biomass",
-    "B": "minecraft:slime_ball"
+    "A": {
+      "item": "nexus:biomass"
+    },
+    "B": {
+      "item": "minecraft:slime_ball"
+    }
   },
   "pattern": [
     "AA",

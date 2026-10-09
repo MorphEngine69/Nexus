@@ -7,19 +7,19 @@ import com.morphengine.nexus.api.network.NetworkStatistics;
 import com.morphengine.nexus.block.NetworkColoring;
 import com.morphengine.nexus.block.NexusBlock;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
+import com.morphengine.nexus.client.input.MouseButtonEvent;
 import com.morphengine.nexus.menu.NexusMenu;
 import com.morphengine.nexus.networking.NexusEnergyTabPayload;
 import com.morphengine.nexus.networking.NexusRecolorPayload;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.ARGB;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.DyeColor;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -148,7 +148,7 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final SideButtons buttons = tabs();
         for (Tab shown : Tab.values()) {
             buttons.draw(graphics, style, shown.ordinal(), shown.icon(),
@@ -165,14 +165,14 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
         drawNetworkTab(graphics, style);
     }
 
-    private void drawNetworkTab(final GuiGraphicsExtractor graphics, final PanelStyle style) {
+    private void drawNetworkTab(final GuiGraphics graphics, final PanelStyle style) {
         statLine.begin();
-        graphics.text(font, Component.translatable("gui.nexus.color"), leftPos + PADDING, colorLabelY,
+        graphics.drawString(font, Component.translatable("gui.nexus.color"), leftPos + PADDING, colorLabelY,
                 PanelStyle.TEXT_DIM, false);
         renderSwatches(graphics, currentNetwork());
         final NexusBlockEntity nexus = getMenu().blockEntity();
         if (nexus != null && NexusBlock.isInConflict(nexus.getBlockState())) {
-            graphics.textWithWordWrap(font, Component.translatable("gui.nexus.conflict"), leftPos + PADDING, statsY,
+            graphics.drawWordWrap(font, Component.translatable("gui.nexus.conflict"), leftPos + PADDING, statsY,
                     NexusMenu.UPGRADES_LEFT - PADDING * 2, CONFLICT_TEXT);
         } else {
             renderStats(graphics, leftPos + PADDING, statsY);
@@ -180,11 +180,11 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
         for (Slot slot : getMenu().slots) {
             style.drawSlot(graphics, leftPos + slot.x - 1, topPos + slot.y - 1);
         }
-        graphics.text(font, playerInventoryTitle, leftPos + NexusMenu.INVENTORY_LEFT,
+        graphics.drawString(font, playerInventoryTitle, leftPos + NexusMenu.INVENTORY_LEFT,
                 topPos + NexusMenu.INVENTORY_TOP - LABEL_GAP, PanelStyle.TEXT_DIM, false);
     }
 
-    private void renderSwatches(final GuiGraphicsExtractor graphics, final @Nullable Network network) {
+    private void renderSwatches(final GuiGraphics graphics, final @Nullable Network network) {
         for (Swatch swatch : swatches) {
             final PanelBounds bounds = swatch.bounds();
             final boolean selected = network != null && network.color().rgb() == rgbOf(swatch.color());
@@ -192,11 +192,11 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
             graphics.fill(bounds.left() - 1, bounds.top() - 1,
                     bounds.left() + bounds.width() + 1, bounds.top() + bounds.height() + 1, border);
             graphics.fill(bounds.left(), bounds.top(), bounds.left() + bounds.width(), bounds.top() + bounds.height(),
-                    ARGB.opaque(rgbOf(swatch.color())));
+                    FastColor.ARGB32.opaque(rgbOf(swatch.color())));
         }
     }
 
-    private void renderStats(final GuiGraphicsExtractor graphics, final int x, final int startY) {
+    private void renderStats(final GuiGraphics graphics, final int x, final int startY) {
         final NetworkStatistics statistics = getMenu().statistics();
         final List<StatLine.Stat> lines = List.of(
                 StatLine.Stat.plain(Component.translatable("gui.nexus.stats.devices", statistics.devices())),
@@ -219,20 +219,20 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
     }
 
     @Override
-    protected void extractTooltip(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY) {
-        super.extractTooltip(graphics, mouseX, mouseY);
+    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
         final int button = tabs().buttonAt(mouseX, mouseY);
         if (button >= 0) {
-            graphics.setComponentTooltipForNextFrame(font, List.of(Tab.values()[button].label()), mouseX, mouseY);
+            graphics.renderComponentTooltip(font, List.of(Tab.values()[button].label()), mouseX, mouseY);
         } else if (tab == Tab.ACCESS && access != null) {
             final List<Component> lines = access.tooltip(accessLayout(), mouseX, mouseY);
             if (!lines.isEmpty()) {
-                graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+                graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
             }
         } else if (tab == Tab.ENERGY && energy != null) {
             final List<Component> lines = energy.tooltip(energyLayout(), mouseX, mouseY);
             if (!lines.isEmpty()) {
-                graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+                graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
             }
         } else {
             statLine.showTooltip(graphics, font, mouseX, mouseY);
@@ -240,25 +240,26 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
-        final int button = tabs().buttonAt(event.x(), event.y());
-        if (button >= 0) {
-            switchTo(Tab.values()[button]);
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
+        final int tabButton = tabs().buttonAt(event.x(), event.y());
+        if (tabButton >= 0) {
+            switchTo(Tab.values()[tabButton]);
             return true;
         }
         return switch (tab) {
             case ENERGY -> energy != null && energy.click(energyLayout(), event.x(), event.y())
-                    || super.mouseClicked(event, doubleClick);
+                    || super.mouseClicked(mouseX, mouseY, button);
             case ACCESS -> access != null && access.click(accessLayout(), event.x(), event.y())
-                    || super.mouseClicked(event, doubleClick);
-            case NETWORK -> clickNetworkTab(event) || super.mouseClicked(event, doubleClick);
+                    || super.mouseClicked(mouseX, mouseY, button);
+            case NETWORK -> clickNetworkTab(event) || super.mouseClicked(mouseX, mouseY, button);
         };
     }
 
     private boolean clickNetworkTab(final MouseButtonEvent event) {
         for (Swatch swatch : swatches) {
             if (swatch.bounds().contains(event.x(), event.y())) {
-                ClientPacketDistributor.sendToServer(new NexusRecolorPayload(getMenu().pos(), rgbOf(swatch.color())));
+                PacketDistributor.sendToServer(new NexusRecolorPayload(getMenu().pos(), rgbOf(swatch.color())));
                 return true;
             }
         }
@@ -279,17 +280,20 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
     }
 
     @Override
-    public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
+    public boolean mouseDragged(
+            final double mouseX, final double mouseY, final int button, final double dragX, final double dragY) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         return tab == Tab.ENERGY && energy != null && energy.drag(energyLayout(), event.y())
-                || super.mouseDragged(event, dragX, dragY);
+                || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(final MouseButtonEvent event) {
+    public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
+        final MouseButtonEvent event = new MouseButtonEvent(mouseX, mouseY, button);
         if (energy != null) {
             energy.release();
         }
-        return super.mouseReleased(event);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     /**
@@ -300,7 +304,7 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
         tab = next;
         showSlots();
         if (wasEnergy != (next == Tab.ENERGY)) {
-            ClientPacketDistributor.sendToServer(new NexusEnergyTabPayload(getMenu().containerId, next == Tab.ENERGY));
+            PacketDistributor.sendToServer(new NexusEnergyTabPayload(getMenu().containerId, next == Tab.ENERGY));
         }
     }
 
@@ -313,8 +317,8 @@ public final class NexusScreen extends PanelScreen<NexusMenu> implements SideAre
     private enum Tab {
         NETWORK, ENERGY, ACCESS;
 
-        Identifier icon() {
-            return Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "nexus/tab_" + name().toLowerCase(Locale.ROOT));
+        ResourceLocation icon() {
+            return ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "nexus/tab_" + name().toLowerCase(Locale.ROOT));
         }
 
         Component label() {

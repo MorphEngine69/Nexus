@@ -2,7 +2,9 @@
   "type": "minecraft:smelting",
   "experience": 0.7,
   "group": "steel_ingot",
-  "ingredient": "nexus:steel_dust",
+  "ingredient": {
+    "item": "nexus:steel_dust"
+  },
   "result": {
     "id": "nexus:steel_ingot"
   }

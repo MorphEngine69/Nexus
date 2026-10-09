@@ -4,10 +4,10 @@ import com.morphengine.nexus.resource.FluidKey;
 import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.resource.NexusResource;
 import com.morphengine.nexus.resource.ResourceTypes;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import net.neoforged.neoforge.fluids.FluidUtil;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -52,7 +52,8 @@ public enum FilterKinds {
      * @return {@code null} when the stack lists nothing here
      */
     public @Nullable NexusResource contentsOf(final ItemStack stack) {
-        final NexusResource fluid = listsFluids ? fluidOf(FluidUtil.getFirstStackContained(stack)) : null;
+        final NexusResource fluid = listsFluids ? fluidOf(FluidUtil.getFluidContained(stack).orElse(FluidStack.EMPTY))
+                : null;
         return fluid != null ? fluid : itemOf(stack);
     }
 
@@ -69,7 +70,7 @@ public enum FilterKinds {
         if (listsItems) {
             return ItemKey.of(stack);
         }
-        return fluidOf(FluidUtil.getFirstStackContained(stack));
+        return fluidOf(FluidUtil.getFluidContained(stack).orElse(FluidStack.EMPTY));
     }
 
     /**

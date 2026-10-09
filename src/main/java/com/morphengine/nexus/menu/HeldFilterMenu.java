@@ -3,7 +3,7 @@ package com.morphengine.nexus.menu;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -32,7 +32,7 @@ public abstract class HeldFilterMenu extends AbstractContainerMenu implements Fi
     protected HeldFilterMenu(final MenuType<?> type, final int containerId, final Inventory inventory) {
         super(type, containerId);
         this.player = inventory.player;
-        this.heldSlot = inventory.getSelectedSlot();
+        this.heldSlot = inventory.selected;
         for (int row = 0; row < INVENTORY_ROWS; row++) {
             for (int column = 0; column < ROW_LENGTH; column++) {
                 addSlot(new Slot(inventory, column + (row + 1) * ROW_LENGTH,
@@ -61,8 +61,8 @@ public abstract class HeldFilterMenu extends AbstractContainerMenu implements Fi
     }
 
     @Override
-    public void clicked(final int slotIndex, final int buttonNum, final ContainerInput input, final Player clicker) {
-        if (input == ContainerInput.SWAP && buttonNum == heldSlot) {
+    public void clicked(final int slotIndex, final int buttonNum, final ClickType input, final Player clicker) {
+        if (input == ClickType.SWAP && buttonNum == heldSlot) {
             return;
         }
         super.clicked(slotIndex, buttonNum, input, clicker);

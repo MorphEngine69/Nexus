@@ -30,7 +30,7 @@ final class PortableTerminalPayloadHandlers {
             }
             final TerminalSlot slot = TerminalSlots.find(player);
             if (slot == null) {
-                player.sendOverlayMessage(Component.translatable("item.nexus.nexus_terminal.none"));
+                player.displayClientMessage(Component.translatable("item.nexus.nexus_terminal.none"), true);
                 return;
             }
             switch (payload.action()) {

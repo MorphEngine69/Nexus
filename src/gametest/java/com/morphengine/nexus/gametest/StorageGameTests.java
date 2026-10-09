@@ -32,38 +32,28 @@ import com.morphengine.nexus.terminal.TerminalSettings;
 import com.morphengine.nexus.terminal.TerminalStatus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.ItemStackWithSlot;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueInput;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -75,7 +65,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class StorageGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
 
@@ -96,21 +86,16 @@ public final class StorageGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(StorageGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "storage"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void vaultLendsCellsToNetwork(final GameTestHelper helper) {
@@ -140,7 +125,7 @@ public final class StorageGameTests {
                     final List<?> highContents = VaultCellItem.contentsOf(vaultEntity(helper, high).cells().getItem(0));
                     final List<?> lowContents = VaultCellItem.contentsOf(vaultEntity(helper, low).cells().getItem(0));
                     helper.assertTrue(highContents.size() == 1 && lowContents.isEmpty(),
-                            Component.literal("high vault holds " + highContents + ", low vault " + lowContents));
+                            String.valueOf("high vault holds " + highContents + ", low vault " + lowContents));
                 })
                 .thenSucceed();
     }
@@ -170,7 +155,7 @@ public final class StorageGameTests {
                 .thenWaitUntil(() -> helper.assertItemEntityPresent(
                         NexusItems.VAULT_CELLS.get(CellKind.ITEM).get(CellTier.ONE_K).get()))
                 .thenExecute(() -> {
-                    final ItemStack dropped = helper.getEntities(EntityTypes.ITEM).stream()
+                    final ItemStack dropped = helper.getEntities(EntityType.ITEM).stream()
                             .map(ItemEntity::getItem)
                             .filter(stack -> stack.getItem() instanceof VaultCellItem)
                             .findFirst().orElse(ItemStack.EMPTY);
@@ -189,16 +174,15 @@ public final class StorageGameTests {
     private static void vaultKeepsCellsPastItsSlots(final GameTestHelper helper) {
         final BlockPos vaultPos = NEXUS.east(2);
         place(helper, vaultPos, vault());
-        final RegistryOps<Tag> ops = helper.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE);
         final ListTag items = new ListTag();
         for (int slot = 1; slot <= StorageVaultBlockEntity.SLOTS + 1; slot++) {
-            items.add(ItemStackWithSlot.CODEC.encodeStart(ops, new ItemStackWithSlot(slot, cell(CellTier.ONE_K)))
-                    .getOrThrow());
+            final CompoundTag entry = (CompoundTag) cell(CellTier.ONE_K).save(helper.getLevel().registryAccess());
+            entry.putByte("Slot", (byte) slot);
+            items.add(entry);
         }
         final CompoundTag saved = new CompoundTag();
         saved.put(ContainerHelper.TAG_ITEMS, items);
-        vaultEntity(helper, vaultPos).loadWithComponents(
-                TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
+        vaultEntity(helper, vaultPos).loadWithComponents(saved, helper.getLevel().registryAccess());
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertItemEntityCountIs(
@@ -228,7 +212,7 @@ public final class StorageGameTests {
                 .thenWaitUntil(() -> assertLamp(helper, vaultPos, VaultLamp.GREEN))
                 .thenExecute(() -> {
                     final VaultLamp empty = vaultEntity(helper, vaultPos).lampAt(1);
-                    helper.assertTrue(empty == VaultLamp.OFF, Component.literal("empty bay shows " + empty));
+                    helper.assertTrue(empty == VaultLamp.OFF, String.valueOf("empty bay shows " + empty));
                 })
                 .thenSucceed();
     }
@@ -264,7 +248,7 @@ public final class StorageGameTests {
                 .thenWaitUntil(() -> {
                     assertStatus(helper, terminalPos, TerminalStatus.ONLINE);
                     helper.assertTrue(helper.getBlockState(terminalPos).getValue(TerminalBlock.POWERED),
-                            Component.literal("terminal screen is dark with energy in the network"));
+                            String.valueOf("terminal screen is dark with energy in the network"));
                 })
                 .thenSucceed();
     }
@@ -275,16 +259,16 @@ public final class StorageGameTests {
         buildLine(helper, cable());
         place(helper, cellPos, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
         place(helper, terminalPos, terminal(Direction.UP));
-        final TerminalBlockEntity terminal = helper.getBlockEntity(terminalPos, TerminalBlockEntity.class);
-        final EnergyBuffer cell = helper.getBlockEntity(cellPos, EnergyCellBlockEntity.class).energyBuffer();
+        final TerminalBlockEntity terminal = helper.<TerminalBlockEntity>getBlockEntity(terminalPos);
+        final EnergyBuffer cell = helper.<EnergyCellBlockEntity>getBlockEntity(cellPos).energyBuffer();
         final long price = OperationKind.TERMINAL_TAKE.baseCost();
 
         helper.startSequence()
                 .thenExecute(() -> TestEnergy.charge(helper, cellPos, (int) (2 * price)))
                 .thenWaitUntil(() -> assertStatus(helper, terminalPos, TerminalStatus.ONLINE))
-                .thenExecute(() -> helper.assertTrue(terminal.affordsTake(), Component.literal("cannot afford a take")))
+                .thenExecute(() -> helper.assertTrue(terminal.affordsTake(), String.valueOf("cannot afford a take")))
                 .thenExecute(terminal::chargeTake)
-                .thenExecute(() -> helper.assertValueEqual(cell.stored(), price, Component.literal("FE left")))
+                .thenExecute(() -> helper.assertValueEqual(cell.stored(), price, String.valueOf("FE left")))
                 .thenExecute(terminal::chargeTake)
                 .thenExecute(() -> assertStatus(helper, terminalPos, TerminalStatus.NO_ENERGY))
                 .thenSucceed();
@@ -336,23 +320,23 @@ public final class StorageGameTests {
 
     private static void assertAmount(final GameTestHelper helper, final long actual, final long expected,
                                      final String what) {
-        helper.assertTrue(actual == expected, Component.literal(what + ": " + actual + ", expected " + expected));
+        helper.assertTrue(actual == expected, String.valueOf(what + ": " + actual + ", expected " + expected));
     }
 
     private static void assertLamp(final GameTestHelper helper, final BlockPos pos, final VaultLamp expected) {
         final VaultLamp shown = vaultEntity(helper, pos).lampAt(0);
-        helper.assertTrue(shown == expected, Component.literal("lamp shows " + shown + ", expected " + expected));
+        helper.assertTrue(shown == expected, String.valueOf("lamp shows " + shown + ", expected " + expected));
     }
 
     private static void assertBusy(final GameTestHelper helper, final BlockPos pos, final boolean expected) {
         final boolean shown = vaultEntity(helper, pos).isBusyAt(0);
         helper.assertTrue(shown == expected,
-                Component.literal("cell working shown " + shown + ", expected " + expected));
+                String.valueOf("cell working shown " + shown + ", expected " + expected));
     }
 
     private static void assertStatus(final GameTestHelper helper, final BlockPos pos, final TerminalStatus expected) {
-        final TerminalStatus status = helper.getBlockEntity(pos, TerminalBlockEntity.class).status();
-        helper.assertTrue(status == expected, Component.literal("terminal " + status + ", expected " + expected));
+        final TerminalStatus status = helper.<TerminalBlockEntity>getBlockEntity(pos).status();
+        helper.assertTrue(status == expected, String.valueOf("terminal " + status + ", expected " + expected));
     }
 
     private static ItemKey stone() {
@@ -364,12 +348,12 @@ public final class StorageGameTests {
     }
 
     private static NetworkStorage network(final GameTestHelper helper) {
-        return helper.getBlockEntity(NEXUS, NexusBlockEntity.class)
+        return helper.<NexusBlockEntity>getBlockEntity(NEXUS)
                 .component(NetworkComponentTypes.STORAGE).storage();
     }
 
     private static StorageVaultBlockEntity vaultEntity(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos, StorageVaultBlockEntity.class);
+        return helper.<StorageVaultBlockEntity>getBlockEntity(pos);
     }
 
     private static ItemStack cell(final CellTier tier) {

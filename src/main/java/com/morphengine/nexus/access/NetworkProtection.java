@@ -6,17 +6,16 @@ import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.block.NetworkBlock;
 import com.morphengine.nexus.block.entity.NexusBlockEntity;
 import com.morphengine.nexus.world.FrontSpace;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Util;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
-import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
@@ -38,7 +37,7 @@ public final class NetworkProtection {
     }
 
     @SubscribeEvent
-    static void onBreak(final BreakBlockEvent event) {
+    static void onBreak(final BlockEvent.BreakEvent event) {
         if (!(event.getLevel() instanceof ServerLevel level) || !(event.getState().getBlock() instanceof NetworkBlock)
                 || !(event.getPlayer() instanceof ServerPlayer player) || isUnrestricted(player)) {
             return;
@@ -77,7 +76,7 @@ public final class NetworkProtection {
     @SubscribeEvent
     static void onLogin(final PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            NetworkSecurityData.of(player.level().getServer()).refreshNames(player.nameAndId());
+            NetworkSecurityData.of(player.level().getServer()).refreshNames(NameAndId.of(player));
         }
     }
 

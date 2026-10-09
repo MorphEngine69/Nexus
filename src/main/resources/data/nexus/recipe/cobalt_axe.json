@@ -2,8 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "#": "minecraft:stick",
-    "X": "#nexus:cobalt_tool_materials"
+    "#": {
+      "item": "minecraft:stick"
+    },
+    "X": {
+      "tag": "nexus:cobalt_tool_materials"
+    }
   },
   "pattern": [
     "XX",

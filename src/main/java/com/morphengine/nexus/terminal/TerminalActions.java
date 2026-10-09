@@ -7,15 +7,15 @@ import com.morphengine.nexus.level.PlayerActor;
 import com.morphengine.nexus.resource.FluidKey;
 import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.resource.NexusResource;
+import com.morphengine.nexus.transfer.FluidResource;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -109,7 +109,7 @@ public final class TerminalActions {
     private int roomInInventory(final ItemKey item) {
         final ItemStack template = item.toStack(1);
         int room = 0;
-        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+        for (ItemStack stack : player.getInventory().items) {
             if (stack.isEmpty()) {
                 room += template.getMaxStackSize();
             } else if (ItemStack.isSameItemSameComponents(stack, template)) {
@@ -130,36 +130,36 @@ public final class TerminalActions {
     }
 
     private boolean fillCarried(final FluidKey fluid) {
-        final ResourceHandler<FluidResource> container = carriedFluidHandler();
+        final IFluidHandlerItem container = carriedFluidHandler();
         final long available = container != null
                 ? storage.extract(fluid, Integer.MAX_VALUE, Action.SIMULATE, actor) : 0;
         if (container == null || available <= 0) {
             return false;
         }
-        try (Transaction transaction = Transaction.openRoot()) {
-            final int accepted = container.insert(fluid.fluid(), (int) available, transaction);
-            if (accepted <= 0) {
-                return false;
-            }
-            final long extracted = storage.extract(fluid, accepted, Action.EXECUTE, actor);
-            if (extracted != accepted) {
-                giveBack(fluid, extracted);
-                return false;
-            }
-            transaction.commit();
-            onTake.run();
-            return true;
+        final int accepted = container.fill(fluid.toStack((int) Math.min(available, Integer.MAX_VALUE)),
+                FluidAction.SIMULATE);
+        if (accepted <= 0) {
+            return false;
         }
+        final long extracted = storage.extract(fluid, accepted, Action.EXECUTE, actor);
+        if (extracted != accepted) {
+            giveBack(fluid, extracted);
+            return false;
+        }
+        container.fill(fluid.toStack(accepted), FluidAction.EXECUTE);
+        replaceCarried(container.getContainer());
+        onTake.run();
+        return true;
     }
 
     private boolean emptyCarried() {
-        final ResourceHandler<FluidResource> container = carriedFluidHandler();
+        final IFluidHandlerItem container = carriedFluidHandler();
         if (container == null) {
             return false;
         }
-        for (int index = 0; index < container.size(); index++) {
-            final FluidResource fluid = container.getResource(index);
-            if (!fluid.isEmpty() && pour(container, index, new FluidKey(fluid))) {
+        for (int index = 0; index < container.getTanks(); index++) {
+            final FluidStack held = container.getFluidInTank(index);
+            if (!held.isEmpty() && pour(container, new FluidKey(FluidResource.of(held)), held.getAmount())) {
                 return true;
             }
         }
@@ -167,33 +167,47 @@ public final class TerminalActions {
     }
 
     /**
-     * Pours what the network can take from one tank of the carried container;
-     * containers that only empty whole, like buckets, pour nothing unless all fits.
+     * Pours what the network can take from the carried container; containers that only empty whole, like buckets,
+     * pour nothing unless all fits.
      */
-    private boolean pour(final ResourceHandler<FluidResource> container, final int index, final FluidKey fluid) {
-        final long held = container.getAmountAsLong(index);
+    private boolean pour(final IFluidHandlerItem container, final FluidKey fluid, final int held) {
         final long room = storage.insert(fluid, held, Action.SIMULATE, actor);
         if (room <= 0) {
             return false;
         }
-        try (Transaction transaction = Transaction.openRoot()) {
-            final int drained = container.extract(index, fluid.fluid(), (int) Math.min(room, Integer.MAX_VALUE),
-                    transaction);
-            if (drained <= 0) {
-                return false;
-            }
-            final long inserted = storage.insert(fluid, drained, Action.EXECUTE, actor);
-            if (inserted != drained) {
-                takeBack(fluid, inserted);
-                return false;
-            }
-            transaction.commit();
-            return true;
+        final FluidStack drained = container.drain(fluid.toStack((int) Math.min(room, Integer.MAX_VALUE)),
+                FluidAction.EXECUTE);
+        if (drained.isEmpty()) {
+            return false;
+        }
+        final long inserted = storage.insert(fluid, drained.getAmount(), Action.EXECUTE, actor);
+        if (inserted != drained.getAmount()) {
+            takeBack(fluid, inserted);
+            return false;
+        }
+        replaceCarried(container.getContainer());
+        return true;
+    }
+
+    /**
+     * Puts the container as the fluid handler left it in the place of one of the carried containers; when more were
+     * carried, the others stay on the cursor and this one goes to the inventory.
+     */
+    private void replaceCarried(final ItemStack result) {
+        final ItemStack carried = menu.getCarried();
+        if (carried.getCount() <= 1) {
+            menu.setCarried(result);
+            return;
+        }
+        carried.shrink(1);
+        menu.setCarried(carried);
+        if (!player.getInventory().add(result)) {
+            player.drop(result, false);
         }
     }
 
     /**
-     * Undoes an extract whose transaction is about to roll back.
+     * Undoes an extract whose fill did not happen.
      */
     private void giveBack(final FluidKey fluid, final long amount) {
         if (amount > 0) {
@@ -202,7 +216,7 @@ public final class TerminalActions {
     }
 
     /**
-     * Undoes an insert whose transaction is about to roll back.
+     * Undoes an insert whose drain did not complete.
      */
     private void takeBack(final FluidKey fluid, final long amount) {
         if (amount > 0) {
@@ -210,7 +224,12 @@ public final class TerminalActions {
         }
     }
 
-    private @Nullable ResourceHandler<FluidResource> carriedFluidHandler() {
-        return ItemAccess.forPlayerCursor(player, menu).getCapability(Capabilities.Fluid.ITEM);
+    /**
+     * @return the fluid handler of one of the carried containers, a copy that the caller hands back with
+     *         {@link IFluidHandlerItem#getContainer()}
+     */
+    private @Nullable IFluidHandlerItem carriedFluidHandler() {
+        final ItemStack carried = menu.getCarried();
+        return carried.isEmpty() ? null : carried.copyWithCount(1).getCapability(Capabilities.FluidHandler.ITEM);
     }
 }

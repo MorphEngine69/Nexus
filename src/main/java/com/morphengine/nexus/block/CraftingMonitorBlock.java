@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block;
 
-import com.geckolib.animation.RawAnimation;
 import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.block.entity.CraftingMonitorBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -23,6 +22,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jspecify.annotations.Nullable;
+import software.bernie.geckolib.animation.RawAnimation;
 
 /**
  * Crafting Monitor: shows the crafting tasks of its network, their progress and

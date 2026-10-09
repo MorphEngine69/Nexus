@@ -24,7 +24,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -63,13 +63,13 @@ public final class NetworkState {
     private final Map<NetworkComponentType<?>, NetworkComponent> components = createComponents();
     private final EnergyRateMeter meter = new EnergyRateMeter();
     private final NetworkStorage storage;
-    private final EnergyHandler energyHandler = new NetworkEnergyHandler(this);
+    private final IEnergyStorage energyHandler = new NetworkEnergyHandler(this);
     private boolean stale = true;
     private boolean partial;
     private boolean conflict;
     private Membership membership = Membership.EMPTY;
     private EnergyPool energy = EnergyPool.EMPTY;
-    private PriorityOrder<EnergyHandler> energyHandlers = PriorityOrder.empty();
+    private PriorityOrder<IEnergyStorage> energyHandlers = PriorityOrder.empty();
     private int poolRevision;
     private NetworkStatistics statistics = NetworkStatistics.EMPTY;
     private NexusStatus status = NexusStatus.NO_ENERGY;
@@ -102,14 +102,14 @@ public final class NetworkState {
      * @return the network's energy as other mods reach it through the Nexus;
      *         the same instance for the whole life of this state
      */
-    public EnergyHandler energyHandler() {
+    public IEnergyStorage energyHandler() {
         return energyHandler;
     }
 
     /**
      * @return transaction-aware handlers of the pool's buffers, ranked as the pool ranks them
      */
-    PriorityOrder<EnergyHandler> energyHandlers() {
+    PriorityOrder<IEnergyStorage> energyHandlers() {
         return energyHandlers;
     }
 
@@ -247,7 +247,7 @@ public final class NetworkState {
      */
     private void assemblePool() {
         final List<PriorityOrder.Ranked<EnergyBuffer>> buffers = new ArrayList<>();
-        final List<PriorityOrder.Ranked<EnergyHandler>> handlers = new ArrayList<>();
+        final List<PriorityOrder.Ranked<IEnergyStorage>> handlers = new ArrayList<>();
         for (EnergyContributor contributor : membership.contributors()) {
             final int priority = contributor.energyPriority();
             buffers.add(new PriorityOrder.Ranked<>(contributor.energyBuffer(), priority));

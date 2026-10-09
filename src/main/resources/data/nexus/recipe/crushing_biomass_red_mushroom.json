@@ -1,6 +1,8 @@
 {
   "type": "nexus:crushing",
-  "ingredient": "minecraft:red_mushroom",
+  "ingredient": {
+    "item": "minecraft:red_mushroom"
+  },
   "result": {
     "id": "nexus:biomass"
   }

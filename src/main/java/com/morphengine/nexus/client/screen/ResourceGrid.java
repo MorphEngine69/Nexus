@@ -6,7 +6,7 @@ import com.morphengine.nexus.terminal.TerminalEntry;
 import com.morphengine.nexus.terminal.TerminalLayout;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -59,7 +59,7 @@ final class ResourceGrid {
         return cells.contains(x, y);
     }
 
-    void draw(final GuiGraphicsExtractor graphics, final Font font, final PanelStyle style,
+    void draw(final GuiGraphics graphics, final Font font, final PanelStyle style,
               final int mouseX, final int mouseY) {
         style.drawSlotGrid(graphics, cells.left(), cells.top(), columns, rows);
         final int first = scroll * columns;
@@ -98,10 +98,10 @@ final class ResourceGrid {
         return cell;
     }
 
-    private void drawScrollBar(final GuiGraphicsExtractor graphics, final PanelStyle style) {
+    private void drawScrollBar(final GuiGraphics graphics, final PanelStyle style) {
         graphics.fill(track.left(), track.top(), track.left() + track.width(), track.top() + track.height(),
                 style.track());
-        graphics.outline(track.left(), track.top(), track.width(), track.height(), style.border());
+        graphics.renderOutline(track.left(), track.top(), track.width(), track.height(), style.border());
         final int thumbHeight = thumbHeight();
         final int travel = track.height() - 2 - thumbHeight;
         final int thumbTop = track.top() + 1 + (maxScroll() == 0 ? 0 : travel * scroll / maxScroll());

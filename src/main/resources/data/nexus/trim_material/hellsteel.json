@@ -1,10 +1,12 @@
 {
   "asset_name": "hellsteel",
+  "ingredient": "nexus:hellsteel_ingot",
+  "item_model_index": 0.3,
   "description": {
     "color": "#FF6A2A",
     "translate": "trim_material.nexus.hellsteel"
   },
-  "override_armor_assets": {
+  "override_armor_materials": {
     "nexus:hellsteel": "hellsteel_darker"
   }
 }

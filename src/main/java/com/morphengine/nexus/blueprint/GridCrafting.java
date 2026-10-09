@@ -37,7 +37,7 @@ public final class GridCrafting {
         if (recipe.isEmpty()) {
             return List.of();
         }
-        final ItemStack result = recipe.get().value().assemble(input);
+        final ItemStack result = recipe.get().value().assemble(input, level.registryAccess());
         if (result.isEmpty() || !result.isItemEnabled(level.enabledFeatures())) {
             return List.of();
         }
@@ -75,7 +75,7 @@ public final class GridCrafting {
         if (recipe.isEmpty()) {
             return Map.of();
         }
-        final List<Ingredient> ingredients = recipe.get().value().placementInfo().ingredients();
+        final List<Ingredient> ingredients = recipe.get().value().getIngredients();
         final Map<Integer, Ingredient> accepted = new HashMap<>();
         for (int slot = 0; slot < grid.size(); slot++) {
             final Ingredient narrowest = narrowestAccepting(ingredients, grid.get(slot));
@@ -94,7 +94,7 @@ public final class GridCrafting {
         Ingredient narrowest = null;
         long narrowestSize = Long.MAX_VALUE;
         for (Ingredient ingredient : ingredients) {
-            final long size = ingredient.items().count();
+            final long size = ingredient.getItems().length;
             if (ingredient.test(stack) && size < narrowestSize) {
                 narrowest = ingredient;
                 narrowestSize = size;

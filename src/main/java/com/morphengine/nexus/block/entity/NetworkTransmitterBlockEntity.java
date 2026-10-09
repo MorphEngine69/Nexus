@@ -7,16 +7,19 @@ import com.morphengine.nexus.level.NetworkChanges;
 import com.morphengine.nexus.level.UpgradeHolder;
 import com.morphengine.nexus.level.WirelessLinks;
 import com.morphengine.nexus.menu.NetworkTransmitterMenu;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.upgrade.UpgradeContainer;
 import com.morphengine.nexus.upgrade.UpgradeLimits;
 import com.morphengine.nexus.upgrade.UpgradeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,8 +29,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -150,7 +151,6 @@ public final class NetworkTransmitterBlockEntity extends AnimatedDeviceBlockEnti
      * Broken, the transmitter drops its card and upgrade, lets go of its chunk
      * and ends its link.
      */
-    @Override
     public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
         super.preRemoveSideEffects(pos, state);
         ChunkAnchors.release(this);
@@ -162,17 +162,19 @@ public final class NetworkTransmitterBlockEntity extends AnimatedDeviceBlockEnti
     }
 
     @Override
-    protected void saveAdditional(final ValueOutput output) {
-        super.saveAdditional(output);
-        ContainerHelper.saveAllItems(output.child(TAG_CARD), card.getItems());
-        ContainerHelper.saveAllItems(output.child(TAG_UPGRADES), upgrades.getItems());
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueOutput output = ValueOutput.of(tag, registries);
+        super.saveAdditional(tag, registries);
+        output.saveItems(TAG_CARD, card.getItems());
+        output.saveItems(TAG_UPGRADES, upgrades.getItems());
     }
 
     @Override
-    protected void loadAdditional(final ValueInput input) {
-        super.loadAdditional(input);
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_CARD), card.getItems());
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_UPGRADES), upgrades.getItems());
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        final ValueInput input = ValueInput.of(tag, registries);
+        super.loadAdditional(tag, registries);
+        input.loadItems(TAG_CARD, card.getItems());
+        input.loadItems(TAG_UPGRADES, upgrades.getItems());
     }
 
     /** The card slot: takes one Network Card; any change relinks the transmitter. */

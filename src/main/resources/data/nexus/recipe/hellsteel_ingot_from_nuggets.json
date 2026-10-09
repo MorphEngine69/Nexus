@@ -2,7 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": "nexus:hellsteel_nugget"
+    "#": {
+      "item": "nexus:hellsteel_nugget"
+    }
   },
   "pattern": [
     "###",

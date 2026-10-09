@@ -1,6 +1,8 @@
 {
   "type": "nexus:crushing",
-  "ingredient": "minecraft:large_fern",
+  "ingredient": {
+    "item": "minecraft:large_fern"
+  },
   "result": {
     "id": "nexus:biomass"
   }

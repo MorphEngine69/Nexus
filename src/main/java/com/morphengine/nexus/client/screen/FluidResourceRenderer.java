@@ -3,13 +3,13 @@ package com.morphengine.nexus.client.screen;
 import com.morphengine.nexus.resource.FluidKey;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.ARGB;
+import net.minecraft.util.FastColor;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.client.fluid.FluidTintSource;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 
 import java.util.List;
@@ -21,16 +21,19 @@ import java.util.List;
 final class FluidResourceRenderer implements ResourceRenderer<FluidKey> {
 
     private static final int ICON_SIZE = 16;
+    private static final float COLOR_SCALE = 255.0F;
 
     @Override
     public ResourceIcon icon(final FluidKey resource) {
-        final FluidModel model = Minecraft.getInstance().getModelManager().getFluidStateModelSet()
-                .get(resource.fluid().getFluid().defaultFluidState());
-        final FluidTintSource tint = model.fluidTintSource();
-        final int color = ARGB.opaque(tint != null ? tint.colorAsStack(resource.toStack(FluidType.BUCKET_VOLUME)) : -1);
-        final TextureAtlasSprite sprite = model.stillMaterial().sprite();
-        return (graphics, x, y) -> graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, ICON_SIZE,
-                ICON_SIZE, color);
+        final FluidStack stack = resource.toStack(FluidType.BUCKET_VOLUME);
+        final IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(resource.fluid().getFluid());
+        final int color = FastColor.ARGB32.opaque(extensions.getTintColor(stack));
+        final TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
+                .apply(extensions.getStillTexture(stack));
+        final float red = FastColor.ARGB32.red(color) / COLOR_SCALE;
+        final float green = FastColor.ARGB32.green(color) / COLOR_SCALE;
+        final float blue = FastColor.ARGB32.blue(color) / COLOR_SCALE;
+        return (graphics, x, y) -> graphics.blit(x, y, 0, ICON_SIZE, ICON_SIZE, sprite, red, green, blue, 1.0F);
     }
 
     @Override

@@ -15,26 +15,22 @@ import com.morphengine.nexus.registry.NexusDataComponents;
 import com.morphengine.nexus.registry.NexusFluids;
 import com.morphengine.nexus.registry.NexusMaterials;
 import com.morphengine.nexus.registry.NexusRecipes;
+import com.morphengine.nexus.transfer.FluidResource;
+import com.morphengine.nexus.transfer.ItemResource;
 import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
@@ -44,11 +40,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -60,7 +54,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class GeneratorGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 300;
     private static final BlockPos GENERATOR = new BlockPos(2, 1, 2);
     private static final int BUCKET = 1000;
@@ -91,31 +85,26 @@ public final class GeneratorGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(GeneratorGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "generators"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static GeneratorBlockEntity place(final GameTestHelper helper, final GeneratorKind kind) {
         helper.setBlock(GENERATOR, NexusBlocks.GENERATORS.get(kind).get().defaultBlockState());
-        return helper.getBlockEntity(GENERATOR, GeneratorBlockEntity.class);
+        return helper.<GeneratorBlockEntity>getBlockEntity(GENERATOR);
     }
 
     private static void assertValue(final GameTestHelper helper, final long actual, final long expected,
                                     final String what) {
-        helper.assertValueEqual(actual, expected, Component.literal(what));
+        helper.assertValueEqual(actual, expected, String.valueOf(what));
     }
 
     private static void coalBurns(final GameTestHelper helper) {
@@ -146,9 +135,9 @@ public final class GeneratorGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(generator.input().getItem(0).is(Items.BUCKET),
-                        Component.literal("the bucket in the slot is not empty yet")))
+                        String.valueOf("the bucket in the slot is not empty yet")))
                 .thenExecute(() -> helper.assertTrue(generator.view().tanks().getFirst().amount() > 0,
-                        Component.literal("the lava is not in the tank")))
+                        String.valueOf("the lava is not in the tank")))
                 .thenSucceed();
     }
 
@@ -172,7 +161,7 @@ public final class GeneratorGameTests {
                 .thenExecute(() -> helper.assertTrue(
                         GeneratorKind.BIOFUEL.energyPerTick() > GeneratorKind.STEAM.energyPerTick()
                                 && GeneratorKind.STEAM.energyPerTick() > GeneratorKind.LAVA.energyPerTick(),
-                        Component.literal("biofuel is not the best, steam the next")))
+                        String.valueOf("biofuel is not the best, steam the next")))
                 .thenSucceed();
     }
 
@@ -191,7 +180,8 @@ public final class GeneratorGameTests {
 
     private static int insert(final GeneratorBlockEntity generator, final FluidResource fluid, final int amount) {
         try (Transaction transaction = Transaction.openRoot()) {
-            final int inserted = generator.fluidHandler(null).insert(fluid, amount, transaction);
+            final int inserted = ResourceHandler.ofFluids(generator.fluidHandler(null)).insert(fluid, amount,
+                    transaction);
             transaction.commit();
             return inserted;
         }
@@ -202,7 +192,7 @@ public final class GeneratorGameTests {
         assertValue(helper, insert(lava, FluidResource.of(Fluids.WATER), BUCKET), 0, "water into the lava tank");
         assertValue(helper, insert(lava, FluidResource.of(Fluids.LAVA), BUCKET), BUCKET, "lava into the lava tank");
         helper.assertTrue(place(helper, GeneratorKind.COAL).fluidHandler(null) == null,
-                Component.literal("a coal generator has a tank"));
+                String.valueOf("a coal generator has a tank"));
         helper.succeed();
     }
 
@@ -213,7 +203,7 @@ public final class GeneratorGameTests {
         return player;
     }
 
-    private static InteractionResult useOn(final GameTestHelper helper, final ServerPlayer player) {
+    private static ItemInteractionResult useOn(final GameTestHelper helper, final ServerPlayer player) {
         final BlockPos absolute = helper.absolutePos(GENERATOR);
         final ItemStack stack = player.getItemInHand(InteractionHand.MAIN_HAND);
         return helper.getLevel().getBlockState(absolute).useItemOn(stack, helper.getLevel(), player,
@@ -225,12 +215,12 @@ public final class GeneratorGameTests {
         final GeneratorBlockEntity generator = place(helper, GeneratorKind.LAVA);
         final ServerPlayer player = holding(helper, new ItemStack(Items.LAVA_BUCKET));
 
-        final InteractionResult result = useOn(helper, player);
+        final ItemInteractionResult result = useOn(helper, player);
 
-        helper.assertTrue(result.consumesAction(), Component.literal("the bucket was not used"));
+        helper.assertTrue(result.consumesAction(), String.valueOf("the bucket was not used"));
         assertValue(helper, generator.view().tanks().getFirst().amount(), BUCKET, "lava in the tank");
         helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET),
-                Component.literal("the bucket in hand is not empty"));
+                String.valueOf("the bucket in hand is not empty"));
         helper.getLevel().getServer().getPlayerList().remove(player);
         helper.succeed();
     }
@@ -243,7 +233,7 @@ public final class GeneratorGameTests {
 
         assertValue(helper, generator.view().tanks().getFirst().amount(), 0, "water in the lava tank");
         helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.WATER_BUCKET),
-                Component.literal("the water bucket was emptied"));
+                String.valueOf("the water bucket was emptied"));
         helper.getLevel().getServer().getPlayerList().remove(player);
         helper.succeed();
     }
@@ -252,34 +242,34 @@ public final class GeneratorGameTests {
         final GeneratorBlockEntity coal = place(helper, GeneratorKind.COAL);
         helper.assertTrue(coal.kind().takesIn(new ItemStack(Items.COAL))
                 && !coal.kind().takesIn(new ItemStack(Items.DIRT))
-                && !coal.kind().takesIn(new ItemStack(Items.LAVA_BUCKET)), Component.literal("the coal slot"));
+                && !coal.kind().takesIn(new ItemStack(Items.LAVA_BUCKET)), String.valueOf("the coal slot"));
         final GeneratorBlockEntity star = place(helper, GeneratorKind.NETHER_STAR);
         helper.assertTrue(star.kind().takesIn(new ItemStack(Items.NETHER_STAR))
-                && !star.kind().takesIn(new ItemStack(Items.COAL)), Component.literal("the star slot"));
+                && !star.kind().takesIn(new ItemStack(Items.COAL)), String.valueOf("the star slot"));
         final GeneratorBlockEntity lava = place(helper, GeneratorKind.LAVA);
         helper.assertTrue(lava.kind().takesIn(new ItemStack(Items.BUCKET))
                 && lava.kind().takesIn(new ItemStack(Items.WATER_BUCKET))
-                && !lava.kind().takesIn(new ItemStack(Items.COAL)), Component.literal("the bucket slot"));
+                && !lava.kind().takesIn(new ItemStack(Items.COAL)), String.valueOf("the bucket slot"));
         helper.succeed();
     }
 
     private static void phaseFollowsWork(final GameTestHelper helper) {
         final GeneratorBlockEntity generator = place(helper, GeneratorKind.COAL);
         helper.assertValueEqual(helper.getBlockState(GENERATOR).getValue(GeneratorBlock.PHASE), MachinePhase.OFF,
-                Component.literal("a new generator"));
+                String.valueOf("a new generator"));
         generator.input().setItem(0, new ItemStack(Items.COAL));
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertValueEqual(
                         helper.getBlockState(GENERATOR).getValue(GeneratorBlock.PHASE), MachinePhase.ACTIVE,
-                        Component.literal("a generator at work")))
+                        String.valueOf("a generator at work")))
                 .thenSucceed();
     }
 
     private static MachineBlockEntity placeExtractor(final GameTestHelper helper, final int millibuckets) {
         helper.setBlock(GENERATOR,
                 NexusBlocks.machineTiers(MachineKind.EXTRACTOR).getFirst().get().defaultBlockState());
-        final MachineBlockEntity extractor = helper.getBlockEntity(GENERATOR, MachineBlockEntity.class);
+        final MachineBlockEntity extractor = helper.<MachineBlockEntity>getBlockEntity(GENERATOR);
         final ItemStack seed = new ItemStack(Items.STONE);
         seed.set(NexusDataComponents.STORED_FLUIDS.get(),
                 new StoredFluids(List.of(new FluidStack(Fluids.WATER, millibuckets))));
@@ -291,11 +281,11 @@ public final class GeneratorGameTests {
         final MachineBlockEntity extractor = placeExtractor(helper, 2 * BUCKET);
         final ServerPlayer player = holding(helper, new ItemStack(Items.BUCKET));
 
-        final InteractionResult result = useOn(helper, player);
+        final ItemInteractionResult result = useOn(helper, player);
 
-        helper.assertTrue(result.consumesAction(), Component.literal("the bucket was not used"));
+        helper.assertTrue(result.consumesAction(), String.valueOf("the bucket was not used"));
         helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.WATER_BUCKET),
-                Component.literal("the bucket in hand is not full"));
+                String.valueOf("the bucket in hand is not full"));
         assertValue(helper, extractor.view().tank().amount(), BUCKET, "water left in the tank");
         helper.getLevel().getServer().getPlayerList().remove(player);
         helper.succeed();
@@ -309,45 +299,47 @@ public final class GeneratorGameTests {
 
         assertValue(helper, extractor.view().tank().amount(), 0, "water poured into the extractor");
         helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.WATER_BUCKET),
-                Component.literal("the water bucket was emptied"));
+                String.valueOf("the water bucket was emptied"));
         helper.getLevel().getServer().getPlayerList().remove(player);
         helper.succeed();
     }
 
     private static void extractorPressesBiofuel(final GameTestHelper helper) {
-        final var manager = helper.getLevel().getServer().getRecipeManager().recipeMap();
-        final var extracting = manager.byType(NexusRecipes.EXTRACTING.get()).stream().map(holder -> holder.value())
+        final var manager = helper.getLevel().getServer().getRecipeManager();
+        final var extracting = manager.getAllRecipesFor(NexusRecipes.EXTRACTING.get()).stream()
+                .map(holder -> holder.value())
                 .filter(recipe -> recipe.fluid().isSame(NexusFluids.BIOFUEL.get())).toList();
         assertValue(helper, extracting.size(), 1, "recipes of biofuel");
         helper.assertTrue(extracting.getFirst().ingredient().test(new ItemStack(NexusMaterials.BIOMASS.get())),
-                Component.literal("biofuel is not pressed out of biomass"));
-        final var crushing = manager.byType(NexusRecipes.CRUSHING.get()).stream().map(holder -> holder.value())
-                .filter(recipe -> recipe.assemble(new SingleRecipeInput(ItemStack.EMPTY))
-                        .is(NexusMaterials.BIOMASS.get()))
+                String.valueOf("biofuel is not pressed out of biomass"));
+        final var crushing = manager.getAllRecipesFor(NexusRecipes.CRUSHING.get()).stream().map(holder ->
+                holder.value())
+                .filter(recipe -> recipe.result().is(NexusMaterials.BIOMASS.get()))
                 .toList();
         assertValue(helper, crushing.size(), PLANT_RECIPES, "recipes of biomass");
         for (var plant : List.of(Items.OAK_SAPLING, Items.OAK_LEAVES, Items.OAK_LOG, Items.WHEAT, Items.DANDELION,
                 Items.SHORT_GRASS, Items.WHEAT_SEEDS)) {
-            helper.assertTrue(crushing.stream().anyMatch(recipe -> recipe.input().test(new ItemStack(plant))),
-                    Component.literal("no biomass out of " + plant));
+            helper.assertTrue(crushing.stream().anyMatch(recipe -> recipe.ingredient().test(new ItemStack(plant))),
+                    String.valueOf("no biomass out of " + plant));
         }
-        helper.assertTrue(crushing.stream().noneMatch(recipe -> recipe.input().test(new ItemStack(Items.STONE))),
-                Component.literal("biomass out of stone"));
+        helper.assertTrue(crushing.stream().noneMatch(recipe -> recipe.ingredient().test(new ItemStack(Items.STONE))),
+                String.valueOf("biomass out of stone"));
         helper.succeed();
     }
 
     private static void movesInBiofuel(final GameTestHelper helper) {
         final BlockPos pos = new BlockPos(1, 2, 1);
         helper.setBlock(pos, NexusFluids.BIOFUEL_BLOCK.get().defaultBlockState());
-        final Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, pos);
+        final Zombie zombie = helper.spawn(EntityType.ZOMBIE, pos);
         final FluidType biofuel = NexusFluids.BIOFUEL_TYPE.get();
         final Vec3 before = zombie.position();
 
-        final boolean handled = biofuel.move(zombie, new Vec3(0, 0, 1), 0.08);
+        final boolean handled = biofuel.move(NexusFluids.BIOFUEL.get().defaultFluidState(), zombie, new Vec3(0, 0, 1),
+                0.08);
 
-        helper.assertTrue(handled, Component.literal("the entity is not moved by the fluid"));
-        helper.assertTrue(zombie.position().distanceToSqr(before) > 0, Component.literal("the entity did not move"));
-        helper.assertTrue(!biofuel.canDrownIn(zombie), Component.literal("the entity drowns in biofuel"));
+        helper.assertTrue(handled, String.valueOf("the entity is not moved by the fluid"));
+        helper.assertTrue(zombie.position().distanceToSqr(before) > 0, String.valueOf("the entity did not move"));
+        helper.assertTrue(!biofuel.canDrownIn(zombie), String.valueOf("the entity drowns in biofuel"));
         helper.succeed();
     }
 
@@ -365,19 +357,19 @@ public final class GeneratorGameTests {
         final Direction gives = worldSide(MachineSide.BOTTOM);
         final Direction takes = worldSide(MachineSide.LEFT);
         helper.assertTrue(generator.energyHandler(closed) == null && generator.fluidHandler(closed) == null
-                && generator.itemHandler(closed) == null, Component.literal("a closed side shows something"));
+                && generator.itemHandler(closed) == null, String.valueOf("a closed side shows something"));
         helper.assertTrue(generator.energyHandler(gives) != null && generator.fluidHandler(gives) == null,
-                Component.literal("an output side takes fuel in or gives no FE"));
+                String.valueOf("an output side takes fuel in or gives no FE"));
         helper.assertTrue(generator.energyHandler(takes) == null && generator.fluidHandler(takes) != null
-                && generator.itemHandler(takes) != null, Component.literal("an input side gives FE or takes no fuel"));
+                && generator.itemHandler(takes) != null, String.valueOf("an input side gives FE or takes no fuel"));
         helper.assertTrue(generator.energyHandler(worldSide(MachineSide.FRONT)) != null,
-                Component.literal("a side that was left open stopped giving FE"));
+                String.valueOf("a side that was left open stopped giving FE"));
         helper.succeed();
     }
 
     private static void sideTakesCoalIn(final GameTestHelper helper) {
         final GeneratorBlockEntity generator = place(helper, GeneratorKind.COAL);
-        final var items = generator.itemHandler(worldSide(MachineSide.BACK));
+        final var items = ResourceHandler.ofItems(generator.itemHandler(worldSide(MachineSide.BACK)));
         final ItemResource coal = ItemResource.of(Items.COAL);
 
         try (Transaction transaction = Transaction.openRoot()) {
@@ -385,7 +377,7 @@ public final class GeneratorGameTests {
             transaction.commit();
         }
         helper.assertTrue(generator.input().getItem(0).is(Items.COAL),
-                Component.literal("the coal is not in the slot"));
+                String.valueOf("the coal is not in the slot"));
         try (Transaction transaction = Transaction.openRoot()) {
             assertValue(helper, items.extract(coal, 5, transaction), 0, "coal that comes out");
         }

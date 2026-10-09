@@ -3,11 +3,11 @@ package com.morphengine.nexus.generator;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The slot of a generator that takes a bucket, or any other container of a fluid: its fluid goes into the tanks as
@@ -23,14 +23,24 @@ public final class BucketSlot {
      *
      * @return whether any fluid moved
      */
-    public static boolean drain(final Container slot, final ResourceHandler<FluidResource> tanks) {
-        if (slot.getItem(0).isEmpty()) {
+    public static boolean drain(final Container slot, final IFluidHandler tanks) {
+        final ItemStack stack = slot.getItem(0);
+        final IFluidHandlerItem container = stack.isEmpty() || stack.getCount() != 1 ? null : containerOf(stack);
+        if (container == null) {
             return false;
         }
-        final ItemAccess access = ItemAccess.forHandlerIndexStrict(VanillaContainerWrapper.of(slot), 0).oneByOne();
-        final ResourceHandler<FluidResource> container = access.getCapability(Capabilities.Fluid.ITEM);
-        return container != null
-                && ResourceHandlerUtil.move(container, tanks, fluid -> true, Integer.MAX_VALUE, null) > 0;
+        final FluidStack offered = container.drain(Integer.MAX_VALUE, FluidAction.SIMULATE);
+        final int accepted = offered.isEmpty() ? 0 : tanks.fill(offered, FluidAction.SIMULATE);
+        if (accepted <= 0) {
+            return false;
+        }
+        final FluidStack drained = container.drain(offered.copyWithAmount(accepted), FluidAction.EXECUTE);
+        if (drained.isEmpty()) {
+            return false;
+        }
+        tanks.fill(drained, FluidAction.EXECUTE);
+        slot.setItem(0, container.getContainer());
+        return true;
     }
 
     /**
@@ -40,13 +50,12 @@ public final class BucketSlot {
         if (stack.isEmpty()) {
             return false;
         }
-        final ResourceHandler<FluidResource> container =
-                ItemAccess.forStack(stack.copyWithCount(1)).getCapability(Capabilities.Fluid.ITEM);
+        final IFluidHandlerItem container = containerOf(stack);
         if (container == null) {
             return false;
         }
-        for (int index = 0; index < container.size(); index++) {
-            if (container.getAmountAsLong(index) > 0) {
+        for (int index = 0; index < container.getTanks(); index++) {
+            if (!container.getFluidInTank(index).isEmpty()) {
                 return false;
             }
         }
@@ -57,7 +66,10 @@ public final class BucketSlot {
      * @return whether the stack is a container that holds or can hold a fluid, so that the slot takes it
      */
     public static boolean isContainer(final ItemStack stack) {
-        return !stack.isEmpty()
-                && ItemAccess.forStack(stack.copyWithCount(1)).getCapability(Capabilities.Fluid.ITEM) != null;
+        return !stack.isEmpty() && containerOf(stack) != null;
+    }
+
+    private static @Nullable IFluidHandlerItem containerOf(final ItemStack stack) {
+        return stack.copyWithCount(1).getCapability(Capabilities.FluidHandler.ITEM);
     }
 }

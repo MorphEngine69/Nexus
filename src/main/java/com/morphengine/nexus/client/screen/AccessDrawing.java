@@ -5,7 +5,7 @@ import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.network.security.PermissionState;
 import com.morphengine.nexus.api.network.security.Role;
 import com.morphengine.nexus.security.Member;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -41,7 +41,7 @@ final class AccessDrawing {
      * the role, a red cross when denied, and as the role says a dim dot when
      * the role grants it, nothing when not.
      */
-    static void drawState(final GuiGraphicsExtractor graphics, final PanelBounds box, final Member member,
+    static void drawState(final GuiGraphics graphics, final PanelBounds box, final Member member,
                           final Permission permission) {
         switch (member.stateOf(permission)) {
             case ALLOW -> graphics.fill(box.left() + 2, box.top() + 2, box.left() + box.width() - 2,
@@ -51,7 +51,7 @@ final class AccessDrawing {
         }
     }
 
-    private static void drawInherited(final GuiGraphicsExtractor graphics, final PanelBounds box,
+    private static void drawInherited(final GuiGraphics graphics, final PanelBounds box,
                                       final boolean granted) {
         if (granted) {
             final int middle = box.width() / 2;

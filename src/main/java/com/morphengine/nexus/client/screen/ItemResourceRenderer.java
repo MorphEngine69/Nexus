@@ -16,7 +16,7 @@ final class ItemResourceRenderer implements ResourceRenderer<ItemKey> {
     @Override
     public ResourceIcon icon(final ItemKey resource) {
         final ItemStack stack = resource.toStack(1);
-        return (graphics, x, y) -> graphics.item(stack, x, y);
+        return (graphics, x, y) -> graphics.renderItem(stack, x, y);
     }
 
     @Override

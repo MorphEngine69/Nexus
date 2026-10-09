@@ -1,8 +1,12 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:advanced_energy_cell",
-    "nexus:superior_tier_upgrade"
+    {
+      "item": "nexus:advanced_energy_cell"
+    },
+    {
+      "item": "nexus:superior_tier_upgrade"
+    }
   ],
   "result": {
     "id": "nexus:superior_energy_cell"

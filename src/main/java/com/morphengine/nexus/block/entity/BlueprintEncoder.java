@@ -7,13 +7,12 @@ import com.morphengine.nexus.blueprint.EncodedBlueprint;
 import com.morphengine.nexus.blueprint.GridCrafting;
 import com.morphengine.nexus.blueprint.GridRecipe;
 import com.morphengine.nexus.item.BlueprintItem;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.registry.NexusDataComponents;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -112,11 +111,11 @@ public final class BlueprintEncoder {
 
     public void write(final ValueOutput output) {
         output.store(TAG_DRAFT, BlueprintDraft.CODEC, draft);
-        ContainerHelper.saveAllItems(output.child(TAG_BLUEPRINTS), blueprints.getItems());
+        output.saveItems(TAG_BLUEPRINTS, blueprints.getItems());
     }
 
     public void read(final ValueInput input) {
         draft = input.read(TAG_DRAFT, BlueprintDraft.CODEC).orElse(BlueprintDraft.EMPTY);
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_BLUEPRINTS), blueprints.getItems());
+        input.loadItems(TAG_BLUEPRINTS, blueprints.getItems());
     }
 }

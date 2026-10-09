@@ -13,15 +13,10 @@ import com.morphengine.nexus.security.Editor;
 import com.morphengine.nexus.security.SecurityEdit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -39,8 +34,9 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -52,7 +48,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class TierUpgradeGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos CABLE = NEXUS.east();
@@ -76,21 +72,16 @@ public final class TierUpgradeGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(TierUpgradeGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "tier_upgrade"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void keepsEverything(final GameTestHelper helper) {
@@ -102,19 +93,19 @@ public final class TierUpgradeGameTests {
         final ItemStack upgrade = holding(player, NexusItems.ADVANCED_TIER_UPGRADE.get());
         final InteractionResult result = use(helper, player, upgrade, true);
 
-        helper.assertTrue(result.consumesAction(), Component.literal("the upgrade was not used"));
+        helper.assertTrue(result.consumesAction(), String.valueOf("the upgrade was not used"));
         helper.assertValueEqual(helper.getBlockState(CELL).getBlock(), NexusBlocks.ADVANCED_ENERGY_CELL.get(),
-                Component.literal("the block after the upgrade"));
-        final EnergyCellBlockEntity upgraded = helper.getBlockEntity(CELL, EnergyCellBlockEntity.class);
-        helper.assertValueEqual(upgraded.energyBuffer().stored(), STORED, Component.literal("FE kept"));
+                String.valueOf("the block after the upgrade"));
+        final EnergyCellBlockEntity upgraded = helper.<EnergyCellBlockEntity>getBlockEntity(CELL);
+        helper.assertValueEqual(upgraded.energyBuffer().stored(), STORED, String.valueOf("FE kept"));
         helper.assertValueEqual(upgraded.energyBuffer().capacity(), EnergyCellTier.ADVANCED.capacity(),
-                Component.literal("capacity of the new tier"));
-        helper.assertValueEqual(upgraded.energyPriority(), PRIORITY, Component.literal("priority kept"));
-        helper.assertValueEqual(upgraded.getDisplayName().getString(), NAME, Component.literal("name kept"));
+                String.valueOf("capacity of the new tier"));
+        helper.assertValueEqual(upgraded.energyPriority(), PRIORITY, String.valueOf("priority kept"));
+        helper.assertValueEqual(upgraded.getDisplayName().getString(), NAME, String.valueOf("name kept"));
         helper.assertTrue(ItemStack.isSameItemSameComponents(upgraded.upgrades().getItem(0), chunkLoader),
-                Component.literal("the upgrade of the cell was lost"));
-        helper.assertTrue(upgrade.isEmpty(), Component.literal("the tier upgrade was not used up"));
-        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), Component.literal("something fell to the ground"));
+                String.valueOf("the upgrade of the cell was lost"));
+        helper.assertTrue(upgrade.isEmpty(), String.valueOf("the tier upgrade was not used up"));
+        helper.assertTrue(itemsOnTheGround(helper).isEmpty(), String.valueOf("something fell to the ground"));
         leave(helper, player);
         helper.succeed();
     }
@@ -129,9 +120,9 @@ public final class TierUpgradeGameTests {
         }
 
         helper.assertValueEqual(helper.getBlockState(CELL).getBlock(), NexusBlocks.QUANTUM_ENERGY_CELL.get(),
-                Component.literal("the block at the top of the line"));
-        helper.assertValueEqual(helper.getBlockEntity(CELL, EnergyCellBlockEntity.class).energyBuffer().stored(),
-                STORED, Component.literal("FE kept through three upgrades"));
+                String.valueOf("the block at the top of the line"));
+        helper.assertValueEqual(helper.<EnergyCellBlockEntity>getBlockEntity(CELL).energyBuffer().stored(),
+                STORED, String.valueOf("FE kept through three upgrades"));
         leave(helper, player);
         helper.succeed();
     }
@@ -143,10 +134,10 @@ public final class TierUpgradeGameTests {
 
         final InteractionResult result = use(helper, player, upgrade, true);
 
-        helper.assertFalse(result.consumesAction(), Component.literal("a tier was skipped"));
+        helper.assertFalse(result.consumesAction(), String.valueOf("a tier was skipped"));
         helper.assertValueEqual(helper.getBlockState(CELL).getBlock(), NexusBlocks.BASIC_ENERGY_CELL.get(),
-                Component.literal("the block after a refused upgrade"));
-        helper.assertValueEqual(upgrade.getCount(), 1, Component.literal("a refused upgrade is not used up"));
+                String.valueOf("the block after a refused upgrade"));
+        helper.assertValueEqual(upgrade.getCount(), 1, String.valueOf("a refused upgrade is not used up"));
         leave(helper, player);
         helper.succeed();
     }
@@ -158,10 +149,10 @@ public final class TierUpgradeGameTests {
 
         final InteractionResult result = use(helper, player, upgrade, true);
 
-        helper.assertFalse(result.consumesAction(), Component.literal("a tier was repeated"));
+        helper.assertFalse(result.consumesAction(), String.valueOf("a tier was repeated"));
         helper.assertValueEqual(helper.getBlockState(CELL).getBlock(), NexusBlocks.ADVANCED_ENERGY_CELL.get(),
-                Component.literal("the block after a refused upgrade"));
-        helper.assertValueEqual(upgrade.getCount(), 1, Component.literal("a refused upgrade is not used up"));
+                String.valueOf("the block after a refused upgrade"));
+        helper.assertValueEqual(upgrade.getCount(), 1, String.valueOf("a refused upgrade is not used up"));
         leave(helper, player);
         helper.succeed();
     }
@@ -173,7 +164,7 @@ public final class TierUpgradeGameTests {
         use(helper, player, holding(player, NexusItems.ADVANCED_TIER_UPGRADE.get()), false);
 
         helper.assertValueEqual(helper.getBlockState(CELL).getBlock(), NexusBlocks.BASIC_ENERGY_CELL.get(),
-                Component.literal("the block after a click without sneaking"));
+                String.valueOf("the block after a click without sneaking"));
         leave(helper, player);
         helper.succeed();
     }
@@ -186,8 +177,8 @@ public final class TierUpgradeGameTests {
         use(helper, player, upgrade, true);
 
         helper.assertValueEqual(helper.getBlockState(CELL).getBlock(), NexusBlocks.ADVANCED_ENERGY_CELL.get(),
-                Component.literal("the block after the upgrade in creative"));
-        helper.assertValueEqual(upgrade.getCount(), 1, Component.literal("a creative player keeps the upgrade"));
+                String.valueOf("the block after the upgrade in creative"));
+        helper.assertValueEqual(upgrade.getCount(), 1, String.valueOf("a creative player keeps the upgrade"));
         leave(helper, player);
         helper.succeed();
     }
@@ -201,14 +192,14 @@ public final class TierUpgradeGameTests {
         helper.startSequence()
                 .thenIdle(2)
                 .thenExecute(() -> helper.assertValueEqual(
-                        helper.getBlockEntity(NEXUS, NexusBlockEntity.class).energy().capacity(),
-                        EnergyCellTier.BASIC.capacity(), Component.literal("capacity of the network at first")))
+                        helper.<NexusBlockEntity>getBlockEntity(NEXUS).energy().capacity(),
+                        EnergyCellTier.BASIC.capacity(), String.valueOf("capacity of the network at first")))
                 .thenExecute(() -> useAt(helper, player, CABLE.east(),
                         holding(player, NexusItems.ADVANCED_TIER_UPGRADE.get()), true))
                 .thenIdle(2)
                 .thenExecute(() -> helper.assertValueEqual(
-                        helper.getBlockEntity(NEXUS, NexusBlockEntity.class).energy().capacity(),
-                        EnergyCellTier.ADVANCED.capacity(), Component.literal("capacity of the network after")))
+                        helper.<NexusBlockEntity>getBlockEntity(NEXUS).energy().capacity(),
+                        EnergyCellTier.ADVANCED.capacity(), String.valueOf("capacity of the network after")))
                 .thenExecute(() -> leave(helper, player))
                 .thenSucceed();
     }
@@ -225,25 +216,25 @@ public final class TierUpgradeGameTests {
                 .thenExecute(() -> shutStrangersOut(helper))
                 .thenExecute(() -> useAt(helper, stranger, CABLE.east(), upgrade, true))
                 .thenExecute(() -> helper.assertValueEqual(helper.getBlockState(CABLE.east()).getBlock(),
-                        NexusBlocks.BASIC_ENERGY_CELL.get(), Component.literal("a stranger upgraded a cell")))
+                        NexusBlocks.BASIC_ENERGY_CELL.get(), String.valueOf("a stranger upgraded a cell")))
                 .thenExecute(() -> helper.assertValueEqual(upgrade.getCount(), 1,
-                        Component.literal("a refused upgrade is not used up")))
+                        String.valueOf("a refused upgrade is not used up")))
                 .thenExecute(() -> leave(helper, stranger))
                 .thenSucceed();
     }
 
     private static void shutStrangersOut(final GameTestHelper helper) {
-        final NexusBlockEntity nexus = helper.getBlockEntity(NEXUS, NexusBlockEntity.class);
+        final NexusBlockEntity nexus = helper.<NexusBlockEntity>getBlockEntity(NEXUS);
         helper.assertValueEqual(nexus.security().apply(Editor.operator(OWNER), new SecurityEdit.Claim("Owner")),
-                EditResult.APPLIED, Component.literal("claiming the network"));
+                EditResult.APPLIED, String.valueOf("claiming the network"));
         helper.assertValueEqual(
                 nexus.security().apply(Editor.player(OWNER), new SecurityEdit.ChangeDefaultRole(Role.BLOCKED)),
-                EditResult.APPLIED, Component.literal("shutting strangers out"));
+                EditResult.APPLIED, String.valueOf("shutting strangers out"));
     }
 
     private static EnergyCellBlockEntity filledBasicCell(final GameTestHelper helper) {
         place(helper, CELL, NexusBlocks.BASIC_ENERGY_CELL.get().defaultBlockState());
-        final EnergyCellBlockEntity cell = helper.getBlockEntity(CELL, EnergyCellBlockEntity.class);
+        final EnergyCellBlockEntity cell = helper.<EnergyCellBlockEntity>getBlockEntity(CELL);
         for (long filled = 0; filled < STORED; filled += EnergyCellTier.BASIC.maxTransfer()) {
             cell.energyBuffer().insert(EnergyCellTier.BASIC.maxTransfer(), Action.EXECUTE);
         }

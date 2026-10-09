@@ -19,17 +19,12 @@ import com.morphengine.nexus.resource.ItemKey;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -40,8 +35,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -53,7 +49,7 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = Nexus.MOD_ID)
 public final class ProbeGameTests {
 
-    private static final Identifier PLATFORM = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
+    private static final ResourceLocation PLATFORM = ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "platform");
     private static final int MAX_TICKS = 200;
     private static final BlockPos NEXUS = new BlockPos(1, 1, 1);
     private static final BlockPos CELL = NEXUS.south();
@@ -78,37 +74,32 @@ public final class ProbeGameTests {
     }
 
     @SubscribeEvent
-    static void registerFunctions(final RegisterEvent event) {
-        event.register(Registries.TEST_FUNCTION, helper -> TESTS.forEach(
-                (name, test) -> helper.register(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name), test)));
+    static void registerTests(final RegisterGameTestsEvent event) {
+        event.register(ProbeGameTests.class);
     }
 
-    @SubscribeEvent
-    static void registerTests(final RegisterGameTestsEvent event) {
-        final Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
-                Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "probe"), new TestEnvironmentDefinition.AllOf());
-        for (String name : TESTS.keySet()) {
-            final Identifier id = Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name);
-            event.registerTest(id, new FunctionGameTestInstance(
-                    ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, PLATFORM, MAX_TICKS, 0, true)));
-        }
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        final List<TestFunction> functions = new ArrayList<>();
+        TESTS.forEach((name, test) -> functions.add(new TestFunction(
+                "defaultBatch", Nexus.MOD_ID + ":" + name, PLATFORM.toString(), MAX_TICKS, 0, true, test)));
+        return functions;
     }
 
     private static void placerReport(final GameTestHelper helper) {
         place(helper, LONELY, NexusBlocks.PLACER.get().defaultBlockState());
-        final TransferDeviceBlockEntity placer = helper.getBlockEntity(LONELY, TransferDeviceBlockEntity.class);
+        final TransferDeviceBlockEntity placer = helper.<TransferDeviceBlockEntity>getBlockEntity(LONELY);
         placer.changeSettings(placer.settings()
                 .withFilter(FilterSlots.EMPTY.with(0, ItemKey.of(new ItemStack(Items.STONE)))));
 
         final ProbeReport report = reportOf(helper, LONELY);
 
         helper.assertTrue(hasText(report, "tooltip.nexus.probe.act.placer.blocks"),
-                Component.literal("a Placer does not say it places blocks: " + report.lines()));
+                String.valueOf("a Placer does not say it places blocks: " + report.lines()));
         helper.assertTrue(hasText(report, "tooltip.nexus.probe.filter.only"),
-                Component.literal("a Placer does not name what it places: " + report.lines()));
+                String.valueOf("a Placer does not name what it places: " + report.lines()));
         helper.assertFalse(hasText(report, "gui.nexus.transfer.resource"),
-                Component.literal("a Placer still says what it transfers: " + report.lines()));
+                String.valueOf("a Placer still says what it transfers: " + report.lines()));
         helper.succeed();
     }
 
@@ -118,9 +109,9 @@ public final class ProbeGameTests {
         final ProbeReport report = reportOf(helper, LONELY);
 
         helper.assertTrue(hasText(report, "tooltip.nexus.probe.act.remover.blocks"),
-                Component.literal("a Remover does not say it breaks blocks: " + report.lines()));
+                String.valueOf("a Remover does not say it breaks blocks: " + report.lines()));
         helper.assertTrue(hasText(report, "tooltip.nexus.probe.filter.anything"),
-                Component.literal("a Remover without a filter does not say it takes anything: " + report.lines()));
+                String.valueOf("a Remover without a filter does not say it takes anything: " + report.lines()));
         helper.succeed();
     }
 
@@ -130,7 +121,7 @@ public final class ProbeGameTests {
         final ProbeReport report = reportOf(helper, LONELY);
 
         helper.assertFalse(report.lines().stream().anyMatch(ProbeLine.Progress.class::isInstance),
-                Component.literal("a generator of fluid shows a burn bar: " + report.lines()));
+                String.valueOf("a generator of fluid shows a burn bar: " + report.lines()));
         helper.succeed();
     }
 
@@ -138,38 +129,38 @@ public final class ProbeGameTests {
         buildNetwork(helper);
         place(helper, DEVICE, NexusBlocks.machineTiers(MachineKind.CRUSHER).getFirst().get().defaultBlockState()
                 .setValue(MachineBlock.FACING, Direction.NORTH));
-        seed(helper.getBlockEntity(DEVICE, MachineBlockEntity.class), STORED_FE, StoredFluids.EMPTY);
+        seed(helper.<MachineBlockEntity>getBlockEntity(DEVICE), STORED_FE, StoredFluids.EMPTY);
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
-                        helper.getBlockEntity(DEVICE, MachineBlockEntity.class).networkBadge() != null,
-                        Component.literal("the machine is not in the network")))
+                        helper.<MachineBlockEntity>getBlockEntity(DEVICE).networkBadge() != null,
+                        String.valueOf("the machine is not in the network")))
                 .thenExecute(() -> {
                     final ProbeReport report = reportOf(helper, DEVICE);
                     helper.assertTrue(report.lines().stream().anyMatch(line -> line instanceof ProbeLine.Energy energy
                                     && energy.stored() >= STORED_FE && energy.capacity() == capacityOf(helper)),
-                            Component.literal("no energy bar with what the machine holds: " + report.lines()));
+                            String.valueOf("no energy bar with what the machine holds: " + report.lines()));
                     helper.assertTrue(hasText(report, "gui.nexus.network"),
-                            Component.literal("the network is not named: " + report.lines()));
+                            String.valueOf("the network is not named: " + report.lines()));
                     helper.assertFalse(hasText(report, "gui.nexus.terminal.no_network"),
-                            Component.literal("a machine in a network says it has none"));
+                            String.valueOf("a machine in a network says it has none"));
                 })
                 .thenSucceed();
     }
 
     private static void generatorReport(final GameTestHelper helper) {
         place(helper, LONELY, NexusBlocks.GENERATORS.get(GeneratorKind.LAVA).get().defaultBlockState());
-        seed(helper.getBlockEntity(LONELY, GeneratorBlockEntity.class), STORED_FE,
+        seed(helper.<GeneratorBlockEntity>getBlockEntity(LONELY), STORED_FE,
                 new StoredFluids(List.of(new FluidStack(Fluids.LAVA, STORED_FLUID))));
 
         final ProbeReport report = reportOf(helper, LONELY);
 
         helper.assertTrue(report.lines().stream().anyMatch(line -> line instanceof ProbeLine.Tank tank
                         && tank.contents().is(Fluids.LAVA) && tank.contents().getAmount() == STORED_FLUID),
-                Component.literal("no tank with the lava: " + report.lines()));
+                String.valueOf("no tank with the lava: " + report.lines()));
         helper.assertTrue(report.lines().stream().anyMatch(line -> line instanceof ProbeLine.Energy energy
                         && energy.stored() == STORED_FE),
-                Component.literal("no energy bar: " + report.lines()));
+                String.valueOf("no energy bar: " + report.lines()));
         helper.succeed();
     }
 
@@ -178,14 +169,14 @@ public final class ProbeGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
-                        helper.getBlockEntity(NEXUS, NexusBlockEntity.class).statistics().energyCapacity() > 0,
-                        Component.literal("the network has not counted its energy")))
+                        helper.<NexusBlockEntity>getBlockEntity(NEXUS).statistics().energyCapacity() > 0,
+                        String.valueOf("the network has not counted its energy")))
                 .thenExecute(() -> {
                     final ProbeReport report = reportOf(helper, NEXUS);
                     helper.assertTrue(report.lines().stream().anyMatch(ProbeLine.Energy.class::isInstance),
-                            Component.literal("the Nexus shows no energy: " + report.lines()));
+                            String.valueOf("the Nexus shows no energy: " + report.lines()));
                     helper.assertTrue(hasText(report, "gui.nexus.network"),
-                            Component.literal("the Nexus does not name its network: " + report.lines()));
+                            String.valueOf("the Nexus does not name its network: " + report.lines()));
                 })
                 .thenSucceed();
     }
@@ -210,22 +201,22 @@ public final class ProbeGameTests {
         final ProbeReport report = reportOf(helper, LONELY);
 
         helper.assertTrue(hasText(report, "gui.nexus.terminal.no_network"),
-                Component.literal("a Puller alone does not say it has no network: " + report.lines()));
+                String.valueOf("a Puller alone does not say it has no network: " + report.lines()));
         helper.assertFalse(hasText(report, "gui.nexus.standalone"),
-                Component.literal("a Puller alone says it works standalone: " + report.lines()));
+                String.valueOf("a Puller alone says it works standalone: " + report.lines()));
         helper.succeed();
     }
 
     private static void assertWorksAlone(final GameTestHelper helper, final ProbeReport report, final String what) {
         helper.assertTrue(hasText(report, "gui.nexus.standalone"),
-                Component.literal(what + " alone does not say it works on its own: " + report.lines()));
+                String.valueOf(what + " alone does not say it works on its own: " + report.lines()));
         helper.assertFalse(hasText(report, "gui.nexus.terminal.no_network"),
-                Component.literal(what + " alone says it is missing a network: " + report.lines()));
+                String.valueOf(what + " alone says it is missing a network: " + report.lines()));
     }
 
     private static void reportSurvivesWire(final GameTestHelper helper) {
         place(helper, LONELY, NexusBlocks.GENERATORS.get(GeneratorKind.LAVA).get().defaultBlockState());
-        seed(helper.getBlockEntity(LONELY, GeneratorBlockEntity.class), STORED_FE,
+        seed(helper.<GeneratorBlockEntity>getBlockEntity(LONELY), STORED_FE,
                 new StoredFluids(List.of(new FluidStack(Fluids.LAVA, STORED_FLUID))));
         final ProbeReport sent = reportOf(helper, LONELY);
         final RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(),
@@ -235,15 +226,15 @@ public final class ProbeGameTests {
         final ProbeReport received = ProbeReport.STREAM_CODEC.decode(buffer);
 
         helper.assertValueEqual(received.lines().size(), sent.lines().size(),
-                Component.literal("lines after the wire"));
+                String.valueOf("lines after the wire"));
         helper.assertTrue(received.lines().stream().anyMatch(line -> line instanceof ProbeLine.Tank tank
                         && tank.contents().is(Fluids.LAVA) && tank.contents().getAmount() == STORED_FLUID),
-                Component.literal("the tank is gone after the wire: " + received.lines()));
+                String.valueOf("the tank is gone after the wire: " + received.lines()));
         helper.succeed();
     }
 
     private static ProbeReport reportOf(final GameTestHelper helper, final BlockPos pos) {
-        return BlockProbes.of(helper.getBlockEntity(pos, BlockEntity.class));
+        return BlockProbes.of(helper.<BlockEntity>getBlockEntity(pos));
     }
 
     private static boolean hasText(final ProbeReport report, final String key) {
@@ -253,7 +244,7 @@ public final class ProbeGameTests {
     }
 
     private static long capacityOf(final GameTestHelper helper) {
-        return helper.getBlockEntity(DEVICE, MachineBlockEntity.class).machine().energy().capacity();
+        return helper.<MachineBlockEntity>getBlockEntity(DEVICE).machine().energy().capacity();
     }
 
     private static void buildNetwork(final GameTestHelper helper) {

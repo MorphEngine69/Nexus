@@ -4,7 +4,7 @@ import com.morphengine.nexus.analysis.AnalyserLine;
 import com.morphengine.nexus.api.network.NetworkStatistics;
 import com.morphengine.nexus.menu.AnalyserMenu;
 import com.morphengine.nexus.menu.AnalyserView;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -46,10 +46,10 @@ public final class AnalyserScreen extends PanelScreen<AnalyserMenu> {
 
     @Override
     protected void extractPanel(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final int mouseX, final int mouseY) {
+            final GuiGraphics graphics, final PanelStyle style, final int mouseX, final int mouseY) {
         final AnalyserView view = getMenu().view();
         if (view.kind() == AnalyserView.Kind.NOTHING) {
-            graphics.text(font, Component.translatable("gui.nexus.access.loading"), leftPos + PanelStyle.PADDING,
+            graphics.drawString(font, Component.translatable("gui.nexus.access.loading"), leftPos + PanelStyle.PADDING,
                     topPos + FIRST_LINE_TOP, PanelStyle.TEXT_DIM, false);
             return;
         }
@@ -70,7 +70,7 @@ public final class AnalyserScreen extends PanelScreen<AnalyserMenu> {
     }
 
     private void drawLines(
-            final GuiGraphicsExtractor graphics, final PanelStyle style, final List<AnalyserLine> lines) {
+            final GuiGraphics graphics, final PanelStyle style, final List<AnalyserLine> lines) {
         scroll = Math.max(0, Math.min(scroll, lines.size() - VISIBLE_LINES));
         final int left = leftPos + PanelStyle.PADDING;
         final int width = imageWidth - PanelStyle.PADDING * 2;
@@ -78,19 +78,19 @@ public final class AnalyserScreen extends PanelScreen<AnalyserMenu> {
             final AnalyserLine line = lines.get(scroll + row);
             final int y = topPos + FIRST_LINE_TOP + row * LINE_HEIGHT;
             if (line.isHeading()) {
-                graphics.text(font, line.label(), left, y, style.accent(), false);
+                graphics.drawString(font, line.label(), left, y, style.accent(), false);
                 continue;
             }
             final int labelWidth = width * LABEL_SHARE_PERCENT / PERCENT;
-            graphics.text(font, font.plainSubstrByWidth(line.label().getString(), labelWidth), left, y,
+            graphics.drawString(font, font.plainSubstrByWidth(line.label().getString(), labelWidth), left, y,
                     PanelStyle.TEXT_DIM, false);
             final String value = font.plainSubstrByWidth(line.value().getString(), width - labelWidth + VALUE_GAP);
-            graphics.text(font, value, left + width - font.width(value), y, PanelStyle.TEXT_LIGHT, false);
+            graphics.drawString(font, value, left + width - font.width(value), y, PanelStyle.TEXT_LIGHT, false);
         }
         if (lines.size() > VISIBLE_LINES) {
             final String position = (scroll + 1) + "-" + Math.min(lines.size(), scroll + VISIBLE_LINES) + " / "
                     + lines.size();
-            graphics.text(font, position, left + width - font.width(position),
+            graphics.drawString(font, position, left + width - font.width(position),
                     topPos + FIRST_LINE_TOP - LINE_HEIGHT - 1, PanelStyle.TEXT_DIM, false);
         }
     }

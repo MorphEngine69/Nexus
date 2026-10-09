@@ -1,9 +1,0 @@
-{
-  "model": {
-    "type": "minecraft:special",
-    "base": "nexus:item/nexus_crystal_base",
-    "model": {
-      "type": "geckolib:geckolib"
-    }
-  }
-}

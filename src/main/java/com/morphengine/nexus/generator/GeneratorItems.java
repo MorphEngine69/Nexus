@@ -1,12 +1,11 @@
 package com.morphengine.nexus.generator;
 
+import com.morphengine.nexus.transfer.ItemResource;
 import com.morphengine.nexus.transport.SideMode;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
-import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Predicate;
@@ -18,9 +17,9 @@ import java.util.function.Predicate;
  */
 public final class GeneratorItems {
 
-    private final ResourceHandler<ItemResource> intake;
-    private final ResourceHandler<ItemResource> output;
-    private final ResourceHandler<ItemResource> both;
+    private final IItemHandler intake;
+    private final IItemHandler output;
+    private final IItemHandler both;
 
     /**
      * @param slot    the stacks of the input slot; the generator works on these very stacks
@@ -36,7 +35,7 @@ public final class GeneratorItems {
     /**
      * @return the handler for a side with {@code mode}, {@code null} when the side is closed
      */
-    public @Nullable ResourceHandler<ItemResource> handlerFor(final SideMode mode) {
+    public @Nullable IItemHandler handlerFor(final SideMode mode) {
         return switch (mode) {
             case CLOSED -> null;
             case INPUT -> intake;
@@ -54,10 +53,9 @@ public final class GeneratorItems {
     }
 
     /**
-     * The slot as a handler of the game. The superclass copies the list it is given, so the constructor puts the
-     * original back: the stacks are the slot the generator works on.
+     * The slot as a handler of the game. The stacks are the slot the generator works on.
      */
-    private static final class Stacks extends ItemStacksResourceHandler {
+    private static final class Stacks extends ItemStackHandler {
 
         private final Rules rules;
         private final SideMode mode;
@@ -65,31 +63,29 @@ public final class GeneratorItems {
 
         Stacks(final NonNullList<ItemStack> stacks, final Rules rules, final SideMode mode, final Runnable changed) {
             super(stacks);
-            this.stacks = stacks;
             this.rules = rules;
             this.mode = mode;
             this.changed = changed;
         }
 
         @Override
-        public boolean isValid(final int index, final ItemResource resource) {
-            return mode.allowsInput() && rules.takesIn().test(resource) && super.isValid(index, resource);
+        public boolean isItemValid(final int slot, final ItemStack stack) {
+            return mode.allowsInput() && rules.takesIn().test(ItemResource.of(stack));
         }
 
         @Override
-        protected int getCapacity(final int index, final ItemResource resource) {
-            return Math.min(rules.slotLimit(), super.getCapacity(index, resource));
+        public int getSlotLimit(final int slot) {
+            return Math.min(rules.slotLimit(), super.getSlotLimit(slot));
         }
 
         @Override
-        public int extract(
-                final int index, final ItemResource resource, final int amount, final TransactionContext transaction) {
-            return mode.allowsOutput() && rules.givesOut().test(resource)
-                    ? super.extract(index, resource, amount, transaction) : 0;
+        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
+            return mode.allowsOutput() && rules.givesOut().test(ItemResource.of(getStackInSlot(slot)))
+                    ? super.extractItem(slot, amount, simulate) : ItemStack.EMPTY;
         }
 
         @Override
-        protected void onContentsChanged(final int index, final ItemStack previousContents) {
+        protected void onContentsChanged(final int slot) {
             changed.run();
         }
     }

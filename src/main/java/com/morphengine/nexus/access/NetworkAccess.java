@@ -54,8 +54,8 @@ public final class NetworkAccess {
      * Tells {@code player}, above the hotbar, that they lack {@code permission}.
      */
     public static void refuse(final Player player, final Permission permission) {
-        player.sendOverlayMessage(Component.translatable("gui.nexus.access.denied", nameOf(permission))
-                .withStyle(ChatFormatting.RED));
+        player.displayClientMessage(Component.translatable("gui.nexus.access.denied", nameOf(permission))
+                .withStyle(ChatFormatting.RED), true);
     }
 
     public static Component nameOf(final Permission permission) {

@@ -1,8 +1,12 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "nexus:superior_crusher",
-    "nexus:quantum_tier_upgrade"
+    {
+      "item": "nexus:superior_crusher"
+    },
+    {
+      "item": "nexus:quantum_tier_upgrade"
+    }
   ],
   "result": {
     "id": "nexus:quantum_crusher"

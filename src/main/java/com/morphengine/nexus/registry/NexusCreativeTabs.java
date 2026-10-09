@@ -15,10 +15,10 @@ import com.morphengine.nexus.registry.NexusMetals.MetalSet;
 import com.morphengine.nexus.upgrade.UpgradeItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.equipment.ArmorType;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -56,8 +56,8 @@ public final class NexusCreativeTabs {
                     })
                     .build());
 
-    private static final List<ArmorType> ARMOR_ORDER =
-            List.of(ArmorType.HELMET, ArmorType.CHESTPLATE, ArmorType.LEGGINGS, ArmorType.BOOTS);
+    private static final List<ArmorItem.Type> ARMOR_ORDER =
+            List.of(ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS);
 
     private NexusCreativeTabs() {
     }
@@ -180,7 +180,7 @@ public final class NexusCreativeTabs {
             for (ToolPart tool : ToolPart.values()) {
                 output.accept(set.tools().get(tool).get());
             }
-            for (ArmorType piece : ARMOR_ORDER) {
+            for (ArmorItem.Type piece : ARMOR_ORDER) {
                 output.accept(set.armor().get(piece).get());
             }
         }

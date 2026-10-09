@@ -7,7 +7,7 @@ import com.morphengine.nexus.processing.CrushingRecipe;
 import com.morphengine.nexus.processing.ExtractingRecipe;
 import com.morphengine.nexus.processing.PulverizingRecipe;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -45,6 +45,6 @@ public final class NexusRecipes {
 
     private static <T extends net.minecraft.world.item.crafting.Recipe<?>>
             DeferredHolder<RecipeType<?>, RecipeType<T>> type(final String name) {
-        return TYPES.register(name, () -> RecipeType.simple(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, name)));
+        return TYPES.register(name, () -> RecipeType.simple(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, name)));
     }
 }

@@ -1,6 +1,6 @@
 package com.morphengine.nexus.world;
 
-import net.minecraft.core.Registry;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -31,7 +31,8 @@ public record HarvestTool(int fortune, boolean silkTouch) {
      */
     ItemStack toStack(final ServerLevel level) {
         final ItemStack tool = new ItemStack(Items.NETHERITE_PICKAXE);
-        final Registry<Enchantment> enchantments = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        final HolderLookup.RegistryLookup<Enchantment> enchantments =
+                level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         if (silkTouch) {
             tool.enchant(enchantments.getOrThrow(Enchantments.SILK_TOUCH), 1);
         } else if (fortune > 0) {

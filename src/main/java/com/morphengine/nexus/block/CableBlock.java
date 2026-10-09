@@ -7,12 +7,11 @@ import com.morphengine.nexus.level.NetworkChanges;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
@@ -42,12 +41,14 @@ public final class CableBlock extends PipeBlock implements NetworkBlock, SimpleW
     /** The network has energy: the colored band in the groove glows. Set only by the server. */
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     private static final float THICKNESS = 5.0F;
+    private static final float PIXELS_PER_BLOCK = 16.0F;
+    private static final float APOTHEM = THICKNESS / 2 / PIXELS_PER_BLOCK;
 
     private final DyeColor color;
     private final Paint paint;
 
     public CableBlock(final DyeColor color, final BlockBehaviour.Properties properties) {
-        super(THICKNESS, properties);
+        super(APOTHEM, properties);
         this.color = color;
         this.paint = Paint.dye(color.getId());
         registerDefaultState(SideConnections.detached(stateDefinition.any())
@@ -105,15 +106,13 @@ public final class CableBlock extends PipeBlock implements NetworkBlock, SimpleW
     @Override
     protected BlockState updateShape(
             final BlockState state,
-            final LevelReader level,
-            final ScheduledTickAccess ticks,
-            final BlockPos pos,
             final Direction directionToNeighbour,
-            final BlockPos neighbourPos,
             final BlockState neighbourState,
-            final RandomSource random) {
+            final LevelAccessor level,
+            final BlockPos pos,
+            final BlockPos neighbourPos) {
         if (state.getValue(WATERLOGGED)) {
-            ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
         final boolean attached = joins(state, directionToNeighbour, neighbourState);
         return SideConnections.withSide(state, directionToNeighbour, attached);
@@ -128,10 +127,13 @@ public final class CableBlock extends PipeBlock implements NetworkBlock, SimpleW
     }
 
     @Override
-    protected void affectNeighborsAfterRemoval(
-            final BlockState state, final ServerLevel level, final BlockPos pos, final boolean movedByPiston) {
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
-        NetworkChanges.blockRemoved(level, pos);
+    protected void onRemove(
+            final BlockState state, final Level level, final BlockPos pos, final BlockState newState,
+            final boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
+            NetworkChanges.blockRemoved(serverLevel, pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
@@ -140,7 +142,7 @@ public final class CableBlock extends PipeBlock implements NetworkBlock, SimpleW
     }
 
     @Override
-    protected boolean propagatesSkylightDown(final BlockState state) {
+    protected boolean propagatesSkylightDown(final BlockState state, final BlockGetter level, final BlockPos pos) {
         return !state.getValue(WATERLOGGED);
     }
 

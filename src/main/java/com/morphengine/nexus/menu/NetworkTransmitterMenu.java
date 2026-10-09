@@ -51,7 +51,7 @@ public final class NetworkTransmitterMenu extends DeviceMenu<NetworkTransmitterB
         this.upgrades = viewer() != null && transmitter != null ? transmitter.upgrades() : new UpgradeContainer(
                 NetworkTransmitterBlockEntity.UPGRADE_SLOTS, NetworkTransmitterBlockEntity.UPGRADE_LIMITS, () -> { });
         addSlot(new UpgradeSlot(upgrades, 0, CARD_SLOT_X, UPGRADE_SLOT_Y));
-        addStandardInventorySlots(inventory, INVENTORY_LEFT, INVENTORY_TOP);
+        InventorySlots.add(this::addSlot, inventory, INVENTORY_LEFT, INVENTORY_TOP);
         addDataSlot(status);
     }
 

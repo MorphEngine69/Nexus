@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 public record NetworkBadgePayload(int containerId, @Nullable NetworkBadge badge) implements CustomPacketPayload {
 
     public static final Type<NetworkBadgePayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "network_badge"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "network_badge"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, NetworkBadgePayload> STREAM_CODEC =
             StreamCodec.composite(

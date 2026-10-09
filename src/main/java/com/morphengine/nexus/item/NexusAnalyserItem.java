@@ -15,11 +15,11 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -41,7 +41,7 @@ public final class NexusAnalyserItem extends Item {
             return target == null ? InteractionResult.PASS : InteractionResult.SUCCESS;
         }
         if (AnalyserViews.of(target, level.getGameTime()).kind() == AnalyserView.Kind.NOTHING) {
-            player.sendOverlayMessage(Component.translatable("item.nexus.nexus_analyser.nothing"));
+            player.displayClientMessage(Component.translatable("item.nexus.nexus_analyser.nothing"), true);
             return InteractionResult.FAIL;
         }
         if (target instanceof Secured secured && !NetworkAccess.permits(player, secured, Permission.OPEN)) {
@@ -57,8 +57,9 @@ public final class NexusAnalyserItem extends Item {
     @Override
     @SuppressWarnings("deprecation")
     public void appendHoverText(
-            final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display,
-            final Consumer<Component> builder, final TooltipFlag flag) {
+            final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip,
+            final TooltipFlag flag) {
+        final Consumer<Component> builder = tooltip::add;
         builder.accept(Component.translatable("tooltip.nexus.nexus_analyser").withStyle(ChatFormatting.GRAY));
     }
 }

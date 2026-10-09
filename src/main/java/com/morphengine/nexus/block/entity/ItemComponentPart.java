@@ -1,6 +1,5 @@
 package com.morphengine.nexus.block.entity;
 
-import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 
 /**
@@ -18,5 +17,5 @@ public interface ItemComponentPart {
     /**
      * Takes in what the item the device was put up from carries.
      */
-    void applyFrom(DataComponentGetter components);
+    void applyFrom(ComponentSource components);
 }

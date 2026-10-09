@@ -67,7 +67,7 @@ public final class DeviceBinding<B extends BlockEntity & MenuHost> {
      */
     public boolean stillValid(final Player player) {
         return blockEntity != null && access.evaluate((level, at) -> level.getBlockState(at).is(
-                blockEntity.getBlockState().getBlock()) && player.isWithinBlockInteractionRange(at, REACH), true)
+                blockEntity.getBlockState().getBlock()) && player.canInteractWithBlock(at, REACH), true)
                 && permits(player, Permission.OPEN);
     }
 

@@ -1,16 +1,22 @@
 package com.morphengine.nexus.registry;
 
+import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.metal.BlockFeel;
 import com.morphengine.nexus.metal.MetalKind;
 import com.morphengine.nexus.metal.MetalPart;
 import com.morphengine.nexus.metal.ToolPart;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +30,10 @@ import java.util.Map;
  * the armor.
  */
 public final class NexusMetals {
+
+    /** The armor materials of the metals; the game asks for them by registry. */
+    public static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS =
+            DeferredRegister.create(Registries.ARMOR_MATERIAL, Nexus.MOD_ID);
 
     /** Every metal and what it made, the softest first. */
     public static final Map<MetalKind, MetalSet> SETS = registerAll();
@@ -60,28 +70,29 @@ public final class NexusMetals {
             ores.add(registerOre("deepslate_" + metal.id() + "_ore", metal, metal.blocks().ore().inDeepslate()));
         }
         final DeferredBlock<Block> storage = NexusBlocks.BLOCKS.registerBlock(
-                metal.id() + "_block", Block::new, properties -> metal.blocks().storage().apply(properties));
-        return new MetalSet(metal, registerParts(metal), registerTools(metal), registerArmor(metal),
+                metal.id() + "_block", Block::new, metal.blocks().storage().apply(BlockBehaviour.Properties.of()));
+        final DeferredHolder<ArmorMaterial, ArmorMaterial> material =
+                ARMOR_MATERIALS.register(metal.id(), () -> metal.armor().material(metal.id()));
+        return new MetalSet(metal, registerParts(metal), registerTools(metal), registerArmor(metal, material),
                 List.copyOf(ores), ores.stream().map(ore -> registerBlockItem(ore, metal)).toList(),
                 storage, registerBlockItem(storage, metal));
     }
 
     private static DeferredBlock<Block> registerOre(final String id, final MetalKind metal, final BlockFeel feel) {
         return NexusBlocks.BLOCKS.registerBlock(id,
-                properties -> new DropExperienceBlock(metal.blocks().experience(), properties), feel::apply);
+                properties -> new DropExperienceBlock(metal.blocks().experience(), properties),
+                feel.apply(BlockBehaviour.Properties.of()));
     }
 
     private static DeferredItem<BlockItem> registerBlockItem(final DeferredBlock<Block> block, final MetalKind metal) {
-        return NexusItems.ITEMS.registerSimpleBlockItem(block, metal::shape);
+        return NexusItems.ITEMS.registerSimpleBlockItem(block, metal.shape(new Item.Properties()));
     }
 
     private static Map<MetalPart, DeferredItem<Item>> registerParts(final MetalKind metal) {
         final Map<MetalPart, DeferredItem<Item>> parts = new EnumMap<>(MetalPart.class);
         for (MetalPart part : MetalPart.values()) {
             parts.put(part, NexusItems.ITEMS.registerItem(part.idFor(metal),
-                    properties -> new Item(part == MetalPart.INGOT
-                            ? metal.shape(properties).trimMaterial(metal.trimMaterial())
-                            : metal.shape(properties))));
+                    properties -> new Item(metal.shape(properties))));
         }
         return Collections.unmodifiableMap(parts);
     }
@@ -95,11 +106,14 @@ public final class NexusMetals {
         return Collections.unmodifiableMap(tools);
     }
 
-    private static Map<ArmorType, DeferredItem<Item>> registerArmor(final MetalKind metal) {
-        final Map<ArmorType, DeferredItem<Item>> armor = new EnumMap<>(ArmorType.class);
-        for (ArmorType piece : List.of(ArmorType.HELMET, ArmorType.CHESTPLATE, ArmorType.LEGGINGS, ArmorType.BOOTS)) {
+    private static Map<ArmorItem.Type, DeferredItem<Item>> registerArmor(
+            final MetalKind metal, final DeferredHolder<ArmorMaterial, ArmorMaterial> material) {
+        final Map<ArmorItem.Type, DeferredItem<Item>> armor = new EnumMap<>(ArmorItem.Type.class);
+        for (ArmorItem.Type piece : List.of(ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS,
+                ArmorItem.Type.BOOTS)) {
             armor.put(piece, NexusItems.ITEMS.registerItem(metal.id() + "_" + piece.getName(),
-                    properties -> new Item(metal.shape(properties).humanoidArmor(metal.armor(), piece))));
+                    properties -> new ArmorItem(material, piece, metal.shape(properties)
+                            .durability(piece.getDurability(metal.armor().durabilityFactor())))));
         }
         return Collections.unmodifiableMap(armor);
     }
@@ -111,7 +125,7 @@ public final class NexusMetals {
      * @param oreItems  the items of {@code ores}, in the same order
      */
     public record MetalSet(MetalKind kind, Map<MetalPart, DeferredItem<Item>> parts,
-                           Map<ToolPart, DeferredItem<Item>> tools, Map<ArmorType, DeferredItem<Item>> armor,
+                           Map<ToolPart, DeferredItem<Item>> tools, Map<ArmorItem.Type, DeferredItem<Item>> armor,
                            List<DeferredBlock<Block>> ores, List<DeferredItem<BlockItem>> oreItems,
                            DeferredBlock<Block> storageBlock, DeferredItem<BlockItem> storageBlockItem) {
 

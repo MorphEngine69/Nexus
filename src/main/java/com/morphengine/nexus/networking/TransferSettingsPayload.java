@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Server to client: the settings of the Puller or Pusher whose panel the player
@@ -15,7 +15,7 @@ import net.minecraft.resources.Identifier;
 public record TransferSettingsPayload(int containerId, TransferSettings settings) implements CustomPacketPayload {
 
     public static final Type<TransferSettingsPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Nexus.MOD_ID, "transfer_settings"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Nexus.MOD_ID, "transfer_settings"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, TransferSettingsPayload> STREAM_CODEC =
             StreamCodec.composite(

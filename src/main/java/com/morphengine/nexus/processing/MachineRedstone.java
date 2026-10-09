@@ -3,9 +3,9 @@ package com.morphengine.nexus.processing;
 import com.morphengine.nexus.api.transport.RedstoneMode;
 import com.morphengine.nexus.machine.Machine;
 import com.morphengine.nexus.machine.MachineLine;
+import com.morphengine.nexus.nbt.ValueInput;
+import com.morphengine.nexus.nbt.ValueOutput;
 import com.morphengine.nexus.transport.RedstoneGate;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.Objects;
 

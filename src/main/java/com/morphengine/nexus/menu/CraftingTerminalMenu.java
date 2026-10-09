@@ -16,7 +16,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
@@ -25,6 +25,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.GameRules;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -68,7 +69,7 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
         for (int slot = 0; slot < TerminalCraftingGrid.SIDE * TerminalCraftingGrid.SIDE; slot++) {
             addSlot(new Slot(grid, slot, 0, 0));
         }
-        addStandardInventorySlots(inventory, 0, 0);
+        InventorySlots.add(this::addSlot, inventory, 0, 0);
         addDataSlot(terminal.access());
         slotsChanged(grid);
     }
@@ -117,14 +118,21 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
         }
     }
 
+    private static boolean mayCraft(
+            final ServerPlayer serverPlayer, final ServerLevel level, final RecipeHolder<CraftingRecipe> recipe) {
+        return !level.getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
+                || serverPlayer.getRecipeBook().contains(recipe);
+    }
+
     private void updateResult(final ServerPlayer serverPlayer) {
-        final ServerLevel level = serverPlayer.level();
+        final ServerLevel level = serverPlayer.serverLevel();
         final CraftingInput input = grid.asCraftInput();
         ItemStack crafted = ItemStack.EMPTY;
         final Optional<RecipeHolder<CraftingRecipe>> recipe =
                 level.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level);
-        if (recipe.isPresent() && result.setRecipeUsed(serverPlayer, recipe.get())) {
-            final ItemStack assembled = recipe.get().value().assemble(input);
+        if (recipe.isPresent() && mayCraft(serverPlayer, level, recipe.get())) {
+            result.setRecipeUsed(recipe.get());
+            final ItemStack assembled = recipe.get().value().assemble(input, level.registryAccess());
             if (assembled.isItemEnabled(level.enabledFeatures())) {
                 crafted = assembled;
             }
@@ -158,7 +166,7 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
             return like.copyWithCount(1);
         }
         final Inventory inventory = serverPlayer.getInventory();
-        for (int slot = 0; slot < inventory.getNonEquipmentItems().size(); slot++) {
+        for (int slot = 0; slot < inventory.items.size(); slot++) {
             if (ItemStack.isSameItemSameComponents(inventory.getItem(slot), like)) {
                 return inventory.removeItem(slot, 1);
             }
@@ -230,7 +238,7 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
     private ItemStack craftIntoInventory(final Player clicker, final Slot slot) {
         final ItemStack stack = slot.getItem();
         final ItemStack original = stack.copy();
-        stack.getItem().onCraftedBy(stack, clicker);
+        stack.getItem().onCraftedBy(stack, clicker.level(), clicker);
         if (!moveItemStackTo(stack, INVENTORY_START, slots.size(), true)) {
             return ItemStack.EMPTY;
         }
@@ -244,7 +252,7 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
     }
 
     @Override
-    public void clicked(final int slotIndex, final int buttonNum, final ContainerInput input, final Player clicker) {
+    public void clicked(final int slotIndex, final int buttonNum, final ClickType input, final Player clicker) {
         if (SlotGuard.allows(this, slotIndex, input, clicker)) {
             super.clicked(slotIndex, buttonNum, input, clicker);
         }

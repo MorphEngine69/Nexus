@@ -1,6 +1,8 @@
 {
   "type": "nexus:crushing",
-  "ingredient": "minecraft:short_grass",
+  "ingredient": {
+    "item": "minecraft:short_grass"
+  },
   "result": {
     "id": "nexus:biomass"
   }
