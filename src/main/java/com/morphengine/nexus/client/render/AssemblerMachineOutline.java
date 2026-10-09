@@ -4,6 +4,7 @@ import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.AssemblerBlock;
 import com.morphengine.nexus.block.NetworkDeviceBlock;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
@@ -42,18 +43,16 @@ public final class AssemblerMachineOutline {
             return;
         }
         final int color = ARGB.opaque(assembler.getValue(NetworkDeviceBlock.NETWORK_COLOR).getTextureDiffuseColor());
-        event.addCustomRenderer((state, collector, poseStack, levelState) -> {
+        event.addCustomRenderer((state, bufferSource, poseStack, isTranslucent, levelState) -> {
             final Vec3 camera = levelState.cameraRenderState.pos;
-            poseStack.pushPose();
-            poseStack.translate(machine.getX() - camera.x, machine.getY() - camera.y, machine.getZ() - camera.z);
-            collector.submitShapeOutline(poseStack, shape, RenderTypes.lines(), color, lineWidth(),
-                    state.isTranslucent());
-            poseStack.popPose();
+            ShapeRenderer.renderShape(poseStack, bufferSource.getBuffer(RenderTypes.lines()), shape,
+                    machine.getX() - camera.x, machine.getY() - camera.y, machine.getZ() - camera.z, color,
+                    lineWidth());
             return false;
         });
     }
 
     private static float lineWidth() {
-        return Minecraft.getInstance().gameRenderer.gameRenderState().windowRenderState.appropriateLineWidth;
+        return Minecraft.getInstance().gameRenderer.getGameRenderState().windowRenderState.appropriateLineWidth;
     }
 }

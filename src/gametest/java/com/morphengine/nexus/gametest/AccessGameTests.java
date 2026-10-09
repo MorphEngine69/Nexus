@@ -39,7 +39,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -240,7 +240,7 @@ public final class AccessGameTests {
                 .thenIdle(1)
                 .thenExecute(() -> claim(helper))
                 .thenExecute(() -> helper.getLevel().destroyBlock(helper.absolutePos(NEXUS), true))
-                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityTypes.ITEM)))
+                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityType.ITEM)))
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertValueEqual(nexusAt(helper, ELSEWHERE).security().owner().orElse(null),
                         OWNER, Component.literal("owner of the moved network")))
@@ -255,7 +255,7 @@ public final class AccessGameTests {
                 .thenIdle(1)
                 .thenExecute(() -> claim(helper))
                 .thenExecute(() -> helper.getLevel().destroyBlock(helper.absolutePos(NEXUS), true))
-                .thenExecute(() -> use(helper, stranger, helper.findOneEntity(EntityTypes.ITEM).getItem(),
+                .thenExecute(() -> use(helper, stranger, helper.findOneEntity(EntityType.ITEM).getItem(),
                         ELSEWHERE))
                 .thenExecute(() -> helper.assertBlockPresent(Blocks.AIR, ELSEWHERE))
                 .thenExecute(() -> leave(helper, stranger))

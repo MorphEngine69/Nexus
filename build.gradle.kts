@@ -12,6 +12,7 @@ val modProperties = listOf(
     "mod_authors",
     "mod_description",
     "minecraft_version",
+    "minecraft_version_range",
     "neoforge_version",
     "neoforge_version_range",
     "loader_version_range",
@@ -207,10 +208,10 @@ repositories {
 
 dependencies {
     implementation("org.jspecify:jspecify:$jspecifyVersion")
-    val geckolib = "com.geckolib:geckolib-neoforge-${property("minecraft_version")}:${property("geckolib_version")}"
+    val geckolib = "com.geckolib:geckolib-neoforge-${property("geckolib_minecraft_version")}:${property("geckolib_version")}"
     implementation(geckolib)
     "interfaceInjectionData"(geckolib)
-    compileOnly("mezz.jei:jei-${property("minecraft_version")}-neoforge-api:${property("jei_version")}")
+    compileOnly("mezz.jei:jei-${property("jei_minecraft_version")}-neoforge-api:${property("jei_version")}")
     compileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${property("rei_version")}")
     compileOnly("maven.modrinth:jade:${property("jade_version")}")
     compileOnly("mcjty.theoneprobe:theoneprobe:${property("top_version")}:api")

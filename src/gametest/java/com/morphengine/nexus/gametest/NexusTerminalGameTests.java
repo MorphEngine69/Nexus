@@ -21,7 +21,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -111,7 +111,7 @@ public final class NexusTerminalGameTests {
         helper.startSequence()
                 .thenIdle(1)
                 .thenExecute(() -> helper.getLevel().destroyBlock(helper.absolutePos(NEXUS), true))
-                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityTypes.ITEM)))
+                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityType.ITEM)))
                 .thenIdle(1)
                 .thenExecute(() -> assertReaches(helper, terminal, ELSEWHERE))
                 .thenExecute(() -> helper.assertValueEqual(nexus(helper, ELSEWHERE).network().name(), "Farm",
@@ -161,7 +161,7 @@ public final class NexusTerminalGameTests {
 
         helper.startSequence()
                 .thenIdle(1)
-                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityTypes.ITEM)))
+                .thenExecute(() -> placeFrom(helper, ELSEWHERE, helper.findOneEntity(EntityType.ITEM)))
                 .thenIdle(1)
                 .thenExecute(() -> helper.assertValueEqual(nexus(helper, ELSEWHERE).network().id(), id,
                         Component.literal("id of the network of the Nexus broken in creative mode")))
@@ -177,7 +177,7 @@ public final class NexusTerminalGameTests {
 
         breakInCreative(helper, NEXUS);
 
-        helper.assertTrue(helper.getEntities(EntityTypes.ITEM).isEmpty(),
+        helper.assertTrue(helper.getEntities(EntityType.ITEM).isEmpty(),
                 Component.literal("a Nexus with the default network dropped in creative mode"));
         helper.succeed();
     }

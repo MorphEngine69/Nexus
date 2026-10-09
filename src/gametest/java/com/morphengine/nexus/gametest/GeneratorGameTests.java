@@ -30,7 +30,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -339,7 +339,7 @@ public final class GeneratorGameTests {
     private static void movesInBiofuel(final GameTestHelper helper) {
         final BlockPos pos = new BlockPos(1, 2, 1);
         helper.setBlock(pos, NexusFluids.BIOFUEL_BLOCK.get().defaultBlockState());
-        final Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, pos);
+        final Zombie zombie = helper.spawn(EntityType.ZOMBIE, pos);
         final FluidType biofuel = NexusFluids.BIOFUEL_TYPE.get();
         final Vec3 before = zombie.position();
 

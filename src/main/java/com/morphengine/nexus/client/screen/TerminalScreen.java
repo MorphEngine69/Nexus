@@ -239,7 +239,7 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
 
     private void openCraftRequest(final NexusResource resource) {
         if (minecraft != null) {
-            minecraft.gui.setScreen(new CraftRequestScreen<>(this, getMenu(), resource));
+            minecraft.setScreen(new CraftRequestScreen<>(this, getMenu(), resource));
         }
     }
 
