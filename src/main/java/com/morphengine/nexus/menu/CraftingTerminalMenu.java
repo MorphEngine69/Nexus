@@ -12,6 +12,7 @@ import com.morphengine.nexus.terminal.TerminalLayout;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -239,7 +240,7 @@ public final class CraftingTerminalMenu extends AbstractContainerMenu implements
             return ItemStack.EMPTY;
         }
         slot.onTake(clicker, stack);
-        clicker.drop(stack, false);
+        clicker.drop(stack, false, Prediction.PREDICTED);
         return original;
     }
 

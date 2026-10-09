@@ -1,8 +1,6 @@
 package com.morphengine.nexus.block;
 
 import com.geckolib.animation.RawAnimation;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.morphengine.nexus.block.entity.EnergyCellBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
 import com.morphengine.nexus.registry.NexusBlocks;
@@ -27,11 +25,6 @@ import org.jspecify.annotations.Nullable;
  * anything else goes through a Puller or a Pusher.
  */
 public final class EnergyCellBlock extends NetworkDeviceBlock implements TieredBlock {
-
-    public static final MapCodec<EnergyCellBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    EnergyCellTier.CODEC.fieldOf("tier").forGetter(EnergyCellBlock::tier),
-                    propertiesCodec())
-            .apply(instance, EnergyCellBlock::new));
 
     /** Energy came in during the last second: the charge bars run. Set only by the server. */
     public static final BooleanProperty CHARGING = BooleanProperty.create("charging");
@@ -95,11 +88,6 @@ public final class EnergyCellBlock extends NetworkDeviceBlock implements TieredB
     @Override
     protected RenderShape getRenderShape(final BlockState state) {
         return RenderShape.INVISIBLE;
-    }
-
-    @Override
-    protected MapCodec<EnergyCellBlock> codec() {
-        return CODEC;
     }
 
     @Override

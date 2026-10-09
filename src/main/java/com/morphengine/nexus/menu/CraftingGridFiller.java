@@ -7,6 +7,7 @@ import com.morphengine.nexus.level.PlayerActor;
 import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.terminal.GridFill;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -128,7 +129,7 @@ final class CraftingGridFiller {
                 stack.shrink((int) storage.insert(ItemKey.of(stack), stack.getCount(), Action.EXECUTE, actor));
             }
             if (!stack.isEmpty()) {
-                player.getInventory().placeItemBackInInventory(stack);
+                player.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
             }
         }
         grid.setChanged();

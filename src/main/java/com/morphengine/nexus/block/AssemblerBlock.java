@@ -1,7 +1,6 @@
 package com.morphengine.nexus.block;
 
 import com.geckolib.animation.RawAnimation;
-import com.mojang.serialization.MapCodec;
 import com.morphengine.nexus.api.network.DeviceRole;
 import com.morphengine.nexus.block.entity.AssemblerBlockEntity;
 import com.morphengine.nexus.registry.NexusBlockEntityTypes;
@@ -33,7 +32,6 @@ import org.jspecify.annotations.Nullable;
  */
 public final class AssemblerBlock extends NetworkDeviceBlock implements Turnable {
 
-    public static final MapCodec<AssemblerBlock> CODEC = simpleCodec(AssemblerBlock::new);
     /** The face that touches the machine it works with. */
     public static final EnumProperty<Direction> FACING = DirectionalBlock.FACING;
     /** The network has energy. Set only by the server. */
@@ -65,11 +63,6 @@ public final class AssemblerBlock extends NetworkDeviceBlock implements Turnable
     @Override
     protected RenderShape getRenderShape(final BlockState state) {
         return RenderShape.INVISIBLE;
-    }
-
-    @Override
-    protected MapCodec<AssemblerBlock> codec() {
-        return CODEC;
     }
 
     @Override

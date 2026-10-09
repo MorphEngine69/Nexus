@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.morphengine.nexus.filter.FilterSlots;
 import com.morphengine.nexus.menu.FilterMenu;
 import com.morphengine.nexus.networking.FilterSlotPayload;
@@ -13,7 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -158,7 +158,7 @@ final class FilterGrid<M extends AbstractContainerMenu & FilterMenu> {
      *         slot's resource rather than to clear it
      */
     static boolean asksForNextTag(final MouseButtonEvent event) {
-        return event.button() == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || event.hasControlDown();
+        return event.button() == InputConstants.MOUSE_BUTTON_MIDDLE || event.hasControlDown();
     }
 
     private boolean isLocked() {

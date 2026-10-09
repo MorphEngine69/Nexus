@@ -185,7 +185,7 @@ public final class NexusBlocks {
                     cableName(color),
                     properties -> new CableBlock(color, properties),
                     properties -> properties.strength(CABLE_HARDNESS).sound(SoundType.METAL)
-                            .pushReaction(PushReaction.BLOCK)));
+                            .pushReaction(PushReaction.IMMOVEABLE)));
         }
         return Collections.unmodifiableMap(cables);
     }

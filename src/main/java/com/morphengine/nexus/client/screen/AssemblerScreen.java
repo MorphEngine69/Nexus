@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.morphengine.nexus.Nexus;
 import com.morphengine.nexus.block.AssemblerBlock;
 import com.morphengine.nexus.block.AssemblerChain;
@@ -14,7 +15,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.block.state.BlockState;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -137,7 +137,7 @@ public final class AssemblerScreen extends PanelScreen<AssemblerMenu> implements
             return super.mouseClicked(event, doubleClick);
         }
         if (sideButtons().buttonAt(event.x(), event.y()) == 0 && minecraft.gameMode != null) {
-            final boolean backwards = event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT;
+            final boolean backwards = event.button() == InputConstants.MOUSE_BUTTON_RIGHT;
             minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId,
                     AssemblerMenu.BUTTON_LOCK + (backwards ? 1 : 0));
             return true;

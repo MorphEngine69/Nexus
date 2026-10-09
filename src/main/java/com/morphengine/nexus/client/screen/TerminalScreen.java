@@ -1,5 +1,6 @@
 package com.morphengine.nexus.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.morphengine.nexus.menu.BlueprintTerminalMenu;
 import com.morphengine.nexus.menu.TerminalPanel;
 import com.morphengine.nexus.networking.TerminalClickPayload;
@@ -22,7 +23,6 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.Locale;
@@ -223,7 +223,7 @@ public final class TerminalScreen<M extends AbstractContainerMenu & TerminalPane
         }
         final NexusResource resource = grid.resourceAt(event.x(), event.y());
         final TerminalContents contents = getMenu().terminal().contents();
-        final boolean asksToCraft = event.hasControlDown() || event.button() == GLFW.GLFW_MOUSE_BUTTON_MIDDLE
+        final boolean asksToCraft = event.hasControlDown() || event.button() == InputConstants.MOUSE_BUTTON_MIDDLE
                 || resource != null && contents.amountOf(resource) == 0;
         if (resource != null && contents.isCraftable(resource) && asksToCraft && getMenu().getCarried().isEmpty()) {
             openCraftRequest(resource);

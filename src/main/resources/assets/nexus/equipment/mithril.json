@@ -15,5 +15,13 @@
         "texture": "nexus:mithril"
       }
     ]
-  }
+  },
+  "trim_overrides": [
+    {
+      "palette": "nexus:trim/mithril_darker",
+      "when": {
+        "material": "nexus:mithril"
+      }
+    }
+  ]
 }

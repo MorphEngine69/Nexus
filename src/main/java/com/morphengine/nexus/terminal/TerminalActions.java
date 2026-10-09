@@ -8,6 +8,7 @@ import com.morphengine.nexus.resource.FluidKey;
 import com.morphengine.nexus.resource.ItemKey;
 import com.morphengine.nexus.resource.NexusResource;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
@@ -101,7 +102,7 @@ public final class TerminalActions {
             player.getInventory().add(stack);
             insert(stack);
             if (!stack.isEmpty()) {
-                player.drop(stack, false);
+                player.drop(stack, false, Prediction.SERVER_ONLY);
             }
         }
     }
