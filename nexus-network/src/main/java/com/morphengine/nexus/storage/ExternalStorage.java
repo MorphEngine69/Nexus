@@ -94,11 +94,13 @@ public final class ExternalStorage implements Storage {
                 changes.put(now.resource(), now.amount());
             }
         }
-        shown.clear();
-        for (ResourceAmount now : fresh.contents()) {
-            shown.add(now.resource(), now.amount());
+        if (!changes.isEmpty()) {
+            shown.clear();
+            for (ResourceAmount now : fresh.contents()) {
+                shown.add(now.resource(), now.amount());
+            }
+            changes.forEach(sink::changed);
         }
-        changes.forEach(sink::changed);
         return new Scan(listed, changes.size());
     }
 

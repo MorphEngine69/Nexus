@@ -3,6 +3,8 @@ package com.morphengine.nexus.menu;
 import com.morphengine.nexus.api.automation.CraftingPlan;
 import com.morphengine.nexus.api.network.security.Permission;
 import com.morphengine.nexus.api.storage.Storage;
+import com.morphengine.nexus.automation.PlanGoal;
+import com.morphengine.nexus.automation.RequestThrottle;
 import com.morphengine.nexus.level.AutocraftingComponent;
 import com.morphengine.nexus.networking.CraftPlanPayload;
 import com.morphengine.nexus.resource.NexusResource;
@@ -14,12 +16,18 @@ import com.morphengine.nexus.terminal.TerminalContents;
 import com.morphengine.nexus.terminal.TerminalKind;
 import com.morphengine.nexus.terminal.TerminalSession;
 import com.morphengine.nexus.terminal.TerminalSettings;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * What every terminal menu shares: what it is bound to, its kind and settings
@@ -27,6 +35,11 @@ import org.jspecify.annotations.Nullable;
  * what it was fed.
  */
 public final class TerminalMenuState {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TerminalMenuState.class);
+
+    /** A player reads a plan before starting it, so only a flood of requests comes sooner than this. */
+    private static final int PLAN_COOLDOWN_TICKS = 3;
 
     private final TerminalBinding binding;
     private final TerminalSettings settings;
@@ -37,6 +50,9 @@ public final class TerminalMenuState {
     private final @Nullable TerminalSession session;
     private final AccessSync access;
     private @Nullable NetworkBadge badge;
+    private final RequestThrottle planThrottle = new RequestThrottle(PLAN_COOLDOWN_TICKS);
+    private @Nullable CompletableFuture<CraftingPlan> pendingPlan;
+    private boolean closed;
 
     public TerminalMenuState(final TerminalOpening opening, final TerminalKind kind, final int containerId) {
         this.binding = opening.binding();
@@ -109,6 +125,8 @@ public final class TerminalMenuState {
     }
 
     public void close() {
+        closed = true;
+        cancelPlanning();
         if (session != null) {
             session.close();
         }
@@ -137,22 +155,64 @@ public final class TerminalMenuState {
      * Plans crafting {@code amount} of {@code resource}, or for {@link
      * CraftRequest#CRAFT_LESS} the most of it that can start, and, when asked
      * to and the plan can start, starts it; the player is sent the plan either
-     * way. Only for a player who may order crafting in the network.
+     * way. Only for a player who may order crafting in the network. Planning walks the whole recipe tree, so it is
+     * done on a thread of its own and the answer comes some ticks later; a request replaces the one still being
+     * planned, and a request that follows another too soon is dropped.
      */
     public void requestCraft(
             final ServerPlayer player, final NexusResource resource, final long amount, final CraftRequest request) {
         final TerminalHost host = binding.host();
         final AutocraftingComponent autocrafting = host != null ? host.onlineAutocrafting() : null;
         final Storage storage = onlineStorage();
-        if (autocrafting == null || storage == null || amount <= 0 || !permits(player, Permission.AUTOCRAFTING)) {
+        final MinecraftServer server = player.level().getServer();
+        if (autocrafting == null || storage == null || server == null || !mayPlan(player, amount)) {
             return;
         }
-        final CraftingPlan plan = request == CraftRequest.CRAFT_LESS
-                ? autocrafting.planLargest(resource, amount, storage)
-                : autocrafting.plan(resource, amount, storage);
-        final boolean started = request == CraftRequest.START && autocrafting.start(plan, player.getName().getString());
+        cancelPlanning();
+        final PlanGoal goal = request == CraftRequest.CRAFT_LESS ? PlanGoal.LARGEST : PlanGoal.EXACT;
+        final CompletableFuture<CraftingPlan> planning = autocrafting.planAsync(resource, amount, storage, goal);
+        pendingPlan = planning;
+        planning.thenAcceptAsync(plan -> deliver(player, autocrafting, plan, request), server::execute)
+                .exceptionally(TerminalMenuState::logUnlessCancelled);
+    }
+
+    private void deliver(
+            final ServerPlayer player, final AutocraftingComponent autocrafting, final CraftingPlan plan,
+            final CraftRequest request) {
+        if (closed) {
+            return;
+        }
+        final boolean started = request == CraftRequest.START && start(player, autocrafting, plan);
         PacketDistributor.sendToPlayer(player, new CraftPlanPayload(containerId, PlanPreview.of(plan),
                 outcomeOf(request, started)));
+    }
+
+    private boolean start(
+            final ServerPlayer player, final AutocraftingComponent autocrafting, final CraftingPlan plan) {
+        final TerminalHost host = binding.host();
+        return host != null && host.onlineAutocrafting() == autocrafting
+                && autocrafting.start(plan, player.getName().getString());
+    }
+
+    private void cancelPlanning() {
+        if (pendingPlan != null) {
+            pendingPlan.cancel(true);
+            pendingPlan = null;
+        }
+    }
+
+    private static @Nullable Void logUnlessCancelled(final Throwable failure) {
+        if (!(failure instanceof CancellationException) && !(failure.getCause() instanceof CancellationException)) {
+            LOGGER.warn("Crafting plan failed", failure);
+        }
+        return null;
+    }
+
+    private boolean mayPlan(final ServerPlayer player, final long amount) {
+        if (amount <= 0 || !permits(player, Permission.AUTOCRAFTING)) {
+            return false;
+        }
+        return planThrottle.tryAdmit(player.level().getGameTime());
     }
 
     private static CraftRequest outcomeOf(final CraftRequest request, final boolean started) {
