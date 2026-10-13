@@ -52,6 +52,32 @@ class NetworkGraphsTest {
     }
 
     @Test
+    void nodesComeInBreadthFirstOrder() {
+        final FakeNode a = new FakeNode("a");
+        final FakeNode b = new FakeNode("b");
+        final FakeNode c = new FakeNode("c");
+        final FakeNode d = new FakeNode("d");
+        final FakeNode e = new FakeNode("e");
+        final Map<NetworkNode, List<NetworkNode>> edges = Map.of(
+                a, List.of(b, c),
+                b, List.of(d),
+                c, List.of(e));
+
+        final Set<NetworkNode> reachable = NetworkGraphs.reachableFrom(a, node -> edges.getOrDefault(node, List.of()));
+
+        assertThat(reachable).containsExactly(a, b, c, d, e);
+    }
+
+    @Test
+    void reachableNodesCannotBeChanged() {
+        final FakeNode start = new FakeNode("a");
+
+        final Set<NetworkNode> reachable = NetworkGraphs.reachableFrom(start, node -> List.of());
+
+        assertThatThrownBy(() -> reachable.add(new FakeNode("b"))).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
     void rejectsNullArguments() {
         final FakeNode start = new FakeNode("a");
 
