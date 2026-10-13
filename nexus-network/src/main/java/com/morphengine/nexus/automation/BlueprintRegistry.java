@@ -3,11 +3,10 @@ package com.morphengine.nexus.automation;
 import com.morphengine.nexus.api.automation.Blueprint;
 import com.morphengine.nexus.api.automation.BlueprintExecutor;
 import com.morphengine.nexus.api.automation.BlueprintProvider;
-import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.api.resource.ResourceKey;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,6 +26,8 @@ public final class BlueprintRegistry implements BlueprintProvider {
 
     private final Map<Blueprint, List<Offer>> offers = new LinkedHashMap<>();
     private int revision;
+    private BlueprintIndex lookup = BlueprintIndex.EMPTY;
+    private boolean lookupOutdated;
 
     /**
      * Replaces whatever {@code executor} offered before with {@code blueprints}.
@@ -44,7 +45,7 @@ public final class BlueprintRegistry implements BlueprintProvider {
             }
             executors.add(index, new Offer(executor, priority));
         }
-        revision++;
+        changed();
     }
 
     /**
@@ -52,7 +53,7 @@ public final class BlueprintRegistry implements BlueprintProvider {
      */
     public void withdraw(final BlueprintExecutor executor) {
         if (withdrawSilently(executor)) {
-            revision++;
+            changed();
         }
     }
 
@@ -63,49 +64,50 @@ public final class BlueprintRegistry implements BlueprintProvider {
         return revision;
     }
 
+    /**
+     * @return the blueprints as they stand now, which later changes to this registry do not touch; safe to read on
+     *         any thread. Built when first asked for after a change and shared until the next one.
+     */
+    public BlueprintProvider snapshot() {
+        if (lookupOutdated) {
+            lookup = buildIndex();
+            lookupOutdated = false;
+        }
+        return lookup;
+    }
+
     @Override
     public List<Blueprint> blueprintsFor(final ResourceKey resource) {
-        final List<Blueprint> found = new ArrayList<>();
-        for (Map.Entry<Blueprint, List<Offer>> entry : offers.entrySet()) {
-            if (entry.getKey().outputOf(resource) > 0) {
-                insertByPriority(found, entry.getKey());
-            }
-        }
-        return Collections.unmodifiableList(found);
+        return snapshot().blueprintsFor(resource);
     }
 
     @Override
     public List<BlueprintExecutor> executorsFor(final Blueprint blueprint) {
-        final List<Offer> executors = offers.getOrDefault(blueprint, List.of());
-        final List<BlueprintExecutor> found = new ArrayList<>(executors.size());
-        for (Offer offer : executors) {
-            found.add(offer.executor());
-        }
-        return Collections.unmodifiableList(found);
+        return snapshot().executorsFor(blueprint);
     }
 
     @Override
     public Set<ResourceKey> craftables() {
-        final Set<ResourceKey> craftables = new LinkedHashSet<>();
-        for (Blueprint blueprint : offers.keySet()) {
-            for (ResourceAmount output : blueprint.outputs()) {
-                craftables.add(output.resource());
+        return snapshot().craftables();
+    }
+
+    private void changed() {
+        revision++;
+        lookupOutdated = true;
+    }
+
+    private BlueprintIndex buildIndex() {
+        final Map<Blueprint, List<BlueprintExecutor>> executors = new LinkedHashMap<>();
+        final Map<Blueprint, Integer> priorities = new HashMap<>();
+        for (Map.Entry<Blueprint, List<Offer>> entry : offers.entrySet()) {
+            final List<BlueprintExecutor> offering = new ArrayList<>(entry.getValue().size());
+            for (Offer offer : entry.getValue()) {
+                offering.add(offer.executor());
             }
+            executors.put(entry.getKey(), offering);
+            priorities.put(entry.getKey(), entry.getValue().getFirst().priority());
         }
-        return Collections.unmodifiableSet(craftables);
-    }
-
-    private void insertByPriority(final List<Blueprint> found, final Blueprint blueprint) {
-        final int priority = bestPriority(blueprint);
-        int index = 0;
-        while (index < found.size() && bestPriority(found.get(index)) >= priority) {
-            index++;
-        }
-        found.add(index, blueprint);
-    }
-
-    private int bestPriority(final Blueprint blueprint) {
-        return offers.get(blueprint).getFirst().priority();
+        return BlueprintIndex.of(executors, priorities);
     }
 
     private boolean withdrawSilently(final BlueprintExecutor executor) {

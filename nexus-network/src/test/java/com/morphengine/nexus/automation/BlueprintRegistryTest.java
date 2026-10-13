@@ -1,6 +1,7 @@
 package com.morphengine.nexus.automation;
 
 import com.morphengine.nexus.api.automation.Blueprint;
+import com.morphengine.nexus.api.automation.BlueprintProvider;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -84,5 +85,44 @@ class BlueprintRegistryTest {
         registry.withdraw(first);
 
         assertThat(registry.revision()).isEqualTo(before);
+    }
+
+    @Test
+    void aSnapshotDoesNotFollowLaterChanges() {
+        registry.offer(first, List.of(STICKS_FROM_PLANKS), 0);
+        final BlueprintProvider snapshot = registry.snapshot();
+
+        registry.offer(second, List.of(PLANKS_FROM_LOG), 0);
+        registry.withdraw(first);
+
+        assertThat(snapshot.blueprintsFor(STICK)).containsExactly(STICKS_FROM_PLANKS);
+        assertThat(snapshot.blueprintsFor(PLANKS)).isEmpty();
+        assertThat(snapshot.executorsFor(STICKS_FROM_PLANKS)).containsExactly(first);
+        assertThat(snapshot.craftables()).containsExactly(STICK);
+    }
+
+    @Test
+    void aSnapshotAnswersAsTheRegistryDid() {
+        final Blueprint sticksFromLogs = crafting(List.of(amount(LOG, 1)), amount(STICK, 2));
+        registry.offer(first, List.of(STICKS_FROM_PLANKS, PLANKS_FROM_LOG), 0);
+        registry.offer(second, List.of(sticksFromLogs, STICKS_FROM_PLANKS), 1);
+
+        final BlueprintProvider snapshot = registry.snapshot();
+
+        assertThat(snapshot.blueprintsFor(STICK)).containsExactly(STICKS_FROM_PLANKS, sticksFromLogs);
+        assertThat(snapshot.executorsFor(STICKS_FROM_PLANKS)).containsExactly(second, first);
+        assertThat(snapshot.blueprintsFor(STICK)).isEqualTo(registry.blueprintsFor(STICK));
+        assertThat(snapshot.craftables()).containsExactlyInAnyOrder(STICK, PLANKS);
+    }
+
+    @Test
+    void theSnapshotIsSharedUntilTheNextChange() {
+        registry.offer(first, List.of(STICKS_FROM_PLANKS), 0);
+
+        final BlueprintProvider before = registry.snapshot();
+
+        assertThat(registry.snapshot()).isSameAs(before);
+        registry.offer(second, List.of(PLANKS_FROM_LOG), 0);
+        assertThat(registry.snapshot()).isNotSameAs(before);
     }
 }

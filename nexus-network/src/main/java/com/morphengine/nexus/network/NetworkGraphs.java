@@ -4,6 +4,7 @@ import com.morphengine.nexus.api.network.ConnectionProvider;
 import com.morphengine.nexus.api.network.NetworkNode;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -20,7 +21,8 @@ public final class NetworkGraphs {
     }
 
     /**
-     * @return {@code start} and every node reachable from it, in breadth-first order
+     * @return {@code start} and every node reachable from it, in breadth-first order; an unmodifiable view
+     *         the caller owns, not copied
      */
     public static Set<NetworkNode> reachableFrom(final NetworkNode start, final ConnectionProvider connections) {
         Objects.requireNonNull(start, "start must not be null");
@@ -40,6 +42,6 @@ public final class NetworkGraphs {
             }
         }
 
-        return Set.copyOf(visited);
+        return Collections.unmodifiableSet(visited);
     }
 }
