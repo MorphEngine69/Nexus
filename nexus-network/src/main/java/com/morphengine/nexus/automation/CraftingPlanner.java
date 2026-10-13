@@ -14,6 +14,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
 
 /**
  * Works out what crafting an amount of a resource takes. The resource asked
@@ -30,7 +31,8 @@ import java.util.Objects;
  * could never start, so such a loop counts as missing. So do trees deeper than
  * {@value #MAX_DEPTH} levels, plans that look at more than {@value
  * #MAX_REQUESTS} ingredients, and amounts too large for a {@code long}.
- * Reads the storage only; server thread only.
+ * Only reads the storage and the blueprints it is given, and keeps its own state, so with snapshots of both it
+ * can run on a thread of its own, one thread at a time.
  */
 public final class CraftingPlanner {
 
@@ -39,6 +41,7 @@ public final class CraftingPlanner {
 
     private final BlueprintProvider blueprints;
     private final StorageView storage;
+    private final BooleanSupplier isCancelled;
     private final Deque<ResourceKey> path = new ArrayDeque<>();
     private int requests;
 
@@ -46,8 +49,18 @@ public final class CraftingPlanner {
      * @param storage the network's storage, read as it stands while planning
      */
     public CraftingPlanner(final BlueprintProvider blueprints, final StorageView storage) {
+        this(blueprints, storage, () -> false);
+    }
+
+    /**
+     * @param isCancelled asked while planning; once it says yes the planner stops looking at ingredients and returns
+     *                    at once with a plan that is not worth using
+     */
+    public CraftingPlanner(
+            final BlueprintProvider blueprints, final StorageView storage, final BooleanSupplier isCancelled) {
         this.blueprints = Objects.requireNonNull(blueprints, "blueprints must not be null");
         this.storage = Objects.requireNonNull(storage, "storage must not be null");
+        this.isCancelled = Objects.requireNonNull(isCancelled, "isCancelled must not be null");
     }
 
     /**
@@ -81,7 +94,7 @@ public final class CraftingPlanner {
         @Nullable CraftingPlan best = null;
         long works = 0;
         long fails = amount;
-        while (fails - works > 1) {
+        while (fails - works > 1 && !isCancelled.getAsBoolean()) {
             final long middle = works + (fails - works) / 2;
             final CraftingPlan attempt = plan(resource, middle);
             if (attempt.isComplete()) {
@@ -143,7 +156,8 @@ public final class CraftingPlanner {
      *         go past the limits of a plan
      */
     private boolean isOutOfReach(final ResourceKey resource) {
-        return requests > MAX_REQUESTS || path.size() >= MAX_DEPTH || path.contains(resource);
+        return requests > MAX_REQUESTS || path.size() >= MAX_DEPTH || path.contains(resource)
+                || isCancelled.getAsBoolean();
     }
 
     private void craftWith(

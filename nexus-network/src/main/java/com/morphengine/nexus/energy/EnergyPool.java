@@ -46,8 +46,8 @@ public final class EnergyPool implements EnergyBuffer {
     @Override
     public long stored() {
         long total = 0;
-        for (EnergyBuffer buffer : buffers) {
-            total = SaturatedMath.add(total, buffer.stored());
+        for (int i = 0; i < buffers.size(); i++) {
+            total = SaturatedMath.add(total, buffers.get(i).stored());
         }
         return total;
     }
@@ -55,8 +55,8 @@ public final class EnergyPool implements EnergyBuffer {
     @Override
     public long capacity() {
         long total = 0;
-        for (EnergyBuffer buffer : buffers) {
-            total = SaturatedMath.add(total, buffer.capacity());
+        for (int i = 0; i < buffers.size(); i++) {
+            total = SaturatedMath.add(total, buffers.get(i).capacity());
         }
         return total;
     }
@@ -84,8 +84,8 @@ public final class EnergyPool implements EnergyBuffer {
     @Override
     public long totalInserted() {
         long total = 0;
-        for (EnergyBuffer buffer : buffers) {
-            total = SaturatedMath.add(total, buffer.totalInserted());
+        for (int i = 0; i < buffers.size(); i++) {
+            total = SaturatedMath.add(total, buffers.get(i).totalInserted());
         }
         return total;
     }
@@ -93,8 +93,8 @@ public final class EnergyPool implements EnergyBuffer {
     @Override
     public long totalExtracted() {
         long total = 0;
-        for (EnergyBuffer buffer : buffers) {
-            total = SaturatedMath.add(total, buffer.totalExtracted());
+        for (int i = 0; i < buffers.size(); i++) {
+            total = SaturatedMath.add(total, buffers.get(i).totalExtracted());
         }
         return total;
     }
