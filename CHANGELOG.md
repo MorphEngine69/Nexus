@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.2] - 2026-10-13
+
+### Changed
+
+- Asking a terminal for a crafting plan no longer holds up the server. The plan is worked out in the background and
+  shows in the order window a moment later; asking again while one is being worked out replaces it, and closing the
+  window stops it. Asking again within a few ticks of the last request is ignored.
+- Large networks are rebuilt faster, in particular a network that reaches into a chunk that is not loaded.
+- A block lent to the network by an External Vault is read again only as much as it needs when nothing in it changes.
+
+### Fixed
+
+- A terminal no longer fails to update when a network with a very large number of different items changes all at once.
+
 ## [1.0.0-beta.1] - 2026-10-08
 
 ### Added
