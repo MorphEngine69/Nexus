@@ -28,6 +28,7 @@ import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -167,13 +168,19 @@ public final class NetworkState {
         if (server == null) {
             return;
         }
+        final boolean retry = !stale;
         final ServerConnections connections = new ServerConnections(server);
         final BlockNode controllerNode = BlockNode.of(level, origin);
         final Set<NetworkNode> reachable = NetworkGraphs.reachableFrom(controllerNode, connections);
         partial = connections.reachedUnloaded();
         stale = false;
         conflict = ledByAnother(connections, reachable, controllerNode);
-        adopt(conflict ? Membership.EMPTY : Membership.scan(connections, reachable, controllerNode));
+        final Membership found = conflict ? Membership.EMPTY : Membership.scan(connections, reachable, controllerNode);
+        if (retry && found.sameParticipantsAs(membership)) {
+            membership = found;
+        } else {
+            adopt(found);
+        }
         if (!conflict) {
             paintDevices(level, controller.network().color());
         }
@@ -226,8 +233,10 @@ public final class NetworkState {
     }
 
     private void adopt(final Membership found) {
+        final Set<NetworkMember> staying = Collections.newSetFromMap(new IdentityHashMap<>());
+        staying.addAll(found.members());
         for (NetworkMember previous : membership.members()) {
-            if (!found.members().contains(previous)) {
+            if (!staying.contains(previous)) {
                 previous.leaveNetwork(controller);
             }
         }
@@ -334,6 +343,23 @@ public final class NetworkState {
 
         static final Membership EMPTY =
                 new Membership(List.of(), List.of(), List.of(), List.of(), 0, Map.of());
+
+        /**
+         * Whether the same block entities take part, so that members and the pool need no new introduction. Cables
+         * and the devices' positions may still differ.
+         */
+        boolean sameParticipantsAs(final Membership other) {
+            return sameInstances(members, other.members) && sameInstances(contributors, other.contributors);
+        }
+
+        private static <T> boolean sameInstances(final List<T> first, final List<T> second) {
+            if (first.size() != second.size()) {
+                return false;
+            }
+            final Set<T> instances = Collections.newSetFromMap(new IdentityHashMap<>());
+            instances.addAll(first);
+            return instances.containsAll(second);
+        }
 
         static Membership scan(
                 final ServerConnections connections, final Set<NetworkNode> reachable,
