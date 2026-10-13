@@ -1,13 +1,17 @@
 package com.morphengine.nexus.automation;
 
 import com.morphengine.nexus.api.automation.Blueprint;
+import com.morphengine.nexus.api.automation.BlueprintExecutor;
 import com.morphengine.nexus.api.automation.BlueprintKind;
+import com.morphengine.nexus.api.automation.BlueprintProvider;
 import com.morphengine.nexus.api.automation.CraftingPlan;
 import com.morphengine.nexus.api.automation.PlannedRuns;
+import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.storage.NetworkStorage;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.morphengine.nexus.automation.Recipes.COAL;
 import static com.morphengine.nexus.automation.Recipes.INGOT;
@@ -280,11 +284,55 @@ class CraftingPlannerTest {
         assertThat(plan.target()).isEqualTo(amount(STICK, 8));
     }
 
+    @Test
+    void aCancelledPlannerStopsAtTheFirstResource() {
+        offer(PLANKS_FROM_LOG, STICKS_FROM_PLANKS);
+        final int[] asked = {0};
+        final BlueprintProvider counting = new CountingProvider(registry, asked);
+
+        final CraftingPlan plan = new CraftingPlanner(counting, network(amount(LOG, 9)), () -> true).plan(STICK, 8);
+
+        assertThat(asked[0]).isEqualTo(1);
+        assertThat(plan.isComplete()).isFalse();
+    }
+
+    @Test
+    void aCancelledPlannerDoesNotSearchForTheLargestAmount() {
+        offer(STICKS_FROM_PLANKS);
+        final int[] asked = {0};
+        final BlueprintProvider counting = new CountingProvider(registry, asked);
+
+        final CraftingPlan plan = new CraftingPlanner(counting, network(amount(PLANKS, 5)), () -> true)
+                .planLargest(STICK, 100);
+
+        assertThat(asked[0]).isEqualTo(1);
+        assertThat(plan.target()).isEqualTo(amount(STICK, 100));
+    }
+
     private void offer(final Blueprint... blueprints) {
         registry.offer(assembler, List.of(blueprints), 0);
     }
 
     private CraftingPlanner planner(final NetworkStorage storage) {
         return new CraftingPlanner(registry, storage);
+    }
+
+    private record CountingProvider(BlueprintProvider delegate, int[] asked) implements BlueprintProvider {
+
+        @Override
+        public List<Blueprint> blueprintsFor(final ResourceKey resource) {
+            asked[0]++;
+            return delegate.blueprintsFor(resource);
+        }
+
+        @Override
+        public List<BlueprintExecutor> executorsFor(final Blueprint blueprint) {
+            return delegate.executorsFor(blueprint);
+        }
+
+        @Override
+        public Set<ResourceKey> craftables() {
+            return delegate.craftables();
+        }
     }
 }

@@ -9,9 +9,11 @@ import com.morphengine.nexus.api.automation.TaskStatus;
 import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.resource.ResourceKey;
 import com.morphengine.nexus.api.storage.StorageView;
+import com.morphengine.nexus.automation.AsyncCraftingPlanner;
 import com.morphengine.nexus.automation.BlueprintRegistry;
 import com.morphengine.nexus.automation.CraftingPlanner;
 import com.morphengine.nexus.automation.CraftingTask;
+import com.morphengine.nexus.automation.PlanGoal;
 import com.morphengine.nexus.storage.InsertInterceptor;
 import org.jspecify.annotations.Nullable;
 
@@ -19,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Autocrafting of one network: the blueprints its {@link AutocraftingHost}s
@@ -29,6 +33,7 @@ import java.util.UUID;
 public final class AutocraftingComponent implements NetworkComponent, InsertInterceptor {
 
     private final BlueprintRegistry registry = new BlueprintRegistry();
+    private final AsyncCraftingPlanner planner = new AsyncCraftingPlanner(ForkJoinPool.commonPool());
     private final List<AutocraftingHost> hosts = new ArrayList<>();
 
     @Override
@@ -89,12 +94,14 @@ public final class AutocraftingComponent implements NetworkComponent, InsertInte
     }
 
     /**
-     * @param storage the network's storage, read as it stands
-     * @return the plan for the most of {@code resource}, up to {@code amount},
-     *         that can start; see {@link CraftingPlanner#planLargest}
+     * Plans {@code amount} of {@code resource} on a thread of its own, from the blueprints and storage as they stand
+     * now. Cancelling the result stops the work.
+     *
+     * @param storage the network's storage, copied before this returns
      */
-    public CraftingPlan planLargest(final ResourceKey resource, final long amount, final StorageView storage) {
-        return new CraftingPlanner(registry, storage).planLargest(resource, amount);
+    public CompletableFuture<CraftingPlan> planAsync(
+            final ResourceKey resource, final long amount, final StorageView storage, final PlanGoal goal) {
+        return planner.plan(registry, storage, resource, amount, goal);
     }
 
     /**

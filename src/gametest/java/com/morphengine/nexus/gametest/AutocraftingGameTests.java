@@ -7,6 +7,7 @@ import com.morphengine.nexus.api.core.Action;
 import com.morphengine.nexus.api.energy.EnergyBuffer;
 import com.morphengine.nexus.api.resource.ResourceAmount;
 import com.morphengine.nexus.assembler.LockMode;
+import com.morphengine.nexus.automation.PlanGoal;
 import com.morphengine.nexus.block.AssemblerBlock;
 import com.morphengine.nexus.block.StorageVaultBlock;
 import com.morphengine.nexus.block.TransferDeviceBlock;
@@ -60,6 +61,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
@@ -88,6 +91,7 @@ public final class AutocraftingGameTests {
     private static final Map<String, Consumer<GameTestHelper>> TESTS = Map.ofEntries(
             Map.entry("assembler_crafts_sticks_from_planks", AutocraftingGameTests::assemblerCraftsSticks),
             Map.entry("assembler_processes_in_machine_and_collects", AutocraftingGameTests::assemblerProcesses),
+            Map.entry("plan_made_off_thread_starts_a_task", AutocraftingGameTests::planMadeOffThreadStartsATask),
             Map.entry("assembler_pays_for_every_run", AutocraftingGameTests::assemblerPaysForARun),
             Map.entry("assembler_waits_when_the_network_cannot_pay_for_a_run",
                     AutocraftingGameTests::assemblerNeedsEnergyForARun),
@@ -135,6 +139,29 @@ public final class AutocraftingGameTests {
                         String.valueOf("the task is still kept")))
                 .thenExecute(() -> assertAmount(helper, network(helper).amountOf(key(Items.OAK_PLANKS)), 0,
                         "planks left in the network"))
+                .thenSucceed();
+    }
+
+    private static void planMadeOffThreadStartsATask(final GameTestHelper helper) {
+        buildNetwork(helper, Direction.UP, stored(Items.OAK_PLANKS, 2));
+        assembler(helper).blueprintSlots().setItem(0, blueprintOf(sticks()));
+        final AtomicReference<CompletableFuture<CraftingPlan>> planning = new AtomicReference<>();
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        autocrafting(helper).blueprints().craftables().contains(key(Items.STICK)),
+                        String.valueOf("the network does not know how to craft sticks")))
+                .thenExecute(() -> planning.set(
+                        autocrafting(helper).planAsync(key(Items.STICK), 4, network(helper), PlanGoal.EXACT)))
+                .thenWaitUntil(() -> helper.assertTrue(planning.get().isDone(),
+                        String.valueOf("the plan is not ready")))
+                .thenExecute(() -> {
+                    final CraftingPlan plan = planning.get().join();
+                    helper.assertTrue(autocrafting(helper).start(plan, "test"),
+                            String.valueOf("the plan did not start, missing " + plan.missing()));
+                })
+                .thenWaitUntil(() -> assertAmount(helper, network(helper).amountOf(key(Items.STICK)), 4,
+                        "sticks in the network"))
                 .thenSucceed();
     }
 
