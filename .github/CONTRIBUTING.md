@@ -58,6 +58,6 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and l
 in `gradle.properties`. A release is cut from `main` (or from `mc/{version}` for an older
 Minecraft version) by pushing a `{loader}-{minecraft}-v{version}` tag, for example
 `neoforge-26.2-v1.0.0-beta.1`; the release workflow builds the jar and publishes a GitHub
-Release containing the matching `CHANGELOG.md` section. A version with a hyphen, such as
-`1.0.0-beta.1`, is published as a pre-release. The jar is named
+Release containing the matching `CHANGELOG.md` section. Every version, one with a hyphen
+such as `1.0.0-beta.1` as well, is published as a regular release. The jar is named
 `nexus-{loader}-{minecraft}-{version}.jar`.
