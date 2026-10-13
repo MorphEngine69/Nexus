@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public final class TerminalSession implements StorageListener {
 
-    /** Entries per packet of a full listing, so a huge network never makes one oversized packet. */
+    /** Entries per packet of a listing or of changes, so a huge network never makes one oversized packet. */
     private static final int LISTING_CHUNK = 512;
     private static final int ENERGY_REFRESH_TICKS = 10;
 
@@ -70,11 +70,21 @@ public final class TerminalSession implements StorageListener {
             refreshEnergy(terminal.onlineResources());
         }
         if (!pending.isEmpty()) {
-            final List<TerminalEntry> changes = new ArrayList<>(pending.size());
-            for (Map.Entry<NexusResource, Long> change : pending.entrySet()) {
-                changes.add(new TerminalEntry(change.getKey(), change.getValue()));
+            sendChanges(status);
+        }
+    }
+
+    private void sendChanges(final TerminalStatus status) {
+        List<TerminalEntry> changes = new ArrayList<>(Math.min(pending.size(), LISTING_CHUNK));
+        for (Map.Entry<NexusResource, Long> change : pending.entrySet()) {
+            changes.add(new TerminalEntry(change.getKey(), change.getValue()));
+            if (changes.size() == LISTING_CHUNK) {
+                send(status, false, changes);
+                changes = new ArrayList<>(LISTING_CHUNK);
             }
-            pending.clear();
+        }
+        pending.clear();
+        if (!changes.isEmpty()) {
             send(status, false, changes);
         }
     }
