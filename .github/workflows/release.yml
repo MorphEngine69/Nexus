@@ -1,8 +1,8 @@
 name: Release
 
 # A release is a tag named {loader}-{minecraft}-v{version}, for example
-# neoforge-26.2-v1.0.0-beta.1. The version is the mod_version of gradle.properties; one with a
-# hyphen, such as 1.0.0-beta.1, is published as a pre-release.
+# neoforge-26.2-v1.0.0-beta.1. The version is the mod_version of gradle.properties. Every
+# version, one with a hyphen such as 1.0.0-beta.1 as well, is published as a regular release.
 on:
   push:
     tags: ['neoforge-*-v*']
@@ -44,10 +44,6 @@ jobs:
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          case "$version" in
-            *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;;
-            *) echo "prerelease=false" >> "$GITHUB_OUTPUT" ;;
-          esac
 
       - name: Build
         run: ./gradlew build --stacktrace
@@ -67,7 +63,7 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           body_path: release-notes.md
-          prerelease: ${{ steps.version.outputs.prerelease }}
+          prerelease: false
           files: |
             build/libs/*.jar
             !build/libs/*-sources.jar
